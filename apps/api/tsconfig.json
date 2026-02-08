@@ -1,0 +1,9 @@
+{
+  "extends": "@shohoj-hishab/typescript-config/nest",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
+}
