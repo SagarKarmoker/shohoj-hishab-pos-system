@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
+import { DashboardPage } from './pages/DashboardPage'
 
-type Page = 'landing' | 'login'
+type Page = 'landing' | 'login' | 'dashboard'
 
 function App() {
   // Check for saved theme preference or default to light
@@ -40,16 +41,37 @@ function App() {
     window.scrollTo(0, 0)
   }
 
+  const navigateToDashboard = () => {
+    setCurrentPage('dashboard')
+    window.scrollTo(0, 0)
+  }
+
+  const handleLogout = () => {
+    setCurrentPage('landing')
+    window.scrollTo(0, 0)
+  }
+
   return (
     <LanguageProvider>
-      {currentPage === 'landing' ? (
+      {currentPage === 'landing' && (
         <LandingPage 
           isDark={isDark} 
           onToggleTheme={() => setIsDark(!isDark)} 
           onNavigateToLogin={navigateToLogin}
         />
-      ) : (
-        <LoginPage onBackToHome={navigateToLanding} />
+      )}
+      {currentPage === 'login' && (
+        <LoginPage 
+          onBackToHome={navigateToLanding}
+          onLoginSuccess={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'dashboard' && (
+        <DashboardPage 
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onLogout={handleLogout}
+        />
       )}
     </LanguageProvider>
   )

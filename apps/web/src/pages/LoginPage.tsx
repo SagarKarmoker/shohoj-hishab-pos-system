@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 
 interface LoginPageProps {
   onBackToHome: () => void;
+  onLoginSuccess: () => void;
 }
 
 interface FormErrors {
@@ -12,7 +13,7 @@ interface FormErrors {
   general?: string;
 }
 
-export function LoginPage({ onBackToHome }: LoginPageProps) {
+export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,8 +55,8 @@ export function LoginPage({ onBackToHome }: LoginPageProps) {
       
       // Mock successful login
       console.log('Login successful:', { email, rememberMe });
-      // TODO: Implement actual authentication
-      alert('Login successful! (Demo)');
+      // Navigate to dashboard
+      onLoginSuccess();
     } catch (error) {
       setErrors({ general: t('login.errors.invalidCredentials') });
     } finally {

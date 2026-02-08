@@ -114,5 +114,36 @@
       "passwordMin": "Password must be at least 6 characters",
       "invalidCredentials": "Invalid email or password"
     }
+  },
+  "dashboard": {
+    "shopName": "Rahim General Store",
+    "shopLocation": "Mirpur, Dhaka",
+    "welcome": "Welcome",
+    "userName": "Rahim Bhai",
+    "subtitle": "Check today's business status at a glance",
+    "quickActions": "Quick Actions",
+    "newSale": "New Sale",
+    "addStock": "Add Stock",
+    "addCredit": "Add Credit",
+    "allAccounts": "All Accounts",
+    "todaySummary": "Today's Summary",
+    "viewDetails": "View Details",
+    "totalSales": "Total Sales",
+    "cashCollected": "Cash Collected",
+    "creditCollected": "Credit Collected",
+    "increase": "increase",
+    "excludingCredit": "Cash excluding credit",
+    "customers": "customers",
+    "lowStockAlert": "Low Stock Alert",
+    "orderNow": "Order Now",
+    "recentTransactions": "Recent Transactions",
+    "todayList": "Today's List",
+    "viewMore": "View More"
+  },
+  "common": {
+    "language": "Language",
+    "bangla": "বাংলা",
+    "english": "English",
+    "hishab": "Hishab"
   }
 }

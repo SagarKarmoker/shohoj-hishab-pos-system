@@ -114,5 +114,36 @@
       "passwordMin": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
       "invalidCredentials": "ইমেইল বা পাসওয়ার্ড ভুল"
     }
+  },
+  "dashboard": {
+    "shopName": "রহিম জেনারেল স্টোর",
+    "shopLocation": "মিরপুর, ঢাকা",
+    "welcome": "স্বাগতম",
+    "userName": "রহিম ভাই",
+    "subtitle": "আজকের ব্যবসার অবস্থা এক নজরে দেখে নিন",
+    "quickActions": "দ্রুত কাজ",
+    "newSale": "নতুন বিক্রি",
+    "addStock": "স্টক যোগ করুন",
+    "addCredit": "বাকি যোগ করুন",
+    "allAccounts": "সকল হিসাব",
+    "todaySummary": "আজকের সারসংক্ষেপ",
+    "viewDetails": "বিস্তারিত দেখুন",
+    "totalSales": "মোট বিক্রি",
+    "cashCollected": "ক্যাশ জমা",
+    "creditCollected": "বাকি আদায়",
+    "increase": "বৃদ্ধি",
+    "excludingCredit": "বাকি বাদে নগদ অর্থ",
+    "customers": "জন গ্রাহক",
+    "lowStockAlert": "মজুদ সতর্কতা (Low Stock)",
+    "orderNow": "অর্ডার করুন",
+    "recentTransactions": "সাম্প্রতিক লেনদেন",
+    "todayList": "আজকের তালিকা",
+    "viewMore": "আরও দেখুন"
+  },
+  "common": {
+    "language": "ভাষা",
+    "bangla": "বাংলা",
+    "english": "English",
+    "hishab": "হিসাব"
   }
 }
