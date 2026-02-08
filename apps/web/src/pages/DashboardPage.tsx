@@ -6,9 +6,20 @@ interface DashboardPageProps {
   onToggleTheme: () => void;
   onLogout: () => void;
   onNavigateToPOS: () => void;
+  onNavigateToStock: () => void;
+  onNavigateToCredit: () => void;
+  onNavigateToAccounts: () => void;
 }
 
-export function DashboardPage({ isDark, onToggleTheme, onLogout, onNavigateToPOS }: DashboardPageProps) {
+export function DashboardPage({ 
+  isDark, 
+  onToggleTheme, 
+  onLogout, 
+  onNavigateToPOS, 
+  onNavigateToStock,
+  onNavigateToCredit,
+  onNavigateToAccounts
+}: DashboardPageProps) {
   const { t } = useTranslation();
 
   return (
@@ -82,19 +93,25 @@ export function DashboardPage({ isDark, onToggleTheme, onLogout, onNavigateToPOS
               </div>
               <span className="font-bold text-lg">{t('dashboard.newSale')}</span>
             </button>
-            <button className="flex flex-col items-center justify-center gap-3 p-6 bg-primary hover:bg-primary-hover text-white rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-95 cursor-pointer group">
+            <button
+              onClick={onNavigateToStock}
+              className="flex flex-col items-center justify-center gap-3 p-6 bg-primary hover:bg-primary-hover text-white rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-95 cursor-pointer group">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Icon name="inventory_2" className="text-2xl" />
               </div>
               <span className="font-bold text-lg">{t('dashboard.addStock')}</span>
             </button>
-            <button className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-2xl shadow-lg transition-all active:scale-95 cursor-pointer group">
+            <button
+              onClick={onNavigateToCredit}
+              className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-2xl shadow-lg transition-all active:scale-95 cursor-pointer group">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Icon name="person_add" className="text-2xl" />
               </div>
               <span className="font-bold text-lg">{t('dashboard.addCredit')}</span>
             </button>
-            <button className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-green-500 hover:text-green-600 text-slate-600 dark:text-slate-300 rounded-2xl transition-all active:scale-95 cursor-pointer group">
+            <button
+              onClick={onNavigateToAccounts}
+              className="flex flex-col items-center justify-center gap-3 p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-green-500 hover:text-green-600 text-slate-600 dark:text-slate-300 rounded-2xl transition-all active:scale-95 cursor-pointer group">
               <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center group-hover:bg-green-50 dark:group-hover:bg-green-900/30 transition-colors">
                 <Icon name="receipt_long" className="text-2xl" />
               </div>

@@ -4,8 +4,11 @@ import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { POSPage } from './pages/POSPage'
+import { StockPage } from './pages/StockPage'
+import { CreditPage } from './pages/CreditPage'
+import { AccountsPage } from './pages/AccountsPage'
 
-type Page = 'landing' | 'login' | 'dashboard' | 'pos'
+type Page = 'landing' | 'login' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts'
 
 function App() {
   // Check for saved theme preference or default to light
@@ -52,6 +55,21 @@ function App() {
     window.scrollTo(0, 0)
   }
 
+  const navigateToStock = () => {
+    setCurrentPage('stock')
+    window.scrollTo(0, 0)
+  }
+
+  const navigateToCredit = () => {
+    setCurrentPage('credit')
+    window.scrollTo(0, 0)
+  }
+
+  const navigateToAccounts = () => {
+    setCurrentPage('accounts')
+    window.scrollTo(0, 0)
+  }
+
   const handleLogout = () => {
     setCurrentPage('landing')
     window.scrollTo(0, 0)
@@ -78,10 +96,34 @@ function App() {
           onToggleTheme={() => setIsDark(!isDark)}
           onLogout={handleLogout}
           onNavigateToPOS={navigateToPOS}
+          onNavigateToStock={navigateToStock}
+          onNavigateToCredit={navigateToCredit}
+          onNavigateToAccounts={navigateToAccounts}
         />
       )}
       {currentPage === 'pos' && (
         <POSPage 
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'stock' && (
+        <StockPage 
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'credit' && (
+        <CreditPage 
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'accounts' && (
+        <AccountsPage 
           isDark={isDark}
           onToggleTheme={() => setIsDark(!isDark)}
           onBackToDashboard={navigateToDashboard}
