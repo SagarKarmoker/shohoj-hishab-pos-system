@@ -1,0 +1,96 @@
+{
+  "nav": {
+    "brand": "Shohoj Hishab",
+    "features": "Features",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "login": "Login"
+  },
+  "hero": {
+    "badge": "Best Solution for Small Business",
+    "title": "Your business accounts are now",
+    "highlight": "in your hands",
+    "description": "Easily manage your shop's sales, stock management, and profit-loss accounts through the Shohoj Hishab app. Without any pen and paper.",
+    "ctaPrimary": "Start for Free",
+    "ctaSecondary": "Watch Video",
+    "feature1": "Unlimited Products",
+    "feature2": "Offline Support"
+  },
+  "stats": {
+    "madeIn": "Proudly Made in Bangladesh",
+    "trusted": "10,000+ Shop Owners",
+    "secure": "Cloud Backup"
+  },
+  "features": {
+    "title": "Why Choose",
+    "titleHighlight": "Shohoj Hishab",
+    "subtitle": "All the features you need to run your business in one place.",
+    "billing": {
+      "title": "Easy Billing",
+      "description": "Give digital receipts to customers in just 3 clicks. Send invoices via SMS without any printer."
+    },
+    "stock": {
+      "title": "Stock Alert",
+      "description": "Get notifications before products run out. See reports of which products are selling more at a glance."
+    },
+    "payment": {
+      "title": "Payment Integration",
+      "description": "Accept payments through bKash, Nagad, and Rocket and keep all digital transaction records in the app."
+    }
+  },
+  "pricing": {
+    "badge": "Pricing Plan",
+    "title": "Transparent & Affordable Pricing",
+    "subtitle": "Suitable plans for all types of businesses, small or large.",
+    "free": {
+      "name": "Free Starter",
+      "price": "৳ 0",
+      "period": "/ Lifetime",
+      "description": "Perfect for new businesses.",
+      "features": [
+        "50 Invoices per day",
+        "Basic Reports",
+        "1 User"
+      ],
+      "cta": "Start for Free"
+    },
+    "pro": {
+      "name": "Pro Business",
+      "badge": "Popular",
+      "price": "৳ 500",
+      "period": "/ Month",
+      "description": "For large shops and supermarkets.",
+      "features": [
+        "Unlimited Invoices",
+        "Advanced Analytics",
+        "5 Users + Management",
+        "Free E-commerce Website"
+      ],
+      "cta": "Start 7-Day Free Trial"
+    }
+  },
+  "cta": {
+    "title": "Make Your Business Smart Today",
+    "description": "Thousands of business owners are using Shohoj Hishab to run their businesses with peace of mind. Join them too.",
+    "primary": "Download App",
+    "secondary": "Contact Us"
+  },
+  "footer": {
+    "description": "The #1 Smart POS software built for small and medium businesses in Bangladesh. We believe technology makes business easier.",
+    "links": "Links",
+    "contact": "Contact",
+    "phone": "+880 1234 567890",
+    "email": "support@shohojhishab.com",
+    "address": "Banani, Dhaka-1213",
+    "home": "Home",
+    "blog": "Blog",
+    "copyright": "© 2024 Shohoj Hishab. All rights reserved.",
+    "terms": "Terms",
+    "privacy": "Privacy Policy"
+  },
+  "common": {
+    "language": "Language",
+    "bangla": "বাংলা",
+    "english": "English"
+  }
+}
