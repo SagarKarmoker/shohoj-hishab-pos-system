@@ -1,0 +1,53 @@
+# Shohoj Hishab (সহজ হিসাব) - Product Requirement Document
+
+## 1. Overview
+**Shohoj Hishab** is a mobile-first Point of Sale (POS) system designed specifically for small retailers in Bangladesh (kirana stores, pharmacies, etc.). It aims to replace manual ledgers with a simple, digital solution that works offline and integrates with local payment methods.
+
+## 2. Target Audience
+- **Primary User:** Small shop owners with 10L-50L BDT annual revenue.
+- **Current State:** Using pen-paper or mental accounting.
+- **Pain Points:** Calculation errors, credit tracking issues, lack of inventory visibility.
+
+## 3. Core Features
+
+### 3.1 Ultra-Simple Billing
+- **Visual Interface:** Icon-based item selection.
+- **Voice Input:** Bengali voice recognition for adding items (e.g., "Du kg chal").
+- ** Flexible Payments:** Split payments (Cash + bKash), credit recording.
+- **Digital Receipts:** SMS or WhatsApp receipts; support for Bluetooth thermal printers.
+
+### 3.2 Smart Inventory Management
+- **Real-time Tracking:** Auto-deduct stock on sales.
+- **Alerts:** Low stock SMS, expiry date warnings (critical for pharmacies).
+- **Supplier Management:** Direct calling and purchase order generation.
+
+### 3.3 Financial Integration & Credit Features
+- **Mobile Wallets:** bKash, Nagad, Rocket integration for QR payments.
+- **Udhar (Credit) Keypad:** Track customer debts easily.
+- **Payment Reminders:** Automated SMS for pending dues.
+
+### 3.4 Business Intelligence
+- **Daily Reports:** SMS summary at closing time (Sales, Profit, Cash in hand).
+- **Insights:** Top-selling products, profit margin calculations.
+
+### 3.5 Offline-First Architecture
+- **Reliability:** Fully functional without internet.
+- **Sync:** Automatic data synchronization when online.
+- **Backup:** Secure cloud backup for data safety.
+
+## 4. Technical Specifications
+- **Platform:** Android (Flutter/Kotlin).
+- **Database:** SQLite (local) + Cloud (AWS/DigitalOcean).
+- **Security:** End-to-end encryption for transaction data.
+- **Localization:** 100% Bangla interface.
+
+## 5. Monetization Strategy (Freemium)
+- **Free Tier:** Basic features, transaction limits.
+- **Pro Tier (BDT 500/mo):** Unlimited transactions, multi-user, advanced reports.
+- **Hardware Sales:** Bundled thermal printers and scanners.
+- **Financial Services:** Potential for lending based on credit scoring from sales data.
+
+## 6. Go-to-Market Plan
+- **Phase 1 (Pilot):** 100 shops in specific Dhaka neighborhoods.
+- **Phase 2 (Growth):** Referral programs, partnership with mobile wallet agents.
+- **Phase 3 (Scale):** Nationwide marketing, accounting software integrations.
