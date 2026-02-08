@@ -92,5 +92,27 @@
     "language": "ভাষা",
     "bangla": "বাংলা",
     "english": "English"
+  },
+  "login": {
+    "title": "আবার স্বাগতম",
+    "subtitle": "আপনার অ্যাকাউন্টে সাইন ইন করুন",
+    "emailLabel": "ইমেইল ঠিকানা",
+    "emailPlaceholder": "আপনার ইমেইল লিখুন",
+    "passwordLabel": "পাসওয়ার্ড",
+    "passwordPlaceholder": "আপনার পাসওয়ার্ড লিখুন",
+    "rememberMe": "মনে রাখুন",
+    "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+    "loginButton": "সাইন ইন",
+    "loggingIn": "সাইন ইন হচ্ছে...",
+    "noAccount": "অ্যাকাউন্ট নেই?",
+    "signUp": "সাইন আপ করুন",
+    "orContinueWith": "অথবা এগুলো দিয়ে চালিয়ে যান",
+    "errors": {
+      "emailRequired": "ইমেইল প্রয়োজন",
+      "emailInvalid": "অনুগ্রহ করে একটি বৈধ ইমেইল দিন",
+      "passwordRequired": "পাসওয়ার্ড প্রয়োজন",
+      "passwordMin": "পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে",
+      "invalidCredentials": "ইমেইল বা পাসওয়ার্ড ভুল"
+    }
   }
 }

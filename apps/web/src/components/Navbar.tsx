@@ -6,9 +6,10 @@ import { useSmoothScroll } from '../hooks/useSmoothScroll';
 interface NavbarProps {
   isDark: boolean;
   onToggleTheme: () => void;
+  onNavigateToLogin: () => void;
 }
 
-export function Navbar({ isDark, onToggleTheme }: NavbarProps) {
+export function Navbar({ isDark, onToggleTheme, onNavigateToLogin }: NavbarProps) {
   const { t } = useTranslation();
   const { currentLanguage, toggleLanguage } = useLanguage();
   const { handleNavClick } = useSmoothScroll();
@@ -72,12 +73,13 @@ export function Navbar({ isDark, onToggleTheme }: NavbarProps) {
             )}
           </button>
           
-          <a 
-            href="#signup"
+          {/* Login Button */}
+          <button 
+            onClick={onNavigateToLogin}
             className="hidden sm:inline-flex px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer"
           >
             {t('nav.login')}
-          </a>
+          </button>
         </div>
       </div>
     </nav>

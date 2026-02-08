@@ -92,5 +92,27 @@
     "language": "Language",
     "bangla": "বাংলা",
     "english": "English"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account to continue",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "loginButton": "Sign In",
+    "loggingIn": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "orContinueWith": "Or continue with",
+    "errors": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 6 characters",
+      "invalidCredentials": "Invalid email or password"
+    }
   }
 }

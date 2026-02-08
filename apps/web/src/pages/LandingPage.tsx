@@ -8,16 +8,17 @@ import { useSmoothScroll } from '../hooks/useSmoothScroll';
 interface LandingPageProps {
   isDark: boolean;
   onToggleTheme: () => void;
+  onNavigateToLogin: () => void;
 }
 
-export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
+export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin }: LandingPageProps) {
   const { t } = useTranslation();
   const { handleNavClick } = useSmoothScroll();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <Navbar isDark={isDark} onToggleTheme={onToggleTheme} />
+      <Navbar isDark={isDark} onToggleTheme={onToggleTheme} onNavigateToLogin={onNavigateToLogin} />
       
       <main className="overflow-hidden">
         {/* Hero Section */}
