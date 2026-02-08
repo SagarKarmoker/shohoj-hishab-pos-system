@@ -88,12 +88,6 @@
     "terms": "শর্তাবলী",
     "privacy": "গোপনীয়তা নীতি"
   },
-  "common": {
-    "language": "ভাষা",
-    "bangla": "বাংলা",
-    "english": "English",
-    "cancel": "বাতিল"
-  },
   "login": {
     "title": "আবার স্বাগতম",
     "subtitle": "আপনার অ্যাকাউন্টে সাইন ইন করুন",
@@ -155,7 +149,13 @@
     "cash": "নগদ",
     "bkash": "বিকাশ",
     "collectMoney": "টাকা নিন",
-    "addToCart": "কার্টে যোগ করুন"
+    "addToCart": "কার্টে যোগ করুন",
+    "selectQuantity": "পরিমাণ নির্বাচন করুন",
+    "customQuantity": "কাস্টম পরিমাণ",
+    "available": "উপলব্ধ",
+    "exceedsStock": "স্টকের চেয়ে বেশি",
+    "enterValidQuantity": "সঠিক পরিমাণ দিন",
+    "remove": "সরান"
   },
   "common": {
     "language": "ভাষা",
@@ -222,11 +222,5 @@
     "amount": "টাকা",
     "time": "সময়",
     "noTransactions": "কোনো লেনদেন পাওয়া যায়নি"
-  },
-  "common": {
-    "language": "ভাষা",
-    "bangla": "বাংলা",
-    "english": "English",
-    "hishab": "হিসাব"
   }
 }

@@ -155,7 +155,13 @@
     "cash": "Cash",
     "bkash": "bKash",
     "collectMoney": "Collect Money",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to Cart",
+    "selectQuantity": "Select Quantity",
+    "customQuantity": "Custom Quantity",
+    "available": "Available",
+    "exceedsStock": "Exceeds Stock",
+    "enterValidQuantity": "Enter Valid Quantity",
+    "remove": "Remove"
   },
   "stock": {
     "title": "Stock Management",

@@ -15,6 +15,7 @@ interface CartItem {
   nameEn: string;
   price: number;
   quantity: number;
+  displayQuantity?: string;
   image: string;
   unit: string;
 }
@@ -169,13 +170,13 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
     setSelectedProduct(null);
   };
 
-  const addToCart = (product: Product, quantity: number = 1) => {
+  const addToCart = (product: Product, quantity: number, displayQuantity: string) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id);
       if (existingItem) {
         return prevCart.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + quantity, displayQuantity: displayQuantity }
             : item
         );
       }
@@ -185,22 +186,11 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
         nameEn: product.nameEn,
         price: product.price,
         quantity: quantity,
+        displayQuantity: displayQuantity,
         image: product.image,
         unit: product.unit
       }];
     });
-  };
-
-  const updateQuantity = (id: number, delta: number) => {
-    setCart(prevCart =>
-      prevCart.map(item => {
-        if (item.id === id) {
-          const newQuantity = Math.max(1, item.quantity + delta);
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      })
-    );
   };
 
   const removeFromCart = (id: number) => {
@@ -367,31 +357,20 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
                     <h4 className="font-bold text-slate-800 dark:text-slate-100">
                       {i18n.language === 'bn' ? item.name : item.nameEn}
                     </h4>
-                    <div className="flex justify-between items-end mt-2">
-                      <div className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 px-1">
-                        <button
-                          onClick={() => updateQuantity(item.id, -1)}
-                          className="p-1 hover:text-primary cursor-pointer"
-                        >
-                          <Icon name="remove" className="text-sm" />
-                        </button>
-                        <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, 1)}
-                          className="p-1 hover:text-primary cursor-pointer"
-                        >
-                          <Icon name="add" className="text-sm" />
-                        </button>
-                      </div>
+                    <p className="text-sm text-slate-500">
+                      {item.displayQuantity || `${item.quantity} ${item.unit}`}
+                    </p>
+                    <div className="flex justify-between items-end mt-1">
                       <p className="font-bold text-primary">৳{item.price * item.quantity}</p>
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-xs text-error hover:text-red-700 cursor-pointer flex items-center gap-1"
+                      >
+                        <Icon name="delete" className="text-xs" />
+                        {t('pos.remove') || 'সরান'}
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-slate-400 hover:text-error cursor-pointer"
-                  >
-                    <Icon name="close" className="text-sm" />
-                  </button>
                 </div>
               ))
             )}

@@ -6,7 +6,7 @@ interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: Product | null;
-  onAddToCart: (product: Product, quantity: number) => void;
+  onAddToCart: (product: Product, quantity: number, displayQuantity: string) => void;
 }
 
 interface Product {
@@ -18,15 +18,21 @@ interface Product {
   unit: string;
   category: string;
   image: string;
+  baseUnit?: string;
+  conversionRate?: number;
 }
 
 export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductModalProps) {
   const { t, i18n } = useTranslation();
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<string>('1');
+  const [unit, setUnit] = useState<string>('কেজি');
+  const [customMode, setCustomMode] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setQuantity(1);
+    if (isOpen && product) {
+      setQuantity('1');
+      setUnit(product.unit);
+      setCustomMode(false);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -44,16 +50,93 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, product]);
 
   if (!isOpen || !product) return null;
 
-  const totalPrice = product.price * quantity;
+  // Calculate actual quantity in base units
+  const getActualQuantity = (): number => {
+    const qty = parseFloat(quantity) || 0;
+    
+    // Convert to base unit (kg)
+    if (unit === 'গ্রাম' || unit === 'g' || unit === 'gram') {
+      return qty / 1000;
+    } else if (unit === 'মিলি' || unit === 'ml' || unit === 'milli') {
+      return qty / 1000;
+    }
+    return qty;
+  };
+
+  const actualQuantity = getActualQuantity();
+  const totalPrice = Math.round(product.price * actualQuantity);
+
+  // Quick select quantities based on unit type
+  const getQuickQuantities = () => {
+    if (product.unit === 'কেজি' || product.unit === 'kg') {
+      return [
+        { label: '100g', value: '100', unit: 'গ্রাম' },
+        { label: '250g', value: '250', unit: 'গ্রাম' },
+        { label: '500g', value: '500', unit: 'গ্রাম' },
+        { label: '1kg', value: '1', unit: 'কেজি' },
+        { label: '2kg', value: '2', unit: 'কেজি' },
+        { label: '5kg', value: '5', unit: 'কেজি' },
+      ];
+    } else if (product.unit === 'লি' || product.unit === 'l' || product.unit === 'liter') {
+      return [
+        { label: '250ml', value: '250', unit: 'মিলি' },
+        { label: '500ml', value: '500', unit: 'মিলি' },
+        { label: '1L', value: '1', unit: 'লি' },
+        { label: '2L', value: '2', unit: 'লি' },
+        { label: '5L', value: '5', unit: 'লি' },
+      ];
+    } else if (product.unit === 'ডজন' || product.unit === 'dozen') {
+      return [
+        { label: '1pc', value: '0.083', unit: 'ডজন' },
+        { label: '3pc', value: '0.25', unit: 'ডজন' },
+        { label: '6pc', value: '0.5', unit: 'ডজন' },
+        { label: '12pc', value: '1', unit: 'ডজন' },
+        { label: '2dz', value: '2', unit: 'ডজন' },
+      ];
+    } else {
+      return [
+        { label: '1pc', value: '1', unit: product.unit },
+        { label: '2pc', value: '2', unit: product.unit },
+        { label: '3pc', value: '3', unit: product.unit },
+        { label: '5pc', value: '5', unit: product.unit },
+        { label: '10pc', value: '10', unit: product.unit },
+        { label: '20pc', value: '20', unit: product.unit },
+      ];
+    }
+  };
+
+  const quickQuantities = getQuickQuantities();
+
+  const handleQuickSelect = (value: string, selectedUnit: string) => {
+    setQuantity(value);
+    setUnit(selectedUnit);
+    setCustomMode(false);
+  };
+
+  const handleCustomQuantity = (value: string) => {
+    // Allow only numbers and decimal point
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    // Prevent multiple decimal points
+    const parts = cleaned.split('.');
+    const final = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+    setQuantity(final);
+    setCustomMode(true);
+  };
 
   const handleAddToCart = () => {
-    onAddToCart(product, quantity);
-    onClose();
+    const qty = getActualQuantity();
+    if (qty > 0) {
+      const displayQty = customMode ? `${quantity} ${unit}` : quantity;
+      onAddToCart(product, qty, displayQty);
+      onClose();
+    }
   };
+
+  const isValidQuantity = actualQuantity > 0 && actualQuantity <= product.stock;
 
   return (
     <div 
@@ -78,7 +161,7 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
         </button>
 
         {/* Product Image */}
-        <div className="relative h-64 bg-slate-100 dark:bg-slate-700">
+        <div className="relative h-48 bg-slate-100 dark:bg-slate-700">
           <img
             src={product.image}
             alt={i18n.language === 'bn' ? product.name : product.nameEn}
@@ -93,70 +176,122 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
 
         {/* Product Details */}
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
             {i18n.language === 'bn' ? product.name : product.nameEn}
           </h2>
           
-          <div className="flex items-center gap-4 mb-6">
-            <span className="text-3xl font-bold text-primary">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl font-bold text-primary">
               ৳{product.price}
             </span>
-            <span className="text-slate-500">/ {product.unit}</span>
+            <span className="text-slate-500 text-sm">/ {product.unit}</span>
           </div>
 
-          {/* Stock Info */}
-          <div className="flex items-center gap-2 mb-6 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-            <Icon name="inventory_2" className="text-slate-400" />
-            <span className="text-slate-600 dark:text-slate-300">
-              {t('pos.stock')}: <span className="font-bold">{product.stock}</span> {product.unit}
-            </span>
-          </div>
-
-          {/* Quantity Selector */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-              পরিমাণ / Quantity
+          {/* Quick Select Buttons */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              {t('pos.selectQuantity') || 'পরিমাণ নির্বাচন করুন'}
             </label>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center transition-colors cursor-pointer"
-                disabled={quantity <= 1}
-              >
-                <Icon name="remove" className="text-xl" />
-              </button>
-              <span className="text-3xl font-bold w-16 text-center">{quantity}</span>
-              <button
-                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center transition-colors cursor-pointer"
-                disabled={quantity >= product.stock}
-              >
-                <Icon name="add" className="text-xl" />
-              </button>
+            <div className="grid grid-cols-3 gap-2">
+              {quickQuantities.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleQuickSelect(item.value, item.unit)}
+                  className={`py-2 px-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                    quantity === item.value && unit === item.unit && !customMode
+                      ? 'bg-primary text-white shadow-md'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
           </div>
 
+          {/* Custom Quantity Input */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              {t('pos.customQuantity') || 'কাস্টম পরিমাণ'}
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={quantity}
+                onChange={(e) => handleCustomQuantity(e.target.value)}
+                placeholder="0"
+                className={`flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 border-2 rounded-xl text-lg font-bold text-center focus:outline-none transition-colors ${
+                  customMode 
+                    ? 'border-primary' 
+                    : 'border-transparent'
+                }`}
+              />
+              <select
+                value={unit}
+                onChange={(e) => {
+                  setUnit(e.target.value);
+                  setCustomMode(true);
+                }}
+                className="px-4 py-3 bg-slate-100 dark:bg-slate-700 border-2 border-transparent rounded-xl font-medium focus:border-primary focus:outline-none cursor-pointer"
+              >
+                {product.unit === 'কেজি' || product.unit === 'kg' ? (
+                  <>
+                    <option value="কেজি">কেজি</option>
+                    <option value="গ্রাম">গ্রাম</option>
+                  </>
+                ) : product.unit === 'লি' || product.unit === 'l' ? (
+                  <>
+                    <option value="লি">লি</option>
+                    <option value="মিলি">মিলি</option>
+                  </>
+                ) : (
+                  <option value={product.unit}>{product.unit}</option>
+                )}
+              </select>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              {t('pos.stock')}: {product.stock} {product.unit} {t('pos.available') || 'উপলব্ধ'}
+            </p>
+          </div>
+
           {/* Total Price */}
-          <div className="flex justify-between items-center p-4 bg-primary/5 dark:bg-primary/10 rounded-xl mb-6">
+          <div className="flex justify-between items-center p-4 bg-primary/5 dark:bg-primary/10 rounded-xl mb-4">
             <span className="text-slate-600 dark:text-slate-300 font-medium">
               {t('pos.grandTotal')}
             </span>
-            <span className="text-2xl font-bold text-primary">
-              ৳{totalPrice}
-            </span>
+            <div className="text-right">
+              <span className="text-2xl font-bold text-primary">
+                ৳{totalPrice}
+              </span>
+              <p className="text-xs text-slate-500">
+                {quantity} {unit} × ৳{product.price}/{product.unit}
+              </p>
+            </div>
           </div>
+
+          {/* Error Message */}
+          {!isValidQuantity && quantity && (
+            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl text-sm flex items-center gap-2">
+              <Icon name="error" className="text-sm" />
+              {actualQuantity > product.stock 
+                ? (t('pos.exceedsStock') || 'স্টকের চেয়ে বেশি') 
+                : (t('pos.enterValidQuantity') || 'সঠিক পরিমাণ দিন')}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 py-4 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="flex-1 py-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               {t('common.cancel')}
             </button>
             <button
               onClick={handleAddToCart}
-              className="flex-1 py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer"
+              disabled={!isValidQuantity}
+              className="flex-1 py-3 bg-primary disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl font-bold hover:bg-primary-hover transition-colors shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Icon name="add_shopping_cart" />
               {t('pos.addToCart')}
