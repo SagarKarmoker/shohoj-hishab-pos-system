@@ -319,7 +319,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <Icon name="calculate" className="text-white text-lg" />
+                  <Icon name="storefront" className="text-white text-lg" />
                 </div>
                 <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-white">
                   সহজ <span className="text-primary">হিসাব</span>

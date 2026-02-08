@@ -7,7 +7,7 @@ interface NavbarProps {
   onToggleTheme: () => void;
 }
 
-export function Navbar({ isDark: _isDark, onToggleTheme }: NavbarProps) {
+export function Navbar({ isDark, onToggleTheme }: NavbarProps) {
   const { t } = useTranslation();
   const { currentLanguage, toggleLanguage } = useLanguage();
 
@@ -16,7 +16,7 @@ export function Navbar({ isDark: _isDark, onToggleTheme }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
-            <Icon name="calculate" className="text-white text-2xl" />
+            <Icon name="storefront" className="text-white text-2xl" />
           </div>
           <span className="font-bold text-2xl tracking-tight text-slate-800 dark:text-white">
             {t('nav.brand')}
@@ -45,16 +45,17 @@ export function Navbar({ isDark: _isDark, onToggleTheme }: NavbarProps) {
             <span>{currentLanguage === 'bn' ? t('common.bangla') : t('common.english')}</span>
           </button>
 
+          {/* Theme Toggle */}
           <button 
             onClick={onToggleTheme}
             className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            <span className="block dark:hidden">
-              <Icon name="dark_mode" className="text-slate-500" />
-            </span>
-            <span className="hidden dark:block">
+            {isDark ? (
               <Icon name="light_mode" className="text-slate-400" />
-            </span>
+            ) : (
+              <Icon name="dark_mode" className="text-slate-500" />
+            )}
           </button>
           
           <a 
