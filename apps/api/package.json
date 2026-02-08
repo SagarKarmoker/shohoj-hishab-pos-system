@@ -5,9 +5,10 @@
   "author": "",
   "private": true,
   "license": "MIT",
+  "main": "dist/main.js",
   "scripts": {
     "build": "nest build",
-    "dev": "nest start --watch",
+    "dev": "pnpm build && nest start --watch",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
