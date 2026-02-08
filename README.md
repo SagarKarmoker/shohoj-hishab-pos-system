@@ -1,58 +1,92 @@
 # Shohoj Hishab
 
-A modern restaurant POS (Point of Sale) and accounting system built with a monorepo architecture using Turbo, pnpm, TypeScript, Vite, and NestJS.
+[![Build Status](https://img.shields.io/badge/build-passing-success)](https://github.com/yourusername/shohoj-hishab)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🏗️ Project Structure
+A modern POS (Point of Sale) and accounting system built specifically for small businesses in Bangladesh. Built with a monorepo architecture using Turbo, pnpm, TypeScript, Vite, and NestJS.
 
-This is a monorepo managed with **Turborepo** and **pnpm workspaces**.
+[Live Demo](http://localhost:3000) | [Documentation](./docs)
+
+![Shohoj Hishab Landing Page](./docs/screenshots/landing-page.png)
+
+## Overview
+
+Shohoj Hishab (Easy Accounting) is a bilingual (Bengali and English) web application designed to help small business owners manage their daily operations including billing, stock management, and profit tracking. The application features a modern, responsive design with dark mode support.
+
+**Key Features:**
+- Bilingual support (Bengali primary, English secondary)
+- Easy billing with digital receipts
+- Stock alerts and management
+- Payment integration (bKash, Nagad, Rocket)
+- Real-time profit/loss tracking
+- Cloud backup
+- Dark/Light mode toggle
+- Responsive design for mobile and desktop
+
+## Project Structure
+
+This is a monorepo managed with Turborepo and pnpm workspaces.
 
 ```
 shohoj-hishab/
 ├── apps/
-│   ├── api/                 # NestJS backend API
-│   └── web/                 # Vite + React frontend
+│   ├── api/                 # NestJS backend API (port 3001)
+│   └── web/                 # Vite + React frontend (port 3000)
 ├── packages/
 │   ├── tailwind-config/     # Shared Tailwind CSS configuration
 │   └── typescript-config/   # Shared TypeScript configurations
 ├── docs/
-│   └── design-system.html   # Design system documentation
+│   ├── design-system.html   # Design system documentation
+│   ├── screenshots/         # Application screenshots
+│   └── video.md             # Promotional video script
 ├── package.json
 ├── turbo.json
 └── pnpm-workspace.yaml
 ```
 
-## 🎨 Design System
+## Technology Stack
 
-The application follows a comprehensive design system with:
+### Frontend
+- React 19 with TypeScript
+- Vite 6 for build tooling
+- Tailwind CSS 4 for styling
+- i18next for internationalization
+- Material Icons Round for iconography
 
-### Colors
-- **Primary**: `#f97316` (Warm Orange)
-- **Background Light**: `#f8fafc` (Slate-50)
-- **Background Dark**: `#0f172a` (Slate-900)
-- **Secondary**: `#64748b` (Slate-500)
-- **Success**: `#22c55e` (Green)
-- **Warning**: `#facc15` (Yellow)
-- **Error**: `#ef4444` (Red)
+### Backend
+- NestJS 11 with TypeScript
+- RESTful API architecture
+- CORS enabled
+
+### Development Tools
+- Turborepo for monorepo management
+- pnpm workspaces for package management
+- ESLint for code linting
+- TypeScript for type safety
+
+## Design System
+
+### Color Palette
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Primary | `#f97316` | Buttons, links, accents |
+| Background Light | `#f8fafc` | Light mode background |
+| Background Dark | `#0f172a` | Dark mode background |
+| Success | `#22c55e` | Success states |
+| Warning | `#facc15` | Warnings |
+| Error | `#ef4444` | Errors |
 
 ### Typography
-- **Font Family**: Plus Jakarta Sans
-- **Heading 1**: 36px Bold
-- **Heading 2**: 24px Bold
-- **Body**: 16px Regular
-
-### Components
-- **Buttons**: Primary, Secondary, Outline, Ghost variants
-- **Cards**: With customizable shadows and glass effect support
-- **Inputs**: With icon support and validation states
-- **Toggles**: Animated switches with labels
-- **Icons**: Material Icons Round
+- **Primary Font**: Hind Siliguri (Bengali)
+- **Secondary Font**: Plus Jakarta Sans (English)
+- **Scale**: 36px (H1), 24px (H2), 16px (Body)
 
 ### Border Radius
 - Default: 12px
-- XL: 16px
-- 2XL: 24px
+- Large: 16px
+- Extra Large: 24px
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js >= 20
@@ -60,114 +94,176 @@ The application follows a comprehensive design system with:
 
 ### Installation
 
+1. Clone the repository
 ```bash
-# Install dependencies
-pnpm install
-
-# Start development servers
-pnpm dev
-
-# Build all packages
-pnpm build
-
-# Run linting
-pnpm lint
-
-# Type checking
-pnpm typecheck
+git clone https://github.com/yourusername/shohoj-hishab.git
+cd shohoj-hishab
 ```
 
-### Development URLs
-- **Web App**: http://localhost:3000
-- **API**: http://localhost:3001
+2. Install dependencies
+```bash
+pnpm install
+```
 
-## 📦 Available Scripts
+3. Start development servers
+```bash
+pnpm dev
+```
 
-### Root Level
-- `pnpm dev` - Start all development servers
-- `pnpm build` - Build all packages
-- `pnpm lint` - Run linting on all packages
-- `pnpm typecheck` - Run TypeScript checking
-- `pnpm clean` - Clean build outputs
+4. Open your browser
+- Web App: http://localhost:3000
+- API: http://localhost:3001
 
-### Web App (apps/web)
-- `pnpm dev` - Start Vite dev server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-- `pnpm typecheck` - Run TypeScript checks
+### Available Scripts
 
-### API (apps/api)
-- `pnpm dev` - Start NestJS in watch mode
-- `pnpm build` - Build the application
-- `pnpm start` - Start the application
-- `pnpm test` - Run tests
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start all development servers |
+| `pnpm build` | Build all packages for production |
+| `pnpm lint` | Run ESLint on all packages |
+| `pnpm typecheck` | Run TypeScript type checking |
+| `pnpm clean` | Clean all build outputs |
 
-## 🧩 UI Components
+## Features
 
-Located in `apps/web/src/components/`:
+### Billing System
+- Quick 3-click billing process
+- Digital receipt generation
+- SMS invoice delivery
+- Print support
 
-- **Button**: Multi-variant button component
-- **Card**: Flexible card container with shadow options
-- **Input**: Form input with icon and validation support
-- **Toggle**: Animated toggle switch
-- **Icon**: Material Icons wrapper
-- **Navbar**: Application navigation bar with theme toggle
+### Stock Management
+- Real-time stock tracking
+- Low stock alerts
+- Sales analytics and reports
+- Product categorization
 
-### Usage Example
+### Payment Integration
+- bKash integration
+- Nagad support
+- Rocket payments
+- Digital transaction records
+
+### User Interface
+- Responsive design
+- Dark/Light mode toggle
+- Language switcher (Bangla/English)
+- Smooth scroll navigation
+- Video modal for promotional content
+
+## UI Components
+
+All reusable components are located in `apps/web/src/components/`:
 
 ```tsx
-import { Button, Card, Input, Icon } from './components'
+import { Button, Card, Input, Icon, VideoModal } from './components'
 
-function MyComponent() {
+function Example() {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  
   return (
     <Card shadow="xl" className="p-6">
-      <Icon name="restaurant" className="text-primary" />
-      <Input icon="search" placeholder="Search..." />
-      <Button variant="primary">Submit</Button>
+      <Icon name="storefront" className="text-primary" />
+      <Input icon="search" placeholder="Search products..." />
+      <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+        Watch Video
+      </Button>
+      <VideoModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        videoSrc="/promo-video.mp4"
+      />
     </Card>
   )
 }
 ```
 
-## 🌙 Dark Mode
+### Available Components
+- **Button**: Primary, Secondary, Outline, Ghost variants
+- **Card**: Flexible container with customizable shadows
+- **Input**: Form input with icon support and validation
+- **Toggle**: Animated switch component
+- **Icon**: Material Icons wrapper
+- **Navbar**: Navigation bar with theme and language toggles
+- **VideoModal**: Modal video player with auto-play
 
-The application supports dark mode out of the box. Toggle between light and dark themes using the theme button in the navbar or programmatically:
+## Dark Mode
+
+The application supports both light and dark themes. The theme is controlled by the `dark` class on the document root element.
 
 ```tsx
-// The theme is controlled by the 'dark' class on document.documentElement
+// Toggle dark mode
 document.documentElement.classList.toggle('dark')
 ```
 
-## 📚 Technologies
+Theme preference is persisted in localStorage and automatically applied on page load.
 
-### Frontend
-- React 19
-- TypeScript 5.7
-- Vite 6
-- Tailwind CSS 4
-- Material Icons Round
+## Internationalization
 
-### Backend
-- NestJS 11
-- TypeScript 5.7
+The application supports two languages:
+- **Bengali (Bangla)**: Primary language
+- **English**: Secondary language
 
-### Monorepo
-- Turborepo 2.8
-- pnpm workspaces
+Translation files are located in `apps/web/src/i18n/locales/`:
+- `bn.json` - Bengali translations
+- `en.json` - English translations
 
-## 🤝 Contributing
+Language preference is persisted in localStorage.
+
+## Deployment
+
+### Build for Production
+```bash
+pnpm build
+```
+
+This will create production builds in:
+- `apps/web/dist/` - Frontend static files
+- `apps/api/dist/` - Backend compiled code
+
+### Serve Production Build
+```bash
+# Frontend
+cd apps/web && pnpm preview
+
+# Backend
+cd apps/api && pnpm start:prod
+```
+
+## Contributing
+
+We welcome contributions! Please follow these steps:
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add your feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
 5. Open a Pull Request
 
-## 📝 License
+Please ensure your code:
+- Passes all linting checks (`pnpm lint`)
+- Passes type checking (`pnpm typecheck`)
+- Follows the existing code style
+- Includes appropriate tests
 
-MIT License - see LICENSE file for details
+## License
 
-## 🙏 Acknowledgments
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- Design system inspired by modern restaurant POS interfaces
-- Built with love for the Bangladeshi restaurant community
+## Credits
+
+- Design system inspired by modern POS interfaces
+- Built for the small business community in Bangladesh
+- Icons provided by Material Icons Round
+- Fonts: Hind Siliguri and Plus Jakarta Sans
+
+## Support
+
+For support, please contact:
+- Email: support@shohojhishab.com
+- Phone: +880 1234 567890
+- Address: Banani, Dhaka-1213, Bangladesh
+
+---
+
+Copyright 2026 Shohoj Hishab. All rights reserved.
