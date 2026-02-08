@@ -5,9 +5,10 @@ interface DashboardPageProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onLogout: () => void;
+  onNavigateToPOS: () => void;
 }
 
-export function DashboardPage({ isDark, onToggleTheme, onLogout }: DashboardPageProps) {
+export function DashboardPage({ isDark, onToggleTheme, onLogout, onNavigateToPOS }: DashboardPageProps) {
   const { t } = useTranslation();
 
   return (
@@ -72,7 +73,10 @@ export function DashboardPage({ isDark, onToggleTheme, onLogout }: DashboardPage
             {t('dashboard.quickActions')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button className="flex flex-col items-center justify-center gap-3 p-6 bg-green-600 hover:bg-green-700 text-white rounded-2xl shadow-lg shadow-green-600/20 transition-all active:scale-95 cursor-pointer group">
+            <button
+              onClick={onNavigateToPOS}
+              className="flex flex-col items-center justify-center gap-3 p-6 bg-green-600 hover:bg-green-700 text-white rounded-2xl shadow-lg shadow-green-600/20 transition-all active:scale-95 cursor-pointer group"
+            >
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Icon name="add_shopping_cart" className="text-2xl" />
               </div>

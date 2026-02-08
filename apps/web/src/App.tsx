@@ -3,8 +3,9 @@ import { LanguageProvider } from './contexts/LanguageContext'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { POSPage } from './pages/POSPage'
 
-type Page = 'landing' | 'login' | 'dashboard'
+type Page = 'landing' | 'login' | 'dashboard' | 'pos'
 
 function App() {
   // Check for saved theme preference or default to light
@@ -46,6 +47,11 @@ function App() {
     window.scrollTo(0, 0)
   }
 
+  const navigateToPOS = () => {
+    setCurrentPage('pos')
+    window.scrollTo(0, 0)
+  }
+
   const handleLogout = () => {
     setCurrentPage('landing')
     window.scrollTo(0, 0)
@@ -71,6 +77,14 @@ function App() {
           isDark={isDark}
           onToggleTheme={() => setIsDark(!isDark)}
           onLogout={handleLogout}
+          onNavigateToPOS={navigateToPOS}
+        />
+      )}
+      {currentPage === 'pos' && (
+        <POSPage 
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
         />
       )}
     </LanguageProvider>

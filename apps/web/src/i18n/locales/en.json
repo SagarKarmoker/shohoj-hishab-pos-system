@@ -140,6 +140,21 @@
     "todayList": "Today's List",
     "viewMore": "View More"
   },
+  "pos": {
+    "quickBilling": "Quick Billing",
+    "online": "Online",
+    "searchPlaceholder": "Search products (name or code)...",
+    "stock": "Stock",
+    "cart": "Cart",
+    "clearCart": "Clear Cart",
+    "emptyCart": "Cart is empty",
+    "totalItems": "Total Items",
+    "subtotal": "Subtotal",
+    "grandTotal": "Grand Total",
+    "cash": "Cash",
+    "bkash": "bKash",
+    "collectMoney": "Collect Money"
+  },
   "common": {
     "language": "Language",
     "bangla": "বাংলা",

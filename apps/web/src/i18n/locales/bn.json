@@ -140,6 +140,21 @@
     "todayList": "আজকের তালিকা",
     "viewMore": "আরও দেখুন"
   },
+  "pos": {
+    "quickBilling": "কুইক বিলিং",
+    "online": "অনলাইন",
+    "searchPlaceholder": "পণ্য খুঁজুন (নাম বা কোড)...",
+    "stock": "স্টক",
+    "cart": "কার্ট",
+    "clearCart": "কার্ট খালি করুন",
+    "emptyCart": "কার্ট খালি",
+    "totalItems": "মোট আইটেম",
+    "subtotal": "সাবটোটাল",
+    "grandTotal": "সর্বমোট",
+    "cash": "নগদ",
+    "bkash": "বিকাশ",
+    "collectMoney": "টাকা নিন"
+  },
   "common": {
     "language": "ভাষা",
     "bangla": "বাংলা",
