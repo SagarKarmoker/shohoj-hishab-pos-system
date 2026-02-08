@@ -91,7 +91,8 @@
   "common": {
     "language": "ভাষা",
     "bangla": "বাংলা",
-    "english": "English"
+    "english": "English",
+    "cancel": "বাতিল"
   },
   "login": {
     "title": "আবার স্বাগতম",
@@ -153,7 +154,15 @@
     "grandTotal": "সর্বমোট",
     "cash": "নগদ",
     "bkash": "বিকাশ",
-    "collectMoney": "টাকা নিন"
+    "collectMoney": "টাকা নিন",
+    "addToCart": "কার্টে যোগ করুন"
+  },
+  "common": {
+    "language": "ভাষা",
+    "bangla": "বাংলা",
+    "english": "English",
+    "hishab": "হিসাব",
+    "cancel": "বাতিল"
   },
   "stock": {
     "title": "স্টক ম্যানেজমেন্ট",

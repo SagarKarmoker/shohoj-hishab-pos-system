@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
+import { ProductModal } from '../components/ProductModal';
 
 interface POSPageProps {
   isDark: boolean;
@@ -148,6 +149,8 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
     }
   ]);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bkash'>('cash');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -156,13 +159,23 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
     return matchesSearch && matchesCategory;
   });
 
-  const addToCart = (product: Product) => {
+  const openProductModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const closeProductModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const addToCart = (product: Product, quantity: number = 1) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === product.id);
       if (existingItem) {
         return prevCart.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
@@ -171,7 +184,7 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
         name: product.name,
         nameEn: product.nameEn,
         price: product.price,
-        quantity: 1,
+        quantity: quantity,
         image: product.image,
         unit: product.unit
       }];
@@ -287,7 +300,7 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
             {filteredProducts.map((product) => (
               <button
                 key={product.id}
-                onClick={() => addToCart(product)}
+                onClick={() => openProductModal(product)}
                 className="group relative bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-green-500/10 border border-slate-200 dark:border-slate-700 hover:border-primary transition-all duration-200 active:scale-95 text-left h-full flex flex-col cursor-pointer"
               >
                 <div className="aspect-square bg-slate-100 dark:bg-slate-700 relative overflow-hidden">
@@ -445,6 +458,14 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
           </div>
         </aside>
       </div>
+
+      {/* Product Modal */}
+      <ProductModal
+        isOpen={isModalOpen}
+        onClose={closeProductModal}
+        product={selectedProduct}
+        onAddToCart={addToCart}
+      />
     </div>
   );
 }

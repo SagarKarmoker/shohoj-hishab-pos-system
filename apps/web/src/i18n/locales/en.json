@@ -91,7 +91,8 @@
   "common": {
     "language": "Language",
     "bangla": "বাংলা",
-    "english": "English"
+    "english": "English",
+    "cancel": "Cancel"
   },
   "login": {
     "title": "Welcome Back",
@@ -153,7 +154,8 @@
     "grandTotal": "Grand Total",
     "cash": "Cash",
     "bkash": "bKash",
-    "collectMoney": "Collect Money"
+    "collectMoney": "Collect Money",
+    "addToCart": "Add to Cart"
   },
   "stock": {
     "title": "Stock Management",
