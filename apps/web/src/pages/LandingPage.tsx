@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { Navbar } from '../components/Navbar';
+import { useSmoothScroll } from '../hooks/useSmoothScroll';
 
 interface LandingPageProps {
   isDark: boolean;
@@ -9,6 +10,7 @@ interface LandingPageProps {
 
 export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
   const { t } = useTranslation();
+  const { handleNavClick } = useSmoothScroll();
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300">
@@ -44,11 +46,11 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                  <button className="w-full sm:w-auto px-8 py-4 bg-primary text-white text-lg font-bold rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-orange-500/20 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+                  <button className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-primary text-white text-lg font-bold rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-orange-500/20 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
                     <Icon name="rocket_launch" />
                     {t('hero.ctaPrimary')}
                   </button>
-                  <button className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2">
+                  <button className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2">
                     <Icon name="play_circle" />
                     {t('hero.ctaSecondary')}
                   </button>
@@ -88,7 +90,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
                         <div className="flex justify-between items-center mb-4">
                           <span className="font-bold text-sm">সাম্প্রতিক লেনদেন</span>
-                          <span className="text-xs text-primary">সব দেখুন</span>
+                          <span className="text-xs text-primary cursor-pointer">সব দেখুন</span>
                         </div>
                         <div className="space-y-3">
                           <div className="flex justify-between items-center text-sm">
@@ -117,7 +119,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                           </div>
                         </div>
                       </div>
-                      <div className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-full shadow-lg shadow-orange-500/40 flex items-center justify-center text-white">
+                      <div className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-full shadow-lg shadow-orange-500/40 flex items-center justify-center text-white cursor-pointer">
                         <Icon name="add" className="text-2xl" />
                       </div>
                     </div>
@@ -191,7 +193,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
             </div>
             
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="group p-8 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
+              <div className="cursor-pointer group p-8 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Icon name="receipt_long" className="text-primary text-3xl" />
                 </div>
@@ -201,7 +203,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                 </p>
               </div>
               
-              <div className="group p-8 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
+              <div className="cursor-pointer group p-8 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
                 <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Icon name="inventory_2" className="text-blue-600 text-3xl" />
                 </div>
@@ -211,7 +213,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                 </p>
               </div>
               
-              <div className="group p-8 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
+              <div className="cursor-pointer group p-8 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
                 <div className="w-16 h-16 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Icon name="payments" className="text-pink-600 text-3xl" />
                 </div>
@@ -255,7 +257,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                     <span className="text-slate-400">{(t('pricing.pro.features', { returnObjects: true }) as string[])[3]}</span>
                   </li>
                 </ul>
-                <button className="w-full py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 font-bold hover:border-primary hover:text-primary transition-all">
+                <button className="cursor-pointer w-full py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 font-bold hover:border-primary hover:text-primary transition-all">
                   {t('pricing.free.cta')}
                 </button>
               </div>
@@ -280,7 +282,7 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                     </li>
                   ))}
                 </ul>
-                <button className="w-full py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover shadow-lg shadow-orange-500/30 transition-all">
+                <button className="cursor-pointer w-full py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover shadow-lg shadow-orange-500/30 transition-all">
                   {t('pricing.pro.cta')}
                 </button>
               </div>
@@ -299,10 +301,10 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                   {t('cta.description')}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button className="px-8 py-3 bg-white text-primary font-bold rounded-xl hover:bg-orange-50 transition-colors shadow-lg">
+                  <button className="cursor-pointer px-8 py-3 bg-white text-primary font-bold rounded-xl hover:bg-orange-50 transition-colors shadow-lg">
                     {t('cta.primary')}
                   </button>
-                  <button className="px-8 py-3 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors">
+                  <button className="cursor-pointer px-8 py-3 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors">
                     {t('cta.secondary')}
                   </button>
                 </div>
@@ -322,17 +324,17 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                   <Icon name="storefront" className="text-white text-lg" />
                 </div>
                 <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-white">
-                  সহজ <span className="text-primary">হিসাব</span>
+                  {t('nav.brand')}
                 </span>
               </div>
               <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-6">
                 {t('footer.description')}
               </p>
               <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-400">
+                <a href="#" className="cursor-pointer w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-400">
                   <span className="font-bold">f</span>
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-400">
+                <a href="#" className="cursor-pointer w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-400">
                   <span className="font-bold">in</span>
                 </a>
               </div>
@@ -340,10 +342,10 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
             <div>
               <h4 className="font-bold text-lg mb-6">{t('footer.links')}</h4>
               <ul className="space-y-4 text-sm text-slate-500 dark:text-slate-400">
-                <li><a href="#" className="hover:text-primary transition-colors">{t('footer.home')}</a></li>
-                <li><a href="#features" className="hover:text-primary transition-colors">{t('nav.features')}</a></li>
-                <li><a href="#pricing" className="hover:text-primary transition-colors">{t('nav.pricing')}</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">{t('footer.blog')}</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors cursor-pointer">{t('footer.home')}</a></li>
+                <li><a href="#features" onClick={(e) => handleNavClick(e, 'features')} className="hover:text-primary transition-colors cursor-pointer">{t('nav.features')}</a></li>
+                <li><a href="#pricing" onClick={(e) => handleNavClick(e, 'pricing')} className="hover:text-primary transition-colors cursor-pointer">{t('nav.pricing')}</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors cursor-pointer">{t('footer.blog')}</a></li>
               </ul>
             </div>
             <div>
@@ -367,8 +369,8 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
           <div className="border-t border-slate-100 dark:border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-slate-400">{t('footer.copyright')}</p>
             <div className="flex gap-6 text-sm text-slate-400">
-              <a href="#" className="hover:text-slate-600 dark:hover:text-slate-200">{t('footer.terms')}</a>
-              <a href="#" className="hover:text-slate-600 dark:hover:text-slate-200">{t('footer.privacy')}</a>
+              <a href="#" className="hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">{t('footer.terms')}</a>
+              <a href="#" className="hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">{t('footer.privacy')}</a>
             </div>
           </div>
         </div>

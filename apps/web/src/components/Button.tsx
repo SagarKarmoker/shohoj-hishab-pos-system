@@ -8,10 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles = {
-  primary: 'bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all active:scale-95',
-  secondary: 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-semibold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95',
-  outline: 'border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold rounded-xl hover:border-primary hover:text-primary transition-all active:scale-95',
-  ghost: 'text-slate-600 dark:text-slate-400 hover:text-primary transition-colors',
+  primary: 'bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all active:scale-95 cursor-pointer',
+  secondary: 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-semibold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95 cursor-pointer',
+  outline: 'border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold rounded-xl hover:border-primary hover:text-primary transition-all active:scale-95 cursor-pointer',
+  ghost: 'text-slate-600 dark:text-slate-400 hover:text-primary transition-colors cursor-pointer',
 }
 
 const sizeStyles = {
