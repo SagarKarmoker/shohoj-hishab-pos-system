@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { Navbar } from '../components/Navbar';
+import { VideoModal } from '../components/VideoModal';
 import { useSmoothScroll } from '../hooks/useSmoothScroll';
 
 interface LandingPageProps {
@@ -11,6 +13,7 @@ interface LandingPageProps {
 export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
   const { t } = useTranslation();
   const { handleNavClick } = useSmoothScroll();
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300">
@@ -50,7 +53,10 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
                     <Icon name="rocket_launch" />
                     {t('hero.ctaPrimary')}
                   </button>
-                  <button className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2">
+                  <button 
+                    onClick={() => setIsVideoModalOpen(true)}
+                    className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
+                  >
                     <Icon name="play_circle" />
                     {t('hero.ctaSecondary')}
                   </button>
@@ -375,6 +381,13 @@ export function LandingPage({ isDark, onToggleTheme }: LandingPageProps) {
           </div>
         </div>
       </footer>
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        videoSrc="/Shohoj_Hishab_Promotional_Vi.mp4"
+      />
     </div>
   );
 }
