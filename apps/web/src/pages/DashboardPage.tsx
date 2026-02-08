@@ -9,16 +9,18 @@ interface DashboardPageProps {
   onNavigateToStock: () => void;
   onNavigateToCredit: () => void;
   onNavigateToAccounts: () => void;
+  onNavigateToSettings: () => void;
 }
 
-export function DashboardPage({ 
-  isDark, 
-  onToggleTheme, 
-  onLogout, 
-  onNavigateToPOS, 
+export function DashboardPage({
+  isDark,
+  onToggleTheme,
+  onLogout,
+  onNavigateToPOS,
   onNavigateToStock,
   onNavigateToCredit,
-  onNavigateToAccounts
+  onNavigateToAccounts,
+  onNavigateToSettings
 }: DashboardPageProps) {
   const { t } = useTranslation();
 
@@ -42,7 +44,7 @@ export function DashboardPage({
               </span>
               <span className="text-xs text-slate-500">{t('dashboard.shopLocation')}</span>
             </div>
-            <button 
+            <button
               onClick={onToggleTheme}
               className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
@@ -52,7 +54,13 @@ export function DashboardPage({
                 <Icon name="dark_mode" className="text-slate-500" />
               )}
             </button>
-            <button 
+            <button
+              onClick={onNavigateToSettings}
+              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <Icon name="settings" className="text-slate-500" />
+            </button>
+            <button
               onClick={onLogout}
               className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center overflow-hidden hover:bg-slate-300 transition-colors cursor-pointer"
             >
@@ -237,32 +245,32 @@ export function DashboardPage({
                   </div>
                 </div>
                 <div className="divide-y divide-slate-100 dark:divide-slate-700 max-h-[500px] overflow-y-auto">
-                  <TransactionItem 
+                  <TransactionItem
                     title="বিক্রি #১০২৪"
                     amount="৳ ৪৫০"
                     type="cash"
                     time="10:30 AM"
                   />
-                  <TransactionItem 
+                  <TransactionItem
                     title="বাকি আদায় (করিম)"
                     amount="৳ ১,২০০"
                     type="bkash"
                     time="09:45 AM"
                   />
-                  <TransactionItem 
+                  <TransactionItem
                     title="বিক্রি #১০২৩"
                     amount="৳ ১২০"
                     type="cash"
                     time="09:15 AM"
                   />
-                  <TransactionItem 
+                  <TransactionItem
                     title="দোকান খরচ (চা-নাস্তা)"
                     amount="৳ ৫০"
                     type="cash"
                     time="08:50 AM"
                     isExpense
                   />
-                  <TransactionItem 
+                  <TransactionItem
                     title="বিক্রি #১০২২"
                     amount="৳ ৮৫০"
                     type="bkash"

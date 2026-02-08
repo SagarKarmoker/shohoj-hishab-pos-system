@@ -92,7 +92,9 @@
     "language": "Language",
     "bangla": "বাংলা",
     "english": "English",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "saved": "Saved",
+    "hishab": "Hishab"
   },
   "login": {
     "title": "Welcome Back",
@@ -222,10 +224,20 @@
     "time": "Time",
     "noTransactions": "No transactions found"
   },
-  "common": {
-    "language": "Language",
-    "bangla": "বাংলা",
-    "english": "English",
-    "hishab": "Hishab"
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "payment": "Payment Methods",
+    "preferences": "Preferences",
+    "shopInfo": "Shop Information",
+    "shopName": "Shop Name",
+    "shopAddress": "Address",
+    "phone": "Phone Number",
+    "paymentMethods": "Payment Integration",
+    "bkashNumber": "bKash Number",
+    "nagadNumber": "Nagad Number",
+    "rocketNumber": "Rocket Number",
+    "appPreferences": "App Preferences",
+    "theme": "Theme"
   }
 }

@@ -162,7 +162,24 @@
     "bangla": "বাংলা",
     "english": "English",
     "hishab": "হিসাব",
-    "cancel": "বাতিল"
+    "cancel": "বাতিল",
+    "saved": "সংরক্ষণ করা হয়েছে"
+  },
+  "settings": {
+    "title": "সেটিংস",
+    "general": "সাধারণ",
+    "payment": "পেমেন্ট মেথড",
+    "preferences": "পছন্দসমূহ",
+    "shopInfo": "দোকানের তথ্য",
+    "shopName": "দোকানের নাম",
+    "shopAddress": "ঠিকানা",
+    "phone": "মোবাইল নম্বর",
+    "paymentMethods": "পেমেন্ট ইন্টিগ্রেশন",
+    "bkashNumber": "বিকাশ নম্বর",
+    "nagadNumber": "নগদ নম্বর",
+    "rocketNumber": "রকেট নম্বর",
+    "appPreferences": "অ্যাপ পছন্দসমূহ",
+    "theme": "থিম"
   },
   "stock": {
     "title": "স্টক ম্যানেজমেন্ট",
