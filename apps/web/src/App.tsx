@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -8,11 +9,14 @@ import { StockPage } from './pages/StockPage'
 import { CreditPage } from './pages/CreditPage'
 import { AccountsPage } from './pages/AccountsPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { AdminPage } from './pages/AdminPage'
 import { SettingsProvider } from './contexts/SettingsContext'
 
-type Page = 'landing' | 'login' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts' | 'settings'
+type Page = 'landing' | 'login' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts' | 'settings' | 'admin'
 
-function App() {
+function AppContent() {
+  const { logout, needsApproval, isAuthenticated } = useAuth()
+  
   // Check for saved theme preference or default to light
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme')
@@ -48,6 +52,13 @@ function App() {
   }
 
   const navigateToDashboard = () => {
+    // Check if user needs approval before accessing dashboard
+    const needsApproval = localStorage.getItem('needs_approval') === 'true';
+    if (needsApproval) {
+      // Stay on login page with approval message
+      setCurrentPage('login');
+      return;
+    }
     setCurrentPage('dashboard')
     window.scrollTo(0, 0)
   }
@@ -77,75 +88,102 @@ function App() {
     window.scrollTo(0, 0)
   }
 
-  const handleLogout = () => {
+  const navigateToAdmin = () => {
+    setCurrentPage('admin')
+    window.scrollTo(0, 0)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
     setCurrentPage('landing')
     window.scrollTo(0, 0)
   }
 
   return (
+    <SettingsProvider>
+      {currentPage === 'landing' && (
+        <LandingPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onNavigateToLogin={navigateToLogin}
+        />
+      )}
+      {currentPage === 'login' && (
+        <LoginPage
+          onBackToHome={navigateToLanding}
+          onLoginSuccess={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'dashboard' && (
+        <DashboardPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onLogout={handleLogout}
+          onNavigateToPOS={navigateToPOS}
+          onNavigateToStock={navigateToStock}
+          onNavigateToCredit={navigateToCredit}
+          onNavigateToAccounts={navigateToAccounts}
+          onNavigateToSettings={navigateToSettings}
+          onNavigateToAdmin={navigateToAdmin}
+        />
+      )}
+      {currentPage === 'pos' && (
+        <POSPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'stock' && (
+        <StockPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'credit' && (
+        <CreditPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'accounts' && (
+        <AccountsPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'settings' && (
+        <SettingsPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'admin' && (
+        <AdminPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToDashboard={navigateToDashboard}
+          onLogout={handleLogout}
+        />
+      )}
+    </SettingsProvider>
+  )
+}
+
+function App() {
+  return (
     <LanguageProvider>
-      <SettingsProvider>
-        {currentPage === 'landing' && (
-          <LandingPage
-            isDark={isDark}
-            onToggleTheme={() => setIsDark(!isDark)}
-            onNavigateToLogin={navigateToLogin}
-          />
-        )}
-        {currentPage === 'login' && (
-          <LoginPage
-            onBackToHome={navigateToLanding}
-            onLoginSuccess={navigateToDashboard}
-          />
-        )}
-        {currentPage === 'dashboard' && (
-          <DashboardPage
-            isDark={isDark}
-            onToggleTheme={() => setIsDark(!isDark)}
-            onLogout={handleLogout}
-            onNavigateToPOS={navigateToPOS}
-            onNavigateToStock={navigateToStock}
-            onNavigateToCredit={navigateToCredit}
-            onNavigateToAccounts={navigateToAccounts}
-            onNavigateToSettings={navigateToSettings}
-          />
-        )}
-        {currentPage === 'pos' && (
-          <POSPage
-            isDark={isDark}
-            onToggleTheme={() => setIsDark(!isDark)}
-            onBackToDashboard={navigateToDashboard}
-          />
-        )}
-        {currentPage === 'stock' && (
-          <StockPage
-            isDark={isDark}
-            onToggleTheme={() => setIsDark(!isDark)}
-            onBackToDashboard={navigateToDashboard}
-          />
-        )}
-        {currentPage === 'credit' && (
-          <CreditPage
-            isDark={isDark}
-            onToggleTheme={() => setIsDark(!isDark)}
-            onBackToDashboard={navigateToDashboard}
-          />
-        )}
-        {currentPage === 'accounts' && (
-          <AccountsPage
-            isDark={isDark}
-            onToggleTheme={() => setIsDark(!isDark)}
-            onBackToDashboard={navigateToDashboard}
-          />
-        )}
-        {currentPage === 'settings' && (
-          <SettingsPage
-            isDark={isDark}
-            onToggleTheme={() => setIsDark(!isDark)}
-            onBackToDashboard={navigateToDashboard}
-          />
-        )}
-      </SettingsProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </LanguageProvider>
   )
 }
