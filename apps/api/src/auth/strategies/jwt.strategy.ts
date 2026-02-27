@@ -1,0 +1,53 @@
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UsersService } from '../../users/users.service';
+
+export interface JwtPayload {
+  sub: string;
+  uid: string;
+  phoneNumber: string;
+  iat?: number;
+  exp?: number;
+}
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private usersService: UsersService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: process.env.JWT_SECRET || 'your-secret-key',
+    });
+  }
+
+  async validate(payload: JwtPayload) {
+    const user = await this.usersService.findById(payload.sub);
+    
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Check if user account is active
+    if (!user.isActive) {
+      throw new ForbiddenException('Your account is pending approval. Please contact admin.');
+    }
+
+    // Check if subscription has expired
+    if (user.subscriptionEndDate) {
+      const now = new Date();
+      if (user.subscriptionEndDate < now) {
+        throw new ForbiddenException('Your subscription has expired. Please contact admin to renew.');
+      }
+    }
+
+    return {
+      id: user.id,
+      firebaseUid: user.firebaseUid,
+      phoneNumber: user.phoneNumber,
+      email: user.email,
+      displayName: user.displayName,
+      role: user.role,
+    };
+  }
+}

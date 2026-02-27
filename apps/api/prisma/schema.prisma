@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User roles enum
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+  SALES
+}
+
+// User model for authentication
+model User {
+  id            String    @id @default(uuid())
+  firebaseUid   String    @unique
+  phoneNumber   String    @unique
+  email         String?
+  displayName   String?
+  photoURL      String?
+  
+  // Password (hashed)
+  password      String?
+  
+  isActive      Boolean   @default(true)
+  
+  // Subscription
+  subscriptionStartDate DateTime?
+  subscriptionEndDate   DateTime?
+  subscriptionPlan     String?   @default("free")
+  subscriptionPlanId   String?
+  plan                 SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id])
+  
+  // Role Management
+  role         UserRole  @default(USER)
+  createdById  String?   
+  createdBy    User?     @relation("CreatedByRelation", fields: [createdById], references: [id])
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  shops         Shop[]
+  products      Product[]
+  transactions  Transaction[]
+  customers     Customer[]
+  createdUsers  User[]    @relation("CreatedByRelation")
+  salesPerson   SalesPerson?
+  sales         Sale[]
+}
+
+// Shop model - represents a business/store
+model Shop {
+  id          String   @id @default(uuid())
+  name        String
+  address     String?
+  phone       String?
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products     Product[]
+  transactions Transaction[]
+  customers    Customer[]
+}
+
+// Product model - items in inventory
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  code        String?
+  description String?
+  category    String?
+  unit        String   @default("piece")
+  price       Decimal  @db.Decimal(10, 2)
+  costPrice   Decimal? @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  minStock    Int      @default(0)
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id])
+  sellerId    String
+  seller      User     @relation(fields: [sellerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  transactionItems TransactionItem[]
+}
+
+// Customer model
+model Customer {
+  id          String    @id @default(uuid())
+  name        String
+  phone       String?
+  email       String?
+  address     String?
+  dueBalance  Decimal   @default(0) @db.Decimal(10, 2)
+  shopId      String
+  shop        Shop      @relation(fields: [shopId], references: [id])
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  transactions Transaction[]
+}
+
+// Transaction model - sales transactions
+model Transaction {
+  id           String   @id @default(uuid())
+  invoiceNumber String   @unique
+  totalAmount  Decimal  @db.Decimal(10, 2)
+  discount     Decimal  @default(0) @db.Decimal(10, 2)
+  paidAmount   Decimal  @db.Decimal(10, 2)
+  dueAmount    Decimal  @default(0) @db.Decimal(10, 2)
+  paymentMethod String  @default("cash")
+  notes        String?
+  shopId       String
+  shop         Shop     @relation(fields: [shopId], references: [id])
+  customerId   String?
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  sellerId     String
+  seller       User     @relation(fields: [sellerId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  items TransactionItem[]
+}
+
+// Transaction item - individual items in a transaction
+model TransactionItem {
+  id             String      @id @default(uuid())
+  quantity       Int
+  unitPrice      Decimal     @db.Decimal(10, 2)
+  totalPrice     Decimal     @db.Decimal(10, 2)
+  transactionId  String
+  transaction    Transaction @relation(fields: [transactionId], references: [id])
+  productId      String
+  product        Product     @relation(fields: [productId], references: [id])
+  createdAt      DateTime    @default(now())
+}
+
+// Subscription Plan model
+model SubscriptionPlan {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  durationDays Int     // e.g., 30 for monthly, 365 for yearly
+  features    String?  // JSON string of features
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  sales       Sale[]
+}
+
+// Sales Person model - for commission tracking
+model SalesPerson {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  commissionRate  Decimal   @default(5) @db.Decimal(5, 2) // percentage
+  totalSales      Decimal   @default(0) @db.Decimal(10, 2)
+  totalEarnings   Decimal   @default(0) @db.Decimal(10, 2)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  sales           Sale[]
+}
+
+// Sale model - tracks subscriptions sold by sales persons
+model Sale {
+  id              String            @id @default(uuid())
+  salesPersonId   String
+  salesPerson     SalesPerson       @relation(fields: [salesPersonId], references: [id])
+  userId          String?           // The user who subscribed
+  user            User?             @relation(fields: [userId], references: [id])
+  planId          String
+  plan            SubscriptionPlan  @relation(fields: [planId], references: [id])
+  commissionAmount Decimal          @db.Decimal(10, 2)
+  saleAmount      Decimal           @db.Decimal(10, 2)
+  createdAt       DateTime          @default(now())
+}
