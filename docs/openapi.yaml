@@ -1,0 +1,22 @@
+openapi: 3.0.3
+info:
+  title: Shohoj Hishab API
+  description: REST API for Shohoj Hishab POS system. More endpoints will be added as the product evolves.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001
+    description: Local development
+paths:
+  /:
+    get:
+      summary: Health / root
+      description: Simple root endpoint; returns a welcome message.
+      operationId: getHello
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Hello from Shohoj Hishab API!"

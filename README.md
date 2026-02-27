@@ -5,7 +5,7 @@
 
 A modern POS (Point of Sale) and accounting system built specifically for small businesses in Bangladesh. Built with a monorepo architecture using Turbo, pnpm, TypeScript, Vite, and NestJS.
 
-[Live Demo](http://localhost:3000) | [Documentation](./docs)
+[Live Demo](http://localhost:3000) | [Documentation](./docs) (Mintlify — run locally with `pnpm docs:dev`)
 
 ![Shohoj Hishab Landing Page](./docs/screenshots/landing-page.png)
 
@@ -35,10 +35,13 @@ shohoj-hishab/
 ├── packages/
 │   ├── tailwind-config/     # Shared Tailwind CSS configuration
 │   └── typescript-config/   # Shared TypeScript configurations
-├── docs/
-│   ├── design-system.html   # Design system documentation
+├── docs/                    # Mintlify documentation (pnpm docs:dev)
+│   ├── docs.json            # Mintlify config and navigation
+│   ├── openapi.yaml         # API reference spec
+│   ├── *.mdx                # Doc pages (index, product, bangla-pos-system, etc.)
+│   ├── setup/               # Installation and configuration guides
 │   ├── screenshots/         # Application screenshots
-│   └── video.md             # Promotional video script
+│   └── design-system.html   # Design system (legacy)
 ├── package.json
 ├── turbo.json
 └── pnpm-workspace.yaml
@@ -119,6 +122,7 @@ pnpm dev
 | Command | Description |
 |---------|-------------|
 | `pnpm dev` | Start all development servers |
+| `pnpm docs:dev` | Start Mintlify docs site at http://localhost:3000 (run from repo root) |
 | `pnpm build` | Build all packages for production |
 | `pnpm lint` | Run ESLint on all packages |
 | `pnpm typecheck` | Run TypeScript type checking |
@@ -230,6 +234,42 @@ cd apps/web && pnpm preview
 cd apps/api && pnpm start:prod
 ```
 
+## Documentation (Mintlify)
+
+The docs site is built with [Mintlify](https://mintlify.com). All content lives under `docs/`.
+
+### Running docs locally
+
+From the repo root:
+
+```bash
+pnpm docs:dev
+```
+
+Then open **http://localhost:3000**. The first run may take a moment while `mintlify` is installed via `npx`.
+
+### Docs folder structure
+
+- `docs/docs.json` — Mintlify config (theme, navigation, OpenAPI reference).
+- `docs/*.mdx` — Overview and top-level pages (e.g. `index.mdx`, `bangla-pos-system.mdx`, `product.mdx`).
+- `docs/setup/`, `docs/daily-operations/`, `docs/reports/`, `docs/api-reference/` — Guide and API intro pages.
+- `docs/openapi.yaml` — OpenAPI spec for the API reference. Keep it in sync with `apps/api` when adding endpoints.
+
+### Deploying docs to Mintlify
+
+1. Sign up or log in at [Mintlify](https://mintlify.com) and create a project.
+2. In the Mintlify dashboard, connect this GitHub repo and install the Mintlify GitHub App when prompted.
+3. Set the **docs root** to the `docs/` directory (or the branch path where `docs.json` lives).
+4. Choose the branch that triggers deployments (e.g. `main`).
+5. Push changes to that branch; Mintlify will build and deploy the site. Use the provided URL (e.g. `https://your-project.mintlify.app`) or add a custom domain.
+
+### Contributing to docs
+
+- When changing user-facing behavior or APIs, update the relevant `.mdx` under `docs/` and, if needed, `docs/openapi.yaml`.
+- Use Mintlify conventions: frontmatter `title` and `description`, callouts (`:::info`, `:::warning`), and relative links (e.g. `/setup/installation`).
+- Prefer Bangla for user-facing examples where the product is Bangla-first; keep technical terms and code in English where appropriate.
+- In PRs, consider adding a checklist item: **Docs updated (if user-facing or API changes).**
+
 ## Contributing
 
 We welcome contributions! Please follow these steps:
@@ -245,6 +285,7 @@ Please ensure your code:
 - Passes type checking (`pnpm typecheck`)
 - Follows the existing code style
 - Includes appropriate tests
+- **Docs updated** (if your change is user-facing or affects the API) — see [Documentation (Mintlify)](#documentation-mintlify) above
 
 ## License
 

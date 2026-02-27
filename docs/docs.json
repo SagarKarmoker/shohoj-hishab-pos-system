@@ -1,0 +1,43 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Shohoj Hishab Docs",
+  "description": "Documentation for Shohoj Hishab (সহজ হিসাব) - Bangla POS system for small retailers.",
+  "theme": "mint",
+  "colors": {
+    "primary": "#2563EB"
+  },
+  "openapi": "openapi.yaml",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Overview",
+        "pages": [
+          "index",
+          "bangla-pos-system",
+          "product"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "setup/installation",
+          "setup/configuration",
+          "daily-operations/sales",
+          "reports/overview"
+        ]
+      },
+      {
+        "group": "Resources",
+        "pages": [
+          "video"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api-reference/introduction"
+        ]
+      }
+    ]
+  }
+}
