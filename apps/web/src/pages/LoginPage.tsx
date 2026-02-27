@@ -1,299 +1,656 @@
-import { useState } from 'react';
+ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
+import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 interface LoginPageProps {
   onBackToHome: () => void;
   onLoginSuccess: () => void;
 }
 
-interface FormErrors {
-  email?: string;
-  password?: string;
-  general?: string;
-}
+type AuthMode = 'login' | 'signup' | 'reset';
 
 export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
+  const { 
+    phoneNumber, 
+    setPhoneNumber, 
+    confirmationResult, 
+    loginWithPhone, 
+    verifyCode, 
+    logout,
+    resetAuth,
+    firebaseToken,
+  } = useAuth();
+  
+  const [mode, setMode] = useState<AuthMode>('login');
+  const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [error, setError] = useState<string | null>(null);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [userExists, setUserExists] = useState<boolean | null>(null);
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+  // Reset form when mode changes
+  useEffect(() => {
+    setError(null);
+    setOtp('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowOtpInput(false);
+    setShowPasswordInput(false);
+    setResendTimer(0);
+  }, [mode]);
 
-    if (!email.trim()) {
-      newErrors.email = t('login.errors.emailRequired');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = t('login.errors.emailInvalid');
+  // Check if user exists when phone number changes
+  const checkUserExists = async (phone: string) => {
+    // Basic validation first
+    const phoneRegex = /^(\+88)?[01][0-9]{9,10}$/;
+    const cleanPhone = phone.replace(/\s/g, '');
+    
+    if (phoneRegex.test(cleanPhone)) {
+      try {
+        const formattedPhone = formatPhoneNumber(phone);
+        const response = await axios.post(`${API_URL}/auth/check-user`, {
+          phoneNumber: formattedPhone,
+        });
+        setUserExists(response.data.exists);
+        
+        // If user exists and trying to login, show password field
+        // If user doesn't exist and trying to login, suggest signup
+        if (mode === 'login' && response.data.exists && response.data.hasPassword) {
+          setShowPasswordInput(true);
+        } else if (mode === 'login' && response.data.exists && !response.data.hasPassword) {
+          setError(t('login.errors.setPasswordFirst'));
+        }
+      } catch (err) {
+        console.error('Error checking user:', err);
+      }
     }
-
-    if (!password) {
-      newErrors.password = t('login.errors.passwordRequired');
-    } else if (password.length < 6) {
-      newErrors.password = t('login.errors.passwordMin');
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const formatPhoneNumber = (phone: string): string => {
+    let cleaned = phone.replace(/[^\d+]/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = cleaned.substring(1);
+    }
+    if (!cleaned.startsWith('+')) {
+      cleaned = '+88' + cleaned;
+    }
+    return cleaned;
+  };
 
-    if (!validateForm()) return;
+  const validatePhone = (): boolean => {
+    if (!phoneNumber.trim()) {
+      setError(t('login.errors.phoneRequired'));
+      return false;
+    }
+
+    // Validate phone number format for Bangladesh
+    const phoneRegex = /^(\+88)?[01][0-9]{9,10}$/;
+    const cleanPhone = phoneNumber.replace(/\s/g, '');
+    if (!phoneRegex.test(cleanPhone)) {
+      setError(t('login.errors.phoneInvalid'));
+      return false;
+    }
+    return true;
+  };
+
+  const validatePassword = (): boolean => {
+    if (!password || password.length < 6) {
+      setError(t('login.errors.passwordMin', 'Password must be at least 6 characters'));
+      return false;
+    }
+    if (mode === 'signup' && password !== confirmPassword) {
+      setError(t('login.errors.passwordMismatch'));
+      return false;
+    }
+    return true;
+  };
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validatePhone()) return;
 
     setIsLoading(true);
-    setErrors({});
-
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock successful login
-      console.log('Login successful:', { email, rememberMe });
-      // Navigate to dashboard
-      onLoginSuccess();
-    } catch (error) {
-      setErrors({ general: t('login.errors.invalidCredentials') });
+      await loginWithPhone();
+      setShowOtpInput(true);
+      // Start resend timer
+      setResendTimer(60);
+      const timer = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.error('Error sending OTP:', err);
+      setError(err instanceof Error ? err.message : t('login.errors.smsFailed'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark flex">
-      {/* Left Side - Image/Brand */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] opacity-30"></div>
-        
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          <div>
-            <button 
-              onClick={onBackToHome}
-              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors cursor-pointer"
-            >
-              <Icon name="arrow_back" />
-              <span>{t('footer.home')}</span>
-            </button>
-          </div>
-          
-          <div className="space-y-6">
-            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-              <Icon name="storefront" className="text-white text-3xl" />
-            </div>
-            <h2 className="text-4xl font-bold">{t('nav.brand')}</h2>
-            <p className="text-white/80 text-lg max-w-md">
-              {t('footer.description')}
-            </p>
-            
-            <div className="flex items-center gap-4 pt-4">
-              <div className="flex -space-x-2">
-                <div className="w-10 h-10 rounded-full bg-white/30 border-2 border-primary"></div>
-                <div className="w-10 h-10 rounded-full bg-white/40 border-2 border-primary"></div>
-                <div className="w-10 h-10 rounded-full bg-white/50 border-2 border-primary"></div>
-              </div>
-              <p className="text-white/80 text-sm">10,000+ {t('stats.trusted')}</p>
-            </div>
-          </div>
-          
-          <div className="text-white/60 text-sm">
-            © {new Date().getFullYear()} {t('nav.brand')}
-          </div>
-        </div>
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!otp.trim() || otp.length < 6) {
+      setError(t('login.errors.otpRequired'));
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Verify OTP and get JWT token
+      // Note: verifyCode() already calls /auth/verify-token internally
+      await verifyCode(otp);
+      
+      // After OTP verification, show password input for signup/reset
+      setShowPasswordInput(true);
+    } catch (err) {
+      console.error('Error verifying OTP:', err);
+      setError(err instanceof Error ? err.message : t('login.errors.invalidOtp'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validatePhone() || !validatePassword()) return;
+
+    setIsLoading(true);
+    try {
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        phoneNumber: formattedPhone,
+        password,
+      });
+
+      const data = response.data;
+
+      // Check if user needs approval BEFORE storing token
+      if (data.needsApproval) {
+        localStorage.setItem('needs_approval', 'true');
+        setError(t('login.errors.needsApproval') || 'Your account is pending approval. Please contact admin.');
+        return;
+      }
+
+      // Store JWT token only after approval check
+      localStorage.setItem('jwt_token', data.token);
+      
+      // Set user data
+      onLoginSuccess();
+    } catch (err: any) {
+      console.error('Error logging in:', err);
+      setError(err.response?.data?.message || t('login.errors.invalidCredentials'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validatePhone() || !validatePassword()) return;
+
+    setIsLoading(true);
+    try {
+      // Use the stored Firebase token from AuthContext
+      if (!firebaseToken) {
+        throw new Error('Please verify your phone number first');
+      }
+
+      // Call signup endpoint with Firebase token and password
+      const response = await axios.post(`${API_URL}/auth/signup`, {
+        firebaseToken,
+        password,
+      });
+
+      // Store JWT token
+      localStorage.setItem('jwt_token', response.data.token);
+      
+      // Set user data
+      onLoginSuccess();
+    } catch (err: any) {
+      console.error('Error signing up:', err);
+      setError(err.response?.data?.message || t('login.errors.signupFailed'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validatePassword()) return;
+
+    setIsLoading(true);
+    try {
+      // Use the stored Firebase token from AuthContext
+      if (!firebaseToken) {
+        throw new Error('Please verify your phone number first');
+      }
+
+      // Call reset password endpoint
+      await axios.post(`${API_URL}/auth/reset-password`, {
+        firebaseToken,
+        newPassword: password,
+      });
+
+      // Show success message and redirect to login
+      setError(null);
+      alert(t('login.messages.passwordResetSuccess'));
+      setMode('login');
+      setShowOtpInput(false);
+      setShowPasswordInput(false);
+      setOtp('');
+      setPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      console.error('Error resetting password:', err);
+      setError(err.response?.data?.message || t('login.errors.resetFailed'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendTimer > 0) return;
+    
+    setError(null);
+    setOtp('');
+    try {
+      await loginWithPhone();
+      setResendTimer(60);
+      const timer = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.error('Error resending OTP:', err);
+      setError(err instanceof Error ? err.message : t('login.errors.smsFailed'));
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(e.target.value);
+    setUserExists(null);
+    setShowPasswordInput(false);
+    setError(null);
+  };
+
+  const handlePhoneBlur = () => {
+    if (mode === 'login' && phoneNumber.trim()) {
+      checkUserExists(phoneNumber);
+    }
+  };
+
+  const switchMode = (newMode: AuthMode) => {
+    setMode(newMode);
+    setPhoneNumber('');
+    setOtp('');
+    setPassword('');
+    setConfirmPassword('');
+    setUserExists(null);
+    setShowOtpInput(false);
+    setShowPasswordInput(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.error('Error logging out:', err);
+    }
+  };
+
+  // Render login form
+  const renderLoginForm = () => (
+    <form onSubmit={handleSendOTP} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {t('login.phoneNumber', 'Phone Number')}
+        </label>
+        <input
+          type="tel"
+          value={phoneNumber}
+          onChange={handlePhoneChange}
+          onBlur={handlePhoneBlur}
+          placeholder="01XXXXXXXXX"
+          className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          disabled={isLoading}
+        />
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-12">
-        {/* Mobile Back Button */}
-        <div className="lg:hidden absolute top-6 left-6">
-          <button 
-            onClick={onBackToHome}
-            className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-primary transition-colors cursor-pointer"
-          >
-            <Icon name="arrow_back" />
-            <span>{t('footer.home')}</span>
-          </button>
+      {showPasswordInput && (
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            {t('login.password', 'Password')}
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t('login.enterPassword', 'Enter your password')}
+            className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            disabled={isLoading}
+          />
         </div>
+      )}
 
-        <div className="w-full max-w-md space-y-8">
-          {/* Header */}
-          <div className="text-center">
-            <div className="lg:hidden mb-6">
-              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-orange-500/30">
-                <Icon name="storefront" className="text-white text-3xl" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-              {t('login.title')}
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400">
-              {t('login.subtitle')}
-            </p>
-          </div>
+      {error && (
+        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+          {error}
+        </div>
+      )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* General Error */}
-            {errors.general && (
-              <div className="p-4 bg-error/10 border border-error/20 rounded-xl text-error text-sm">
-                {errors.general}
-              </div>
-            )}
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isLoading ? t('common.loading', 'Loading...') : 
+          showPasswordInput ? t('login.loginButton', 'Login') : 
+          t('login.continueButton', 'Continue')}
+      </button>
 
-            {/* Email Field */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                {t('login.emailLabel')}
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <Icon name="email" />
-                </span>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('login.emailPlaceholder')}
-                  className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-400 ${
-                    errors.email ? 'border-error focus:ring-error focus:border-error' : 'border-slate-200 dark:border-slate-700'
-                  }`}
-                  disabled={isLoading}
-                />
-              </div>
-              {errors.email && (
-                <p className="text-error text-sm">{errors.email}</p>
-              )}
-            </div>
+      <div className="text-center space-y-2">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          {t('login.noAccount', "Don't have an account?")}{' '}
+          <button
+            type="button"
+            onClick={() => switchMode('signup')}
+            className="text-green-600 hover:text-green-700 font-medium"
+          >
+            {t('login.signup', 'Sign Up')}
+          </button>
+        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          {t('login.forgotPassword', 'Forgot password?')}{' '}
+          <button
+            type="button"
+            onClick={() => switchMode('reset')}
+            className="text-green-600 hover:text-green-700 font-medium"
+          >
+            {t('login.reset', 'Reset')}
+          </button>
+        </p>
+      </div>
+    </form>
+  );
 
-            {/* Password Field */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                {t('login.passwordLabel')}
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <Icon name="lock" />
-                </span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('login.passwordPlaceholder')}
-                  className={`w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-slate-800 border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-400 ${
-                    errors.password ? 'border-error focus:ring-error focus:border-error' : 'border-slate-200 dark:border-slate-700'
-                  }`}
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
-                >
-                  <Icon name={showPassword ? 'visibility_off' : 'visibility'} />
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-error text-sm">{errors.password}</p>
-              )}
-            </div>
+  // Render signup form
+  const renderSignupForm = () => (
+    <form onSubmit={showPasswordInput ? handleSignup : handleSendOTP} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {t('login.phoneNumber', 'Phone Number')}
+        </label>
+        <input
+          type="tel"
+          value={phoneNumber}
+          onChange={handlePhoneChange}
+          placeholder="01XXXXXXXXX"
+          className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          disabled={isLoading || showPasswordInput}
+        />
+      </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
-                  disabled={isLoading}
-                />
-                <span className="text-sm text-slate-600 dark:text-slate-400">
-                  {t('login.rememberMe')}
-                </span>
-              </label>
-              <button
-                type="button"
-                className="text-sm text-primary hover:text-primary-hover font-medium cursor-pointer"
-                disabled={isLoading}
-              >
-                {t('login.forgotPassword')}
-              </button>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all shadow-lg shadow-orange-500/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                  {t('login.loggingIn')}
-                </>
-              ) : (
-                <>
-                  <Icon name="login" />
-                  {t('login.loginButton')}
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-background-light dark:bg-background-dark text-slate-500">
-                {t('login.orContinueWith')}
-              </span>
-            </div>
-          </div>
-
-          {/* Social Login */}
-          <div className="grid grid-cols-2 gap-4">
+      {showOtpInput && (
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            {t('login.otp', 'Verification Code')}
+          </label>
+          <input
+            type="text"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder={t('login.enterOtp', 'Enter 6-digit code')}
+            className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            disabled={isLoading}
+            maxLength={6}
+          />
+          <p className="text-sm text-slate-500 mt-2">
+            {t('login.didntReceive', "Didn't receive code?")}{' '}
             <button
               type="button"
-              disabled={isLoading}
-              className="flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+              onClick={handleResendOTP}
+              disabled={resendTimer > 0}
+              className="text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Google</span>
-            </button>
-            <button
-              type="button"
-              disabled={isLoading}
-              className="flex items-center justify-center gap-2 py-3 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Facebook</span>
-            </button>
-          </div>
-
-          {/* Sign Up Link */}
-          <p className="text-center text-slate-600 dark:text-slate-400">
-            {t('login.noAccount')}{' '}
-            <button
-              type="button"
-              className="text-primary hover:text-primary-hover font-semibold cursor-pointer"
-              disabled={isLoading}
-            >
-              {t('login.signUp')}
+              {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
             </button>
           </p>
+        </div>
+      )}
+
+      {showPasswordInput && (
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              {t('login.password', 'Password')}
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('login.createPassword', 'Create a password')}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              disabled={isLoading}
+              minLength={6}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              {t('login.confirmPassword', 'Confirm Password')}
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder={t('login.confirmPassword', 'Confirm your password')}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              disabled={isLoading}
+              minLength={6}
+            />
+          </div>
+        </>
+      )}
+
+      {error && (
+        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isLoading ? t('common.loading', 'Loading...') : 
+          showPasswordInput ? t('login.signupButton', 'Sign Up') : 
+          t('login.continueButton', 'Continue')}
+      </button>
+
+      <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+        {t('login.alreadyAccount', 'Already have an account?')}{' '}
+        <button
+          type="button"
+          onClick={() => switchMode('login')}
+          className="text-green-600 hover:text-green-700 font-medium"
+        >
+          {t('login.login', 'Login')}
+        </button>
+      </p>
+    </form>
+  );
+
+  // Render reset password form
+  const renderResetForm = () => (
+    <form onSubmit={showPasswordInput ? handleResetPassword : handleSendOTP} className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {t('login.phoneNumber', 'Phone Number')}
+        </label>
+        <input
+          type="tel"
+          value={phoneNumber}
+          onChange={handlePhoneChange}
+          placeholder="01XXXXXXXXX"
+          className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          disabled={isLoading || showPasswordInput}
+        />
+      </div>
+
+      {showOtpInput && (
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            {t('login.otp', 'Verification Code')}
+          </label>
+          <input
+            type="text"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder={t('login.enterOtp', 'Enter 6-digit code')}
+            className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            disabled={isLoading}
+            maxLength={6}
+          />
+          <p className="text-sm text-slate-500 mt-2">
+            {t('login.didntReceive', "Didn't receive code?")}{' '}
+            <button
+              type="button"
+              onClick={handleResendOTP}
+              disabled={resendTimer > 0}
+              className="text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
+            >
+              {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
+            </button>
+          </p>
+        </div>
+      )}
+
+      {showPasswordInput && (
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              {t('login.newPassword', 'New Password')}
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('login.enterNewPassword', 'Enter new password')}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              disabled={isLoading}
+              minLength={6}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              {t('login.confirmPassword', 'Confirm Password')}
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder={t('login.confirmPassword', 'Confirm your password')}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              disabled={isLoading}
+              minLength={6}
+            />
+          </div>
+        </>
+      )}
+
+      {error && (
+        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+          {error}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isLoading ? t('common.loading', 'Loading...') : 
+          showPasswordInput ? t('login.resetButton', 'Reset Password') : 
+          t('login.continueButton', 'Continue')}
+      </button>
+
+      <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+        {t('login.rememberPassword', 'Remember your password?')}{' '}
+        <button
+          type="button"
+          onClick={() => switchMode('login')}
+          className="text-green-600 hover:text-green-700 font-medium"
+        >
+          {t('login.login', 'Login')}
+        </button>
+      </p>
+    </form>
+  );
+
+  return (
+    <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4">
+      {/* reCAPTCHA container - required for Firebase phone auth */}
+      <div id="recaptcha-container"></div>
+      
+      <div className="w-full max-w-md">
+        {/* Back button */}
+        <button
+          onClick={onBackToHome}
+          className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 mb-6 transition-colors cursor-pointer"
+        >
+          <Icon name="arrow_back" className="text-xl" />
+          <span>{t('common.back', 'Back')}</span>
+        </button>
+
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Icon name="calculate" className="text-white text-3xl" />
+          </div>
+          <h1 className="text-2xl font-bold">
+            {t('nav.brand')} <span className="text-green-600">{t('common.hishab')}</span>
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-2">
+            {mode === 'login' && t('login.subtitle', 'Welcome back! Please login to continue.')}
+            {mode === 'signup' && t('login.signupSubtitle', 'Create an account to get started.')}
+            {mode === 'reset' && t('login.resetSubtitle', 'Reset your password to recover your account.')}
+          </p>
+        </div>
+
+        {/* Auth form */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+          {mode === 'login' && renderLoginForm()}
+          {mode === 'signup' && renderSignupForm()}
+          {mode === 'reset' && renderResetForm()}
         </div>
       </div>
     </div>
