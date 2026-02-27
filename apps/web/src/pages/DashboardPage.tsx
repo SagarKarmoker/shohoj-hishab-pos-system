@@ -10,6 +10,7 @@ interface DashboardPageProps {
   onNavigateToCredit: () => void;
   onNavigateToAccounts: () => void;
   onNavigateToSettings: () => void;
+  onNavigateToAdmin: () => void;
 }
 
 export function DashboardPage({
@@ -20,7 +21,8 @@ export function DashboardPage({
   onNavigateToStock,
   onNavigateToCredit,
   onNavigateToAccounts,
-  onNavigateToSettings
+  onNavigateToSettings,
+  onNavigateToAdmin,
 }: DashboardPageProps) {
   const { t } = useTranslation();
 
@@ -59,6 +61,13 @@ export function DashboardPage({
               className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <Icon name="settings" className="text-slate-500" />
+            </button>
+            <button
+              onClick={onNavigateToAdmin}
+              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              title={t('admin.title', 'Admin Panel')}
+            >
+              <Icon name="admin_panel_settings" className="text-slate-500" />
             </button>
             <button
               onClick={onLogout}
