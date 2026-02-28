@@ -331,7 +331,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const renderLoginForm = () => (
     <form onSubmit={handleSendOTP} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
           {t('login.phoneNumber', 'Phone Number')}
         </label>
         <input
@@ -340,14 +340,14 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
           onChange={handlePhoneChange}
           onBlur={handlePhoneBlur}
           placeholder="01XXXXXXXXX"
-          className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
           disabled={isLoading}
         />
       </div>
 
       {showPasswordInput && (
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
             {t('login.password', 'Password')}
           </label>
           <input
@@ -355,35 +355,41 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t('login.enterPassword', 'Enter your password')}
-            className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
             disabled={isLoading}
           />
         </div>
       )}
 
       {error && (
-        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
-          {error}
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium flex items-start gap-2">
+          <Icon name="error" className="text-lg flex-shrink-0 mt-0.5" />
+          <span>{error}</span>
         </div>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
       >
-        {isLoading ? t('common.loading', 'Loading...') : 
-          showPasswordInput ? t('login.loginButton', 'Login') : 
-          t('login.continueButton', 'Continue')}
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            {t('common.loading', 'Loading...')}
+          </span>
+        ) : (
+          showPasswordInput ? t('login.loginButton', 'Login') : t('login.continueButton', 'Continue')
+        )}
       </button>
 
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-3 pt-2">
         <p className="text-sm text-slate-600 dark:text-slate-400">
           {t('login.noAccount', "Don't have an account?")}{' '}
           <button
             type="button"
             onClick={() => switchMode('signup')}
-            className="text-green-600 hover:text-green-700 font-medium"
+            className="text-primary hover:text-primary-hover font-semibold transition-colors"
           >
             {t('login.signup', 'Sign Up')}
           </button>
@@ -393,7 +399,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
           <button
             type="button"
             onClick={() => switchMode('reset')}
-            className="text-green-600 hover:text-green-700 font-medium"
+            className="text-primary hover:text-primary-hover font-semibold transition-colors"
           >
             {t('login.reset', 'Reset')}
           </button>
@@ -406,7 +412,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const renderSignupForm = () => (
     <form onSubmit={showPasswordInput ? handleSignup : handleSendOTP} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
           {t('login.phoneNumber', 'Phone Number')}
         </label>
         <input
@@ -414,14 +420,14 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
           value={phoneNumber}
           onChange={handlePhoneChange}
           placeholder="01XXXXXXXXX"
-          className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
           disabled={isLoading || showPasswordInput}
         />
       </div>
 
       {showOtpInput && (
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
             {t('login.otp', 'Verification Code')}
           </label>
           <input
@@ -429,17 +435,17 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             placeholder={t('login.enterOtp', 'Enter 6-digit code')}
-            className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100 text-center text-2xl tracking-widest font-bold"
             disabled={isLoading}
             maxLength={6}
           />
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 text-center">
             {t('login.didntReceive', "Didn't receive code?")}{' '}
             <button
               type="button"
               onClick={handleResendOTP}
               disabled={resendTimer > 0}
-              className="text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
+              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
             </button>
@@ -450,7 +456,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
       {showPasswordInput && (
         <>
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
               {t('login.password', 'Password')}
             </label>
             <input
@@ -458,13 +464,13 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('login.createPassword', 'Create a password')}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
               disabled={isLoading}
               minLength={6}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
               {t('login.confirmPassword', 'Confirm Password')}
             </label>
             <input
@@ -472,7 +478,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder={t('login.confirmPassword', 'Confirm your password')}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
               disabled={isLoading}
               minLength={6}
             />
@@ -481,27 +487,33 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
       )}
 
       {error && (
-        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
-          {error}
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium flex items-start gap-2">
+          <Icon name="error" className="text-lg flex-shrink-0 mt-0.5" />
+          <span>{error}</span>
         </div>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
       >
-        {isLoading ? t('common.loading', 'Loading...') : 
-          showPasswordInput ? t('login.signupButton', 'Sign Up') : 
-          t('login.continueButton', 'Continue')}
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            {t('common.loading', 'Loading...')}
+          </span>
+        ) : (
+          showPasswordInput ? t('login.signupButton', 'Sign Up') : t('login.continueButton', 'Continue')
+        )}
       </button>
 
-      <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+      <p className="text-center text-sm text-slate-600 dark:text-slate-400 pt-2">
         {t('login.alreadyAccount', 'Already have an account?')}{' '}
         <button
           type="button"
           onClick={() => switchMode('login')}
-          className="text-green-600 hover:text-green-700 font-medium"
+          className="text-primary hover:text-primary-hover font-semibold transition-colors"
         >
           {t('login.login', 'Login')}
         </button>
@@ -513,7 +525,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const renderResetForm = () => (
     <form onSubmit={showPasswordInput ? handleResetPassword : handleSendOTP} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
           {t('login.phoneNumber', 'Phone Number')}
         </label>
         <input
@@ -521,14 +533,14 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
           value={phoneNumber}
           onChange={handlePhoneChange}
           placeholder="01XXXXXXXXX"
-          className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
           disabled={isLoading || showPasswordInput}
         />
       </div>
 
       {showOtpInput && (
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
             {t('login.otp', 'Verification Code')}
           </label>
           <input
@@ -536,17 +548,17 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             placeholder={t('login.enterOtp', 'Enter 6-digit code')}
-            className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100 text-center text-2xl tracking-widest font-bold"
             disabled={isLoading}
             maxLength={6}
           />
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 text-center">
             {t('login.didntReceive', "Didn't receive code?")}{' '}
             <button
               type="button"
               onClick={handleResendOTP}
               disabled={resendTimer > 0}
-              className="text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
+              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
             </button>
@@ -557,7 +569,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
       {showPasswordInput && (
         <>
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
               {t('login.newPassword', 'New Password')}
             </label>
             <input
@@ -565,13 +577,13 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('login.enterNewPassword', 'Enter new password')}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
               disabled={isLoading}
               minLength={6}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
               {t('login.confirmPassword', 'Confirm Password')}
             </label>
             <input
@@ -579,7 +591,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder={t('login.confirmPassword', 'Confirm your password')}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
               disabled={isLoading}
               minLength={6}
             />
@@ -588,27 +600,33 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
       )}
 
       {error && (
-        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
-          {error}
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium flex items-start gap-2">
+          <Icon name="error" className="text-lg flex-shrink-0 mt-0.5" />
+          <span>{error}</span>
         </div>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
       >
-        {isLoading ? t('common.loading', 'Loading...') : 
-          showPasswordInput ? t('login.resetButton', 'Reset Password') : 
-          t('login.continueButton', 'Continue')}
+        {isLoading ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            {t('common.loading', 'Loading...')}
+          </span>
+        ) : (
+          showPasswordInput ? t('login.resetButton', 'Reset Password') : t('login.continueButton', 'Continue')
+        )}
       </button>
 
-      <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+      <p className="text-center text-sm text-slate-600 dark:text-slate-400 pt-2">
         {t('login.rememberPassword', 'Remember your password?')}{' '}
         <button
           type="button"
           onClick={() => switchMode('login')}
-          className="text-green-600 hover:text-green-700 font-medium"
+          className="text-primary hover:text-primary-hover font-semibold transition-colors"
         >
           {t('login.login', 'Login')}
         </button>
@@ -617,29 +635,34 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 bg-pattern pointer-events-none opacity-50"></div>
+      <div className="absolute -top-24 -right-24 w-96 h-96 bg-orange-100 dark:bg-orange-900/20 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+      <div className="absolute bottom-0 -left-24 w-72 h-72 bg-orange-50 dark:bg-orange-900/10 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+      
       {/* reCAPTCHA container - required for Firebase phone auth */}
       <div id="recaptcha-container"></div>
       
-      <div className="w-full max-w-md">
-        {/* Back button */}
-        <button
-          onClick={onBackToHome}
-          className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 mb-6 transition-colors cursor-pointer"
-        >
-          <Icon name="arrow_back" className="text-xl" />
-          <span>{t('common.back', 'Back')}</span>
-        </button>
-
-        {/* Logo */}
+      {/* Back button - Fixed position */}
+      <button
+        onClick={onBackToHome}
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary hover:border-primary dark:hover:border-primary shadow-lg hover:shadow-xl transition-all hover:-translate-x-1 cursor-pointer group"
+      >
+        <Icon name="arrow_back" className="text-xl group-hover:scale-110 transition-transform" />
+        <span className="font-semibold text-sm">{t('common.back', 'Back')}</span>
+      </button>
+      
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Icon name="calculate" className="text-white text-3xl" />
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-orange-500/30 transform hover:scale-105 transition-transform">
+            <Icon name="calculate" className="text-white text-4xl" />
           </div>
-          <h1 className="text-2xl font-bold">
-            {t('nav.brand')} <span className="text-green-600">{t('common.hishab')}</span>
+          <h1 className="text-3xl font-bold mb-2">
+            {t('nav.brand')}
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             {mode === 'login' && t('login.subtitle', 'Welcome back! Please login to continue.')}
             {mode === 'signup' && t('login.signupSubtitle', 'Create an account to get started.')}
             {mode === 'reset' && t('login.resetSubtitle', 'Reset your password to recover your account.')}
@@ -647,7 +670,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
         </div>
 
         {/* Auth form */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 p-8 backdrop-blur-sm">
           {mode === 'login' && renderLoginForm()}
           {mode === 'signup' && renderSignupForm()}
           {mode === 'reset' && renderResetForm()}

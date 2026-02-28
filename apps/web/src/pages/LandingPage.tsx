@@ -157,31 +157,31 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin }: Landin
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 text-center">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                   <span className="text-2xl">🇧🇩</span>
                 </div>
                 <div className="text-left">
-                  <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">{t('stats.madeIn')}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1">{t('stats.madeIn')}</p>
                   <p className="font-bold text-lg text-slate-800 dark:text-white">Made in Bangladesh</p>
                 </div>
               </div>
               <div className="w-px h-12 bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Icon name="storefront" className="text-blue-600 text-2xl" />
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                  <Icon name="storefront" className="text-blue-600 dark:text-blue-400 text-2xl" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">{t('stats.trusted')}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1">{t('stats.trusted')}</p>
                   <p className="font-bold text-lg text-slate-800 dark:text-white">10,000+ Shop Owners</p>
                 </div>
               </div>
               <div className="w-px h-12 bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Icon name="verified_user" className="text-green-600 text-2xl" />
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                  <Icon name="verified_user" className="text-green-600 dark:text-green-400 text-2xl" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">{t('stats.secure')}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1">{t('stats.secure')}</p>
                   <p className="font-bold text-lg text-slate-800 dark:text-white">Cloud Backup</p>
                 </div>
               </div>
