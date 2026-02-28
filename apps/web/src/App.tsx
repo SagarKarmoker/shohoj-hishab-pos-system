@@ -10,9 +10,11 @@ import { CreditPage } from './pages/CreditPage'
 import { AccountsPage } from './pages/AccountsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { AdminPage } from './pages/AdminPage'
+import { TermsPage } from './pages/TermsPage'
+import { PrivacyPage } from './pages/PrivacyPage'
 import { SettingsProvider } from './contexts/SettingsContext'
 
-type Page = 'landing' | 'login' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts' | 'settings' | 'admin'
+type Page = 'landing' | 'login' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts' | 'settings' | 'admin' | 'terms' | 'privacy'
 
 function AppContent() {
   const { logout, needsApproval, isAuthenticated } = useAuth()
@@ -93,6 +95,16 @@ function AppContent() {
     window.scrollTo(0, 0)
   }
 
+  const navigateToTerms = () => {
+    setCurrentPage('terms')
+    window.scrollTo(0, 0)
+  }
+
+  const navigateToPrivacy = () => {
+    setCurrentPage('privacy')
+    window.scrollTo(0, 0)
+  }
+
   const handleLogout = async () => {
     try {
       await logout()
@@ -110,6 +122,8 @@ function AppContent() {
           isDark={isDark}
           onToggleTheme={() => setIsDark(!isDark)}
           onNavigateToLogin={navigateToLogin}
+          onNavigateToTerms={navigateToTerms}
+          onNavigateToPrivacy={navigateToPrivacy}
         />
       )}
       {currentPage === 'login' && (
@@ -172,6 +186,20 @@ function AppContent() {
           onToggleTheme={() => setIsDark(!isDark)}
           onBackToDashboard={navigateToDashboard}
           onLogout={handleLogout}
+        />
+      )}
+      {currentPage === 'terms' && (
+        <TermsPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToLanding={navigateToLanding}
+        />
+      )}
+      {currentPage === 'privacy' && (
+        <PrivacyPage
+          isDark={isDark}
+          onToggleTheme={() => setIsDark(!isDark)}
+          onBackToLanding={navigateToLanding}
         />
       )}
     </SettingsProvider>

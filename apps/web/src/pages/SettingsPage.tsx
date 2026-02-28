@@ -43,7 +43,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                     <div className="flex items-center gap-4">
                         <button
                             onClick={onBackToDashboard}
-                            className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                         >
                             <Icon name="arrow_back" />
                         </button>
@@ -58,7 +58,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                         )}
                         <button
                             onClick={onToggleTheme}
-                            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                         >
                             {isDark ? (
                                 <Icon name="light_mode" className="text-slate-400" />
@@ -76,7 +76,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                     <div className="space-y-2">
                         <button
                             onClick={() => setActiveTab('general')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'general'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer ${activeTab === 'general'
                                 ? 'bg-primary text-white shadow-lg shadow-orange-500/20'
                                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
                                 }`}
@@ -86,7 +86,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                         </button>
                         <button
                             onClick={() => setActiveTab('payment')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'payment'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer ${activeTab === 'payment'
                                 ? 'bg-primary text-white shadow-lg shadow-orange-500/20'
                                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
                                 }`}
@@ -96,7 +96,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                         </button>
                         <button
                             onClick={() => setActiveTab('preferences')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'preferences'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer ${activeTab === 'preferences'
                                 ? 'bg-primary text-white shadow-lg shadow-orange-500/20'
                                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
                                 }`}
@@ -246,7 +246,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                         <div className="grid grid-cols-2 gap-4">
                                             <button
                                                 onClick={() => changeLanguage('bn')}
-                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${i18n.language === 'bn'
+                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${i18n.language === 'bn'
                                                     ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                                                     : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                                     }`}
@@ -256,7 +256,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                             </button>
                                             <button
                                                 onClick={() => changeLanguage('en')}
-                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${i18n.language === 'en'
+                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${i18n.language === 'en'
                                                     ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                                                     : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                                     }`}
@@ -274,7 +274,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                         <div className="grid grid-cols-2 gap-4">
                                             <button
                                                 onClick={() => !isDark && onToggleTheme()} // Only toggle if not already match
-                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${!isDark
+                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${!isDark
                                                     ? 'border-primary bg-orange-50 dark:bg-orange-900/20 text-primary'
                                                     : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 opacity-60'
                                                     }`}
@@ -284,7 +284,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                             </button>
                                             <button
                                                 onClick={() => isDark && onToggleTheme()} // Only toggle if not already match
-                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${isDark
+                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${isDark
                                                     ? 'border-primary bg-orange-50 dark:bg-orange-900/20 text-primary'
                                                     : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 opacity-60'
                                                     }`}

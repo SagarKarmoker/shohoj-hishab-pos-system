@@ -389,7 +389,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
           <button
             type="button"
             onClick={() => switchMode('signup')}
-            className="text-primary hover:text-primary-hover font-semibold transition-colors"
+            className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
           >
             {t('login.signup', 'Sign Up')}
           </button>
@@ -399,7 +399,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
           <button
             type="button"
             onClick={() => switchMode('reset')}
-            className="text-primary hover:text-primary-hover font-semibold transition-colors"
+            className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
           >
             {t('login.reset', 'Reset')}
           </button>
@@ -445,7 +445,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
               type="button"
               onClick={handleResendOTP}
               disabled={resendTimer > 0}
-              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
             </button>
@@ -513,7 +513,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
         <button
           type="button"
           onClick={() => switchMode('login')}
-          className="text-primary hover:text-primary-hover font-semibold transition-colors"
+          className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
         >
           {t('login.login', 'Login')}
         </button>
@@ -558,7 +558,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
               type="button"
               onClick={handleResendOTP}
               disabled={resendTimer > 0}
-              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
             </button>
@@ -626,7 +626,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
         <button
           type="button"
           onClick={() => switchMode('login')}
-          className="text-primary hover:text-primary-hover font-semibold transition-colors"
+          className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
         >
           {t('login.login', 'Login')}
         </button>

@@ -379,7 +379,7 @@ export function AdminPage({
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3 flex items-center justify-between">
           <span className="text-red-800 dark:text-red-200">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800">
+          <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800 cursor-pointer">
             <Icon name="close" className="w-5 h-5" />
           </button>
         </div>
