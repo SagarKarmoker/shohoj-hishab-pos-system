@@ -54,9 +54,9 @@ export function Navbar({ isDark, onToggleTheme, onNavigateToLogin }: NavbarProps
           {/* Language Switcher - Hidden on mobile */}
           <button
             onClick={toggleLanguage}
-            className="hidden sm:flex px-2 py-1.5 md:px-3 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors items-center gap-1 md:gap-2 cursor-pointer"
+            className="hidden sm:flex px-3 py-2 md:px-4 md:py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs md:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors items-center gap-2 cursor-pointer"
           >
-            <span className="text-base md:text-lg">{currentLanguage === 'bn' ? '🇧🇩' : '🇺🇸'}</span>
+            <Icon name="language" className="text-lg" />
             <span>{currentLanguage === 'bn' ? t('common.bangla') : t('common.english')}</span>
           </button>
 

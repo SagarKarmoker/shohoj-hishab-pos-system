@@ -94,7 +94,10 @@
     "english": "English",
     "cancel": "Cancel",
     "saved": "Saved",
-    "hishab": "Hishab"
+    "hishab": "Hishab",
+    "back": "Back",
+    "loading": "Loading...",
+    "backToHome": "Back to Home"
   },
   "admin": {
     "title": "Admin Panel",
@@ -280,5 +283,264 @@
     "rocketNumber": "Rocket Number",
     "appPreferences": "App Preferences",
     "theme": "Theme"
+  },
+  "howItWorks": {
+    "badge": "How It Works",
+    "title": "Get Started in Just 4 Easy Steps",
+    "subtitle": "No complexity, no training needed. Start today.",
+    "step1": {
+      "title": "Sign Up",
+      "description": "Create an account with your phone number in just 2 minutes. No credit card required."
+    },
+    "step2": {
+      "title": "Add Products",
+      "description": "Add your shop's products, prices, and stock. You can upload multiple products at once."
+    },
+    "step3": {
+      "title": "Start Selling",
+      "description": "Create digital receipts and send them to customers via SMS. Accept payments in cash or mobile banking."
+    },
+    "step4": {
+      "title": "View Reports",
+      "description": "Track your sales, profit, and stock in real-time. From anywhere, anytime."
+    }
+  },
+  "allFeatures": {
+    "title": "Complete Feature Set",
+    "subtitle": "Everything you need to manage your business in one place",
+    "feature1": {
+      "title": "Credit Management",
+      "desc": "Track customer dues and send reminders"
+    },
+    "feature2": {
+      "title": "Reports & Analytics",
+      "desc": "View detailed sales and profit reports"
+    },
+    "feature3": {
+      "title": "Multi-User Support",
+      "desc": "Create separate accounts for employees"
+    },
+    "feature4": {
+      "title": "Offline Mode",
+      "desc": "Works without internet, syncs later"
+    },
+    "feature5": {
+      "title": "SMS Notifications",
+      "desc": "Send automatic SMS to customers"
+    },
+    "feature6": {
+      "title": "Barcode Scanning",
+      "desc": "Scan barcodes to quickly find products"
+    },
+    "feature7": {
+      "title": "Customer Database",
+      "desc": "Store and manage customer information"
+    },
+    "feature8": {
+      "title": "Expense Tracking",
+      "desc": "Record all business expenses"
+    },
+    "feature9": {
+      "title": "WhatsApp Integration",
+      "desc": "Share invoices on WhatsApp"
+    }
+  },
+  "comparison": {
+    "title": "Before vs After",
+    "subtitle": "See how Shohoj Hishab will transform your business",
+    "before": {
+      "title": "Without Shohoj Hishab",
+      "items": [
+        "Handwritten ledger, fear of losing it",
+        "Calculation errors, money loss",
+        "Hours wasted reconciling accounts",
+        "Forgetting due amounts",
+        "Don't know which products sell more",
+        "No data backup, lost means gone forever"
+      ]
+    },
+    "after": {
+      "title": "With Shohoj Hishab",
+      "items": [
+        "All digital, safe in cloud",
+        "Automatic calculations, no errors",
+        "View reports in minutes",
+        "Automatic due reminders",
+        "Detailed sales analytics",
+        "Automatic backup, never lost"
+      ]
+    }
+  },
+  "testimonials": {
+    "badge": "Customer Reviews",
+    "title": "What Business Owners Say",
+    "subtitle": "Thousands of business owners are using Shohoj Hishab to grow their businesses",
+    "customer1": {
+      "name": "Rahim Uddin",
+      "business": "Rahim Traders, Mirpur",
+      "quote": "After using Shohoj Hishab, managing my shop's accounts has become so easy. Now I can see everything from my mobile anytime.",
+      "metric": "Sales increased 40%"
+    },
+    "customer2": {
+      "name": "Karim Mia",
+      "business": "Karim Super Shop, Uttara",
+      "quote": "I used to keep accounts in ledger, often made mistakes. Now everything is digital, no worries. Customers are also happy with digital receipts.",
+      "metric": "Saves 3 hours/day"
+    },
+    "customer3": {
+      "name": "Salma Begum",
+      "business": "Salma Fashion House, Gulshan",
+      "quote": "Managing dues is now very easy. The SMS reminder feature is great. My due collection is now on track.",
+      "metric": "Collection improved 60%"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to your questions here",
+    "q1": {
+      "question": "Is my data safe?",
+      "answer": "Yes, all your data is secured with bank-grade encryption and regularly backed up in the cloud. Only you can view your data."
+    },
+    "q2": {
+      "question": "Does it work without internet?",
+      "answer": "Yes, Shohoj Hishab works in offline mode. You can make sales even without internet. All data will automatically sync when you get internet connection."
+    },
+    "q3": {
+      "question": "How do I get customer support?",
+      "answer": "We provide support in Bengali via phone, WhatsApp, and email. Our team is ready to help you from 9 AM to 9 PM."
+    },
+    "q4": {
+      "question": "How much mobile data will it use?",
+      "answer": "Very little! Only 1-2 MB of data per day. And if you work in offline mode, no data is used at all."
+    },
+    "q5": {
+      "question": "Can I upgrade from Free to Pro plan?",
+      "answer": "Yes, you can upgrade anytime. All your data will remain and you'll get new features. You can also downgrade."
+    },
+    "q6": {
+      "question": "Can I manage multiple shops?",
+      "answer": "Yes, in the Pro plan you can add multiple branches or shops and view accounts for each separately."
+    }
+  },
+  "legal": {
+    "document": "Legal Document",
+    "privacyBadge": "Data Protection & Privacy"
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "lastUpdated": "Last updated: March 1, 2026",
+    "section1": {
+      "title": "Terms of Service",
+      "content1": "By using the Shohoj Hishab app, you agree to these terms and conditions. This service is digital accounting software for small and medium businesses in Bangladesh that helps with sales, stock management, and financial accounting.",
+      "content2": "If you do not agree with these terms, please refrain from using this service. We reserve the right to change these terms at any time, and your use of the app after changes means you agree to the new terms."
+    },
+    "section2": {
+      "title": "User Responsibilities",
+      "item1": "Keep your account information accurate and up to date.",
+      "item2": "It is your responsibility to keep your login information confidential and not share it with others.",
+      "item3": "You may not conduct any illegal activities through the app.",
+      "item4": "You should regularly backup your business information to ensure security."
+    },
+    "section3": {
+      "title": "Subscription & Payment",
+      "content1": "Shohoj Hishab offers different subscription plans. Fees will apply according to your selected plan:",
+      "item1": "Free Plan: Lifetime free with limited features.",
+      "item2": "Pro Plan: Monthly ৳999 or Annual ৳9,999 (2 months free).",
+      "item3": "Subscription renewal is automatic unless you cancel it. Our refund policy is detailed on our refund page."
+    },
+    "section4": {
+      "title": "Prohibited Activities",
+      "content1": "You agree to refrain from the following activities:",
+      "prohibited1": "Reverse engineering or copying the app's code.",
+      "prohibited2": "Providing fake or misleading information.",
+      "prohibited3": "Unauthorized access to others' accounts.",
+      "prohibited4": "Uploading harmful code or malware to the app's servers."
+    },
+    "section5": {
+      "title": "Disclaimer",
+      "content1": "Shohoj Hishab app provides services on an 'as is' basis. We do not guarantee uninterrupted service or error-free performance.",
+      "content2": "We are not responsible for loss of your business information, reduced profits, or other indirect damages. It is your responsibility to regularly backup your data."
+    },
+    "section6": {
+      "title": "Changes to Terms",
+      "content1": "We may update these terms at any time. For important changes, we will notify you via email or app notification. Please check this page regularly."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "description": "If you have any questions about these terms, please contact us:"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: March 1, 2026",
+    "section1": {
+      "title": "Introduction",
+      "content1": "Shohoj Hishab takes your privacy very seriously. This privacy policy explains how we collect, use, and protect your personal and business information.",
+      "content2": "By using our services, you consent to the collection and use of information as described in this privacy policy. We value your trust and are committed to protecting your data."
+    },
+    "section2": {
+      "title": "Information We Collect",
+      "intro": "We collect the following information to improve your experience and provide services:",
+      "personal": {
+        "title": "Personal Information",
+        "items": "Name, phone number, email address, business name and address."
+      },
+      "business": {
+        "title": "Business Information",
+        "items": "Product information, sales records, customer information, stock data, profit-loss accounts."
+      },
+      "transaction": {
+        "title": "Transaction Information",
+        "items": "Payment methods, transaction history, invoice data."
+      },
+      "technical": {
+        "title": "Technical Information",
+        "items": "Device information, IP address, browser type, location (with your permission)."
+      }
+    },
+    "section3": {
+      "title": "How We Use Information",
+      "use1": "To create and manage your account.",
+      "use2": "To generate sales, stock, and financial reports.",
+      "use3": "To process payments and manage subscriptions.",
+      "use4": "To provide customer support and resolve technical issues.",
+      "use5": "To improve our services and add new features."
+    },
+    "section4": {
+      "title": "Data Security",
+      "content1": "We protect your data using industry-standard security measures:",
+      "measure1": "Encryption: All sensitive data is encrypted.",
+      "measure2": "Cloud Backup: Regular automatic backups are taken.",
+      "measure3": "Access Control: Only authorized personnel can access data.",
+      "measure4": "Secure Servers: Our servers are hosted in secure data centers."
+    },
+    "section5": {
+      "title": "Third-Party Sharing",
+      "content1": "We do not sell your information. However, we may share with third parties in the following cases:",
+      "no1": "For payment processing (such as: bKash, Nagad, Rocket).",
+      "no2": "To fulfill legal obligations.",
+      "no3": "If you give explicit consent."
+    },
+    "section6": {
+      "title": "Cookies & Tracking",
+      "content1": "We use cookies to improve your experience and analyze app usage. You can disable cookies from your browser settings if you want.",
+      "content2": "We use Google Analytics and other analysis tools that help improve our service. These tools do not collect personally identifiable information."
+    },
+    "section7": {
+      "title": "Your Rights",
+      "content1": "According to Bangladesh's Digital Security Act, you have the following rights:",
+      "right1": "The right to view and correct your personal information.",
+      "right2": "The right to download a copy of your data.",
+      "right3": "The right to delete your account and all data.",
+      "right4": "The right to opt-out of marketing communications."
+    },
+    "section8": {
+      "title": "Policy Updates",
+      "content1": "We may update this privacy policy from time to time. For important changes, we will notify you via email or app notification. Please review this page regularly."
+    },
+    "contact": {
+      "title": "Privacy Contact",
+      "description": "If you have any questions or concerns about privacy or data security, please contact us:"
+    }
   }
 }

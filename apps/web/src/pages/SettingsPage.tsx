@@ -246,22 +246,22 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                         <div className="grid grid-cols-2 gap-4">
                                             <button
                                                 onClick={() => changeLanguage('bn')}
-                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${i18n.language === 'bn'
+                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-3 cursor-pointer ${i18n.language === 'bn'
                                                     ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                                                     : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                                     }`}
                                             >
-                                                <span className="text-2xl">🇧🇩</span>
+                                                <Icon name="translate" className="text-xl" />
                                                 <span className="font-bold">বাংলা</span>
                                             </button>
                                             <button
                                                 onClick={() => changeLanguage('en')}
-                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${i18n.language === 'en'
+                                                className={`p-4 rounded-xl border-2 transition-all flex items-center justify-center gap-3 cursor-pointer ${i18n.language === 'en'
                                                     ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                                                     : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                                     }`}
                                             >
-                                                <span className="text-2xl">🇺🇸</span>
+                                                <Icon name="translate" className="text-xl" />
                                                 <span className="font-bold">English</span>
                                             </button>
                                         </div>
