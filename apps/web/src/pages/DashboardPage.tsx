@@ -32,11 +32,11 @@ export function DashboardPage({
       <nav className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-              <Icon name="calculate" className="text-white" />
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <Icon name="storefront" className="text-white text-xl" />
             </div>
             <span className="font-bold text-xl tracking-tight">
-              {t('nav.brand')} <span className="text-green-600">{t('common.hishab')}</span>
+              {t('nav.brand')}
             </span>
           </div>
           <div className="flex items-center gap-6">

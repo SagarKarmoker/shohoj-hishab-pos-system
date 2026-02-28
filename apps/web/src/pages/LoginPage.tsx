@@ -656,8 +656,8 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-primary to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-orange-500/30 transform hover:scale-105 transition-transform">
-            <Icon name="calculate" className="text-white text-4xl" />
+          <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/20 transform hover:scale-105 transition-transform">
+            <Icon name="storefront" className="text-white text-3xl" />
           </div>
           <h1 className="text-3xl font-bold mb-2">
             {t('nav.brand')}

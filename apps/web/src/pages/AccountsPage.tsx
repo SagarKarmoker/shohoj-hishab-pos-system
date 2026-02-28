@@ -80,7 +80,7 @@ export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: Accou
             >
               <Icon name="arrow_back" />
             </button>
-            <div className="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center text-white shadow-lg">
+            <div className="w-10 h-10 bg-slate-700 dark:bg-slate-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-slate-500/20">
               <Icon name="receipt_long" />
             </div>
             <div>

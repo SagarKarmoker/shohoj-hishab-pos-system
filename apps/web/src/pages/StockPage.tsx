@@ -76,7 +76,7 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
             >
               <Icon name="arrow_back" />
             </button>
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
               <Icon name="inventory_2" />
             </div>
             <div>
