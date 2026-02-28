@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 import { Icon } from '../components/Icon';
 import { Navbar } from '../components/Navbar';
 import { VideoModal } from '../components/VideoModal';
@@ -30,53 +31,116 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin }: Landin
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div className="space-y-8 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-slate-800 rounded-full border border-orange-100 dark:border-slate-700">
-                  <span className="flex h-2 w-2 rounded-full bg-primary"></span>
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-slate-800 rounded-full border border-orange-100 dark:border-slate-700"
+                >
+                  <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
                   <span className="text-sm font-medium text-primary">{t('hero.badge')}</span>
-                </div>
+                </motion.div>
                 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-slate-900 dark:text-white">
+                <motion.h1 
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.1 }}
+                  className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-slate-900 dark:text-white"
+                >
                   {t('hero.title')} <br/>
-                  <span className="text-primary relative inline-block">
+                  <motion.span 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.8, delay: 0.3, type: "spring", bounce: 0.4 }}
+                    className="text-primary relative inline-block"
+                  >
                     {t('hero.highlight')}
-                    <svg className="absolute w-full h-3 -bottom-1 left-0 text-orange-200 -z-10" preserveAspectRatio="none" viewBox="0 0 100 10">
-                      <path d="M0 5 Q 50 10 100 5" fill="none" stroke="currentColor" strokeWidth="8"></path>
-                    </svg>
-                  </span>
-                </h1>
+                    <motion.svg 
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 1, delay: 0.8, ease: "easeInOut" }}
+                      className="absolute w-full h-3 -bottom-1 left-0 text-orange-200 -z-10" 
+                      preserveAspectRatio="none" 
+                      viewBox="0 0 100 10"
+                    >
+                      <motion.path 
+                        d="M0 5 Q 50 10 100 5" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="8"
+                      />
+                    </motion.svg>
+                  </motion.span>
+                </motion.h1>
                 
-                <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto lg:mx-0"
+                >
                   {t('hero.description')}
-                </p>
+                </motion.p>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                  <button className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-primary text-white text-lg font-bold rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-orange-500/20 hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                  className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4"
+                >
+                  <motion.button 
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-primary text-white text-lg font-bold rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-orange-500/20 flex items-center justify-center gap-2"
+                  >
                     <Icon name="rocket_launch" />
                     {t('hero.ctaPrimary')}
-                  </button>
-                  <button 
+                  </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setIsVideoModalOpen(true)}
                     className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-lg font-bold rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
                   >
                     <Icon name="play_circle" />
                     {t('hero.ctaSecondary')}
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
                 
-                <div className="pt-6 flex items-center justify-center lg:justify-start gap-6 text-sm text-slate-500 font-medium">
-                  <div className="flex items-center gap-2">
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.7 }}
+                  className="pt-6 flex items-center justify-center lg:justify-start gap-6 text-sm text-slate-500 font-medium"
+                >
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.8 }}
+                    className="flex items-center gap-2"
+                  >
                     <Icon name="check_circle" className="text-success" />
                     <span>{t('hero.feature1')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.9 }}
+                    className="flex items-center gap-2"
+                  >
                     <Icon name="check_circle" className="text-success" />
                     <span>{t('hero.feature2')}</span>
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
               </div>
 
               {/* Hero Image/Phone Mockup */}
-              <div className="relative lg:h-[600px] flex items-center justify-center">
+              <motion.div 
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="relative lg:h-[600px] flex items-center justify-center"
+              >
                 <div className="relative w-full max-w-md aspect-[4/5] bg-slate-100 dark:bg-slate-800 rounded-3xl overflow-hidden shadow-2xl border-8 border-white dark:border-slate-700">
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-slate-800 dark:to-slate-900 flex flex-col">
                     <div className="h-16 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-6">
@@ -147,7 +211,7 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin }: Landin
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
