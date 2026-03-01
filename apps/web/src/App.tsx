@@ -3,6 +3,8 @@ import { LanguageProvider } from './contexts/LanguageContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
+import { EmailVerificationPage } from './pages/EmailVerificationPage'
+import { PasswordResetPage } from './pages/PasswordResetPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { POSPage } from './pages/POSPage'
 import { StockPage } from './pages/StockPage'
@@ -14,7 +16,7 @@ import { TermsPage } from './pages/TermsPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { SettingsProvider } from './contexts/SettingsContext'
 
-type Page = 'landing' | 'login' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts' | 'settings' | 'admin' | 'terms' | 'privacy'
+type Page = 'landing' | 'login' | 'verify-email' | 'reset-password' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts' | 'settings' | 'admin' | 'terms' | 'privacy'
 
 function AppContent() {
   const { logout, needsApproval, isAuthenticated } = useAuth()
@@ -28,8 +30,24 @@ function AppContent() {
     return false // Default to light mode
   })
 
-  // Simple page routing
+  // Simple page routing with URL params support
   const [currentPage, setCurrentPage] = useState<Page>('landing')
+  const [pageParams, setPageParams] = useState<Record<string, string>>({})
+
+  // Handle URL parameters on mount and when URL changes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const page = params.get('page') as Page
+    const token = params.get('token')
+    
+    if (page === 'verify-email' && token) {
+      setCurrentPage('verify-email')
+      setPageParams({ token })
+    } else if (page === 'reset-password' && token) {
+      setCurrentPage('reset-password')
+      setPageParams({ token })
+    }
+  }, [])
 
   useEffect(() => {
     if (isDark) {
@@ -44,12 +62,16 @@ function AppContent() {
   }, [isDark])
 
   const navigateToLogin = () => {
+    window.history.pushState({}, '', '/')
     setCurrentPage('login')
+    setPageParams({})
     window.scrollTo(0, 0)
   }
 
   const navigateToLanding = () => {
+    window.history.pushState({}, '', '/')
     setCurrentPage('landing')
+    setPageParams({})
     window.scrollTo(0, 0)
   }
 
@@ -61,7 +83,9 @@ function AppContent() {
       setCurrentPage('login');
       return;
     }
+    window.history.pushState({}, '', '/')
     setCurrentPage('dashboard')
+    setPageParams({})
     window.scrollTo(0, 0)
   }
 
@@ -130,6 +154,20 @@ function AppContent() {
         <LoginPage
           onBackToHome={navigateToLanding}
           onLoginSuccess={navigateToDashboard}
+        />
+      )}
+      {currentPage === 'verify-email' && (
+        <EmailVerificationPage
+          token={pageParams.token || ''}
+          onVerificationSuccess={navigateToDashboard}
+          onBackToLogin={navigateToLogin}
+        />
+      )}
+      {currentPage === 'reset-password' && (
+        <PasswordResetPage
+          token={pageParams.token || ''}
+          onResetSuccess={navigateToLogin}
+          onBackToLogin={navigateToLogin}
         />
       )}
       {currentPage === 'dashboard' && (

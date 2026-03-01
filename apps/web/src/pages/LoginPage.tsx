@@ -1,204 +1,88 @@
- import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 interface LoginPageProps {
   onBackToHome: () => void;
   onLoginSuccess: () => void;
 }
 
-type AuthMode = 'login' | 'signup' | 'reset';
+type AuthMode = 'login' | 'signup' | 'forgot-password' | 'verification-sent';
 
 export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const { t } = useTranslation();
-  const { 
-    phoneNumber, 
-    setPhoneNumber, 
-    confirmationResult, 
-    loginWithPhone, 
-    verifyCode, 
-    logout,
-    resetAuth,
-    firebaseToken,
-  } = useAuth();
+  const { signup, login, requestPasswordReset, resendVerification, email: contextEmail, setEmail: setContextEmail } = useAuth();
   
   const [mode, setMode] = useState<AuthMode>('login');
-  const [otp, setOtp] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resendTimer, setResendTimer] = useState(0);
-  const [userExists, setUserExists] = useState<boolean | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Reset form when mode changes
   useEffect(() => {
     setError(null);
-    setOtp('');
+    setSuccess(null);
     setPassword('');
     setConfirmPassword('');
-    setShowOtpInput(false);
-    setShowPasswordInput(false);
-    setResendTimer(0);
   }, [mode]);
 
-  // Check if user exists when phone number changes
-  const checkUserExists = async (phone: string) => {
-    // Basic validation first
-    const phoneRegex = /^(\+88)?[01][0-9]{9,10}$/;
-    const cleanPhone = phone.replace(/\s/g, '');
-    
-    if (phoneRegex.test(cleanPhone)) {
-      try {
-        const formattedPhone = formatPhoneNumber(phone);
-        const response = await axios.post(`${API_URL}/auth/check-user`, {
-          phoneNumber: formattedPhone,
-        });
-        setUserExists(response.data.exists);
-        
-        // If user exists and trying to login, show password field
-        // If user doesn't exist and trying to login, suggest signup
-        if (mode === 'login' && response.data.exists && response.data.hasPassword) {
-          setShowPasswordInput(true);
-        } else if (mode === 'login' && response.data.exists && !response.data.hasPassword) {
-          setError(t('login.errors.setPasswordFirst'));
-        }
-      } catch (err) {
-        console.error('Error checking user:', err);
-      }
-    }
-  };
-
-  const formatPhoneNumber = (phone: string): string => {
-    let cleaned = phone.replace(/[^\d+]/g, '');
-    if (cleaned.startsWith('0')) {
-      cleaned = cleaned.substring(1);
-    }
-    if (!cleaned.startsWith('+')) {
-      cleaned = '+88' + cleaned;
-    }
-    return cleaned;
-  };
-
-  const validatePhone = (): boolean => {
-    if (!phoneNumber.trim()) {
-      setError(t('login.errors.phoneRequired'));
+  const validateEmail = (): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      setError(t('login.errors.emailRequired') || 'Email is required');
       return false;
     }
-
-    // Validate phone number format for Bangladesh
-    const phoneRegex = /^(\+88)?[01][0-9]{9,10}$/;
-    const cleanPhone = phoneNumber.replace(/\s/g, '');
-    if (!phoneRegex.test(cleanPhone)) {
-      setError(t('login.errors.phoneInvalid'));
+    if (!emailRegex.test(email)) {
+      setError(t('login.errors.emailInvalid') || 'Invalid email format');
       return false;
     }
     return true;
   };
 
   const validatePassword = (): boolean => {
-    if (!password || password.length < 6) {
-      setError(t('login.errors.passwordMin', 'Password must be at least 6 characters'));
+    if (!password) {
+      setError(t('login.errors.passwordRequired') || 'Password is required');
       return false;
     }
-    if (mode === 'signup' && password !== confirmPassword) {
-      setError(t('login.errors.passwordMismatch'));
-      return false;
-    }
-    return true;
-  };
-
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!validatePhone()) return;
-
-    setIsLoading(true);
-    try {
-      await loginWithPhone();
-      setShowOtpInput(true);
-      // Start resend timer
-      setResendTimer(60);
-      const timer = setInterval(() => {
-        setResendTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } catch (err) {
-      console.error('Error sending OTP:', err);
-      setError(err instanceof Error ? err.message : t('login.errors.smsFailed'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!otp.trim() || otp.length < 6) {
-      setError(t('login.errors.otpRequired'));
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Verify OTP and get JWT token
-      // Note: verifyCode() already calls /auth/verify-token internally
-      await verifyCode(otp);
+    
+    if (mode === 'signup' || mode === 'forgot-password') {
+      if (password.length < 8) {
+        setError(t('login.errors.passwordTooShort') || 'Password must be at least 8 characters');
+        return false;
+      }
       
-      // After OTP verification, show password input for signup/reset
-      setShowPasswordInput(true);
-    } catch (err) {
-      console.error('Error verifying OTP:', err);
-      setError(err instanceof Error ? err.message : t('login.errors.invalidOtp'));
-    } finally {
-      setIsLoading(false);
+      const hasUppercase = /[A-Z]/.test(password);
+      const hasLowercase = /[a-z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      
+      if (!hasUppercase || !hasLowercase || !hasNumber) {
+        setError(t('login.errors.passwordRequirements') || 'Password must contain uppercase, lowercase, and number');
+        return false;
+      }
     }
+    
+    return true;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    if (!validatePhone() || !validatePassword()) return;
-
+    
+    if (!validateEmail() || !validatePassword()) return;
+    
     setIsLoading(true);
     try {
-      const formattedPhone = formatPhoneNumber(phoneNumber);
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        phoneNumber: formattedPhone,
-        password,
-      });
-
-      const data = response.data;
-
-      // Check if user needs approval BEFORE storing token
-      if (data.needsApproval) {
-        localStorage.setItem('needs_approval', 'true');
-        setError(t('login.errors.needsApproval') || 'Your account is pending approval. Please contact admin.');
-        return;
-      }
-
-      // Store JWT token only after approval check
-      localStorage.setItem('jwt_token', data.token);
-      
-      // Set user data
+      await login(email, password);
       onLoginSuccess();
     } catch (err: any) {
-      console.error('Error logging in:', err);
-      setError(err.response?.data?.message || t('login.errors.invalidCredentials'));
+      setError(err.message || t('login.errors.loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -207,475 +91,288 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    if (!validatePhone() || !validatePassword()) return;
-
+    
+    if (!validateEmail() || !validatePassword()) return;
+    
+    if (password !== confirmPassword) {
+      setError(t('login.errors.passwordMismatch') || 'Passwords do not match');
+      return;
+    }
+    
     setIsLoading(true);
     try {
-      // Use the stored Firebase token from AuthContext
-      if (!firebaseToken) {
-        throw new Error('Please verify your phone number first');
-      }
-
-      // Call signup endpoint with Firebase token and password
-      const response = await axios.post(`${API_URL}/auth/signup`, {
-        firebaseToken,
-        password,
-      });
-
-      // Store JWT token
-      localStorage.setItem('jwt_token', response.data.token);
-      
-      // Set user data
-      onLoginSuccess();
+      await signup(email, password, displayName || undefined);
+      setContextEmail(email);
+      setMode('verification-sent');
+      setSuccess(t('login.success.verificationSent') || 'Verification email sent! Please check your inbox.');
     } catch (err: any) {
-      console.error('Error signing up:', err);
-      setError(err.response?.data?.message || t('login.errors.signupFailed'));
+      setError(err.message || t('login.errors.signupFailed'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    if (!validatePassword()) return;
-
+    
+    if (!validateEmail()) return;
+    
     setIsLoading(true);
     try {
-      // Use the stored Firebase token from AuthContext
-      if (!firebaseToken) {
-        throw new Error('Please verify your phone number first');
-      }
-
-      // Call reset password endpoint
-      await axios.post(`${API_URL}/auth/reset-password`, {
-        firebaseToken,
-        newPassword: password,
-      });
-
-      // Show success message and redirect to login
-      setError(null);
-      alert(t('login.messages.passwordResetSuccess'));
-      setMode('login');
-      setShowOtpInput(false);
-      setShowPasswordInput(false);
-      setOtp('');
-      setPassword('');
-      setConfirmPassword('');
+      await requestPasswordReset(email);
+      setSuccess(t('login.success.resetLinkSent') || 'Password reset link sent! Check your email.');
     } catch (err: any) {
-      console.error('Error resetting password:', err);
-      setError(err.response?.data?.message || t('login.errors.resetFailed'));
+      setError(err.message || t('login.errors.resetFailed'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleResendOTP = async () => {
-    if (resendTimer > 0) return;
-    
+  const handleResendVerification = async () => {
     setError(null);
-    setOtp('');
+    setIsLoading(true);
     try {
-      await loginWithPhone();
-      setResendTimer(60);
-      const timer = setInterval(() => {
-        setResendTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } catch (err) {
-      console.error('Error resending OTP:', err);
-      setError(err instanceof Error ? err.message : t('login.errors.smsFailed'));
+      await resendVerification(email || contextEmail);
+      setSuccess(t('login.success.verificationResent') || 'Verification email resent!');
+    } catch (err: any) {
+      setError(err.message || t('login.errors.resendFailed'));
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhoneNumber(e.target.value);
-    setUserExists(null);
-    setShowPasswordInput(false);
-    setError(null);
-  };
-
-  const handlePhoneBlur = () => {
-    if (mode === 'login' && phoneNumber.trim()) {
-      checkUserExists(phoneNumber);
-    }
-  };
-
-  const switchMode = (newMode: AuthMode) => {
-    setMode(newMode);
-    setPhoneNumber('');
-    setOtp('');
-    setPassword('');
-    setConfirmPassword('');
-    setUserExists(null);
-    setShowOtpInput(false);
-    setShowPasswordInput(false);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (err) {
-      console.error('Error logging out:', err);
-    }
-  };
-
-  // Render login form
-  const renderLoginForm = () => (
-    <form onSubmit={handleSendOTP} className="space-y-6">
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-          {t('login.phoneNumber', 'Phone Number')}
-        </label>
-        <input
-          type="tel"
-          value={phoneNumber}
-          onChange={handlePhoneChange}
-          onBlur={handlePhoneBlur}
-          placeholder="01XXXXXXXXX"
-          className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-          disabled={isLoading}
-        />
-      </div>
-
-      {showPasswordInput && (
-        <div>
-          <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-            {t('login.password', 'Password')}
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('login.enterPassword', 'Enter your password')}
-            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-            disabled={isLoading}
-          />
-        </div>
-      )}
-
-      {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium flex items-start gap-2">
-          <Icon name="error" className="text-lg flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-      >
-        {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            {t('common.loading', 'Loading...')}
-          </span>
-        ) : (
-          showPasswordInput ? t('login.loginButton', 'Login') : t('login.continueButton', 'Continue')
-        )}
-      </button>
-
-      <div className="text-center space-y-3 pt-2">
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          {t('login.noAccount', "Don't have an account?")}{' '}
-          <button
-            type="button"
-            onClick={() => switchMode('signup')}
-            className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
-          >
-            {t('login.signup', 'Sign Up')}
-          </button>
-        </p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          {t('login.forgotPassword', 'Forgot password?')}{' '}
-          <button
-            type="button"
-            onClick={() => switchMode('reset')}
-            className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
-          >
-            {t('login.reset', 'Reset')}
-          </button>
-        </p>
-      </div>
-    </form>
-  );
-
-  // Render signup form
-  const renderSignupForm = () => (
-    <form onSubmit={showPasswordInput ? handleSignup : handleSendOTP} className="space-y-6">
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-          {t('login.phoneNumber', 'Phone Number')}
-        </label>
-        <input
-          type="tel"
-          value={phoneNumber}
-          onChange={handlePhoneChange}
-          placeholder="01XXXXXXXXX"
-          className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-          disabled={isLoading || showPasswordInput}
-        />
-      </div>
-
-      {showOtpInput && (
-        <div>
-          <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-            {t('login.otp', 'Verification Code')}
-          </label>
-          <input
-            type="text"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder={t('login.enterOtp', 'Enter 6-digit code')}
-            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100 text-center text-2xl tracking-widest font-bold"
-            disabled={isLoading}
-            maxLength={6}
-          />
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 text-center">
-            {t('login.didntReceive', "Didn't receive code?")}{' '}
-            <button
-              type="button"
-              onClick={handleResendOTP}
-              disabled={resendTimer > 0}
-              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-            >
-              {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
-            </button>
-          </p>
-        </div>
-      )}
-
-      {showPasswordInput && (
-        <>
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-              {t('login.password', 'Password')}
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('login.createPassword', 'Create a password')}
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-              disabled={isLoading}
-              minLength={6}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-              {t('login.confirmPassword', 'Confirm Password')}
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder={t('login.confirmPassword', 'Confirm your password')}
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-              disabled={isLoading}
-              minLength={6}
-            />
-          </div>
-        </>
-      )}
-
-      {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium flex items-start gap-2">
-          <Icon name="error" className="text-lg flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-      >
-        {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            {t('common.loading', 'Loading...')}
-          </span>
-        ) : (
-          showPasswordInput ? t('login.signupButton', 'Sign Up') : t('login.continueButton', 'Continue')
-        )}
-      </button>
-
-      <p className="text-center text-sm text-slate-600 dark:text-slate-400 pt-2">
-        {t('login.alreadyAccount', 'Already have an account?')}{' '}
-        <button
-          type="button"
-          onClick={() => switchMode('login')}
-          className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
-        >
-          {t('login.login', 'Login')}
-        </button>
-      </p>
-    </form>
-  );
-
-  // Render reset password form
-  const renderResetForm = () => (
-    <form onSubmit={showPasswordInput ? handleResetPassword : handleSendOTP} className="space-y-6">
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-          {t('login.phoneNumber', 'Phone Number')}
-        </label>
-        <input
-          type="tel"
-          value={phoneNumber}
-          onChange={handlePhoneChange}
-          placeholder="01XXXXXXXXX"
-          className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-          disabled={isLoading || showPasswordInput}
-        />
-      </div>
-
-      {showOtpInput && (
-        <div>
-          <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-            {t('login.otp', 'Verification Code')}
-          </label>
-          <input
-            type="text"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder={t('login.enterOtp', 'Enter 6-digit code')}
-            className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100 text-center text-2xl tracking-widest font-bold"
-            disabled={isLoading}
-            maxLength={6}
-          />
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 text-center">
-            {t('login.didntReceive', "Didn't receive code?")}{' '}
-            <button
-              type="button"
-              onClick={handleResendOTP}
-              disabled={resendTimer > 0}
-              className="text-primary hover:text-primary-hover font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-            >
-              {resendTimer > 0 ? `${resendTimer}s` : t('login.resend', 'Resend')}
-            </button>
-          </p>
-        </div>
-      )}
-
-      {showPasswordInput && (
-        <>
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-              {t('login.newPassword', 'New Password')}
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('login.enterNewPassword', 'Enter new password')}
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-              disabled={isLoading}
-              minLength={6}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">
-              {t('login.confirmPassword', 'Confirm Password')}
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder={t('login.confirmPassword', 'Confirm your password')}
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-slate-900 dark:text-slate-100"
-              disabled={isLoading}
-              minLength={6}
-            />
-          </div>
-        </>
-      )}
-
-      {error && (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium flex items-start gap-2">
-          <Icon name="error" className="text-lg flex-shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-      >
-        {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            {t('common.loading', 'Loading...')}
-          </span>
-        ) : (
-          showPasswordInput ? t('login.resetButton', 'Reset Password') : t('login.continueButton', 'Continue')
-        )}
-      </button>
-
-      <p className="text-center text-sm text-slate-600 dark:text-slate-400 pt-2">
-        {t('login.rememberPassword', 'Remember your password?')}{' '}
-        <button
-          type="button"
-          onClick={() => switchMode('login')}
-          className="text-primary hover:text-primary-hover font-semibold transition-colors cursor-pointer"
-        >
-          {t('login.login', 'Login')}
-        </button>
-      </p>
-    </form>
-  );
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decorative background elements */}
-      <div className="absolute inset-0 bg-pattern pointer-events-none opacity-50"></div>
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-orange-100 dark:bg-orange-900/20 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-      <div className="absolute bottom-0 -left-24 w-72 h-72 bg-orange-50 dark:bg-orange-900/10 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-      
-      {/* reCAPTCHA container - required for Firebase phone auth */}
-      <div id="recaptcha-container"></div>
-      
-      {/* Back button - Fixed position */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-primary opacity-20 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-orange-300 opacity-20 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-orange-400 opacity-20 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      </div>
+
+      {/* Back button */}
       <button
         onClick={onBackToHome}
-        className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary hover:border-primary dark:hover:border-primary shadow-lg hover:shadow-xl transition-all hover:-translate-x-1 cursor-pointer group"
+        className="fixed top-6 left-6 z-50 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all cursor-pointer hover:scale-105"
       >
-        <Icon name="arrow_back" className="text-xl group-hover:scale-110 transition-transform" />
-        <span className="font-semibold text-sm">{t('common.back', 'Back')}</span>
+        <Icon name="arrow_back" className="text-slate-700 dark:text-slate-300" />
       </button>
-      
+
+      {/* Main content */}
       <div className="w-full max-w-md relative z-10">
-        {/* Logo & Title */}
+        {/* Logo and title */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-500/20 transform hover:scale-105 transition-transform">
             <Icon name="storefront" className="text-white text-3xl" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">
-            {t('nav.brand')}
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
-            {mode === 'login' && t('login.subtitle', 'Welcome back! Please login to continue.')}
-            {mode === 'signup' && t('login.signupSubtitle', 'Create an account to get started.')}
-            {mode === 'reset' && t('login.resetSubtitle', 'Reset your password to recover your account.')}
+          <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">{t('nav.brand')}</h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            {mode === 'login' && (t('login.subtitle') || 'Welcome back!')}
+            {mode === 'signup' && (t('login.signupSubtitle') || 'Create your account')}
+            {mode === 'forgot-password' && (t('login.resetSubtitle') || 'Reset your password')}
+            {mode === 'verification-sent' && (t('login.verificationSubtitle') || 'Check your email')}
           </p>
         </div>
 
-        {/* Auth form */}
+        {/* Form card */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 p-8 backdrop-blur-sm">
-          {mode === 'login' && renderLoginForm()}
-          {mode === 'signup' && renderSignupForm()}
-          {mode === 'reset' && renderResetForm()}
+          {mode === 'verification-sent' ? (
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Icon name="mark_email_read" className="text-green-600 dark:text-green-400 text-3xl" />
+              </div>
+              {success && (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-green-800 dark:text-green-200">
+                  {success}
+                </div>
+              )}
+              <p className="text-slate-600 dark:text-slate-400">
+                {t('login.checkInbox') || 'We\'ve sent a verification link to your email. Please click the link to verify your account.'}
+              </p>
+              <button
+                onClick={handleResendVerification}
+                disabled={isLoading}
+                className="text-primary hover:text-orange-600 font-medium cursor-pointer"
+              >
+                {t('login.resendVerification') || 'Resend verification email'}
+              </button>
+              <button
+                onClick={() => setMode('login')}
+                className="block w-full mt-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer"
+              >
+                {t('common.back') || 'Back to login'}
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={mode === 'login' ? handleLogin : mode === 'signup' ? handleSignup : handleForgotPassword} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3">
+                  <Icon name="error" className="text-red-600 dark:text-red-400 text-xl flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-red-800 dark:text-red-200">{error}</span>
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-4 flex items-start gap-3">
+                  <Icon name="check_circle" className="text-green-600 dark:text-green-400 text-xl flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-green-800 dark:text-green-200">{success}</span>
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    {t('login.displayName') || 'Display Name'}
+                  </label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    placeholder={t('login.displayNamePlaceholder') || 'Your name'}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t('login.email') || 'Email'}
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  placeholder={t('login.emailPlaceholder') || 'your@email.com'}
+                  required
+                />
+              </div>
+
+              {mode !== 'forgot-password' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    {t('login.password') || 'Password'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12"
+                      placeholder="••••••••"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+                    >
+                      <Icon name={showPassword ? 'visibility_off' : 'visibility'} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    {t('login.confirmPassword') || 'Confirm Password'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12"
+                      placeholder="••••••••"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
+                    >
+                      <Icon name={showConfirmPassword ? 'visibility_off' : 'visibility'} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-primary text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Icon name="progress_activity" className="animate-spin" />
+                    {t('common.loading') || 'Loading...'}
+                  </span>
+                ) : (
+                  <>
+                    {mode === 'login' && (t('login.loginButton') || 'Login')}
+                    {mode === 'signup' && (t('login.signupButton') || 'Sign Up')}
+                    {mode === 'forgot-password' && (t('login.resetButton') || 'Send Reset Link')}
+                  </>
+                )}
+              </button>
+
+              {/* Mode switchers */}
+              <div className="text-center space-y-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                {mode === 'login' && (
+                  <>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {t('login.noAccount') || 'Don\'t have an account?'}{' '}
+                      <button
+                        type="button"
+                        onClick={() => setMode('signup')}
+                        className="text-primary hover:text-orange-600 font-medium cursor-pointer"
+                      >
+                        {t('login.signupLink') || 'Sign Up'}
+                      </button>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setMode('forgot-password')}
+                      className="text-sm text-primary hover:text-orange-600 cursor-pointer"
+                    >
+                      {t('login.forgotPassword') || 'Forgot password?'}
+                    </button>
+                  </>
+                )}
+                {mode === 'signup' && (
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {t('login.haveAccount') || 'Already have an account?'}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setMode('login')}
+                      className="text-primary hover:text-orange-600 font-medium cursor-pointer"
+                    >
+                      {t('login.loginLink') || 'Login'}
+                    </button>
+                  </p>
+                )}
+                {mode === 'forgot-password' && (
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {t('login.rememberPassword') || 'Remember your password?'}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setMode('login')}
+                      className="text-primary hover:text-orange-600 font-medium cursor-pointer"
+                    >
+                      {t('login.backToLogin') || 'Back to login'}
+                    </button>
+                  </p>
+                )}
+              </div>
+            </form>
+          )}
         </div>
       </div>
+
+      {/* Hidden recaptcha container removed - no longer needed */}
     </div>
   );
 }

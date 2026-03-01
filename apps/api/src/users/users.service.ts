@@ -7,52 +7,19 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Find or create a user based on Firebase UID
+   * Create a new user
    */
-  async findOrCreateUser(firebaseUid: string, userData: Partial<User>): Promise<User> {
-    // Try to find existing user by Firebase UID
-    let user = await this.prisma.user.findUnique({
-      where: { firebaseUid },
-    });
-
-    if (!user) {
-      // Create new user with all provided data including password
-      user = await this.prisma.user.create({
-        data: {
-          firebaseUid,
-          phoneNumber: userData.phoneNumber || '',
-          email: userData.email,
-          displayName: userData.displayName,
-          photoURL: userData.photoURL,
-          password: userData.password, // Include password during creation
-        },
-      });
-    } else {
-      // Update existing user - only update fields that are provided
-      const updateData: any = {};
-      if (userData.phoneNumber) updateData.phoneNumber = userData.phoneNumber;
-      if (userData.email) updateData.email = userData.email;
-      if (userData.displayName) updateData.displayName = userData.displayName;
-      if (userData.photoURL) updateData.photoURL = userData.photoURL;
-      if (userData.password) updateData.password = userData.password;
-
-      if (Object.keys(updateData).length > 0) {
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: updateData,
-        });
-      }
-    }
-
-    return user;
-  }
-
-  /**
-   * Find user by Firebase UID
-   */
-  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { firebaseUid },
+  async createUser(data: {
+    email: string;
+    password: string;
+    displayName?: string;
+    phoneNumber?: string;
+    emailVerified?: boolean;
+    emailVerificationToken?: string;
+    emailVerificationExpires?: Date;
+  }): Promise<User> {
+    return this.prisma.user.create({
+      data,
     });
   }
 
@@ -66,26 +33,41 @@ export class UsersService {
   }
 
   /**
-   * Find user by phone number
+   * Find user by email
    */
-  async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
-    return this.prisma.user.findFirst({
-      where: { phoneNumber },
+  async findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
     });
   }
 
   /**
-   * Create a new user
+   * Find user by email verification token
    */
-  async createUser(data: {
-    firebaseUid: string;
-    phoneNumber: string;
-    email?: string;
-    displayName?: string;
-    photoURL?: string;
-  }): Promise<User> {
-    return this.prisma.user.create({
-      data,
+  async findByEmailVerificationToken(token: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: { 
+        emailVerificationToken: token,
+        emailVerified: false,
+      },
+    });
+  }
+
+  /**
+   * Find user by password reset token
+   */
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: { passwordResetToken: token },
+    });
+  }
+
+  /**
+   * Find user by phone number (optional, for future use)
+   */
+  async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: { phoneNumber },
     });
   }
 
@@ -105,6 +87,31 @@ export class UsersService {
   async deleteUser(id: string): Promise<void> {
     await this.prisma.user.delete({
       where: { id },
+    });
+  }
+
+  /**
+   * Get all users (admin only)
+   */
+  async findAll(): Promise<User[]> {
+    return this.prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Count total users
+   */
+  async countUsers(): Promise<number> {
+    return this.prisma.user.count();
+  }
+
+  /**
+   * Count verified users
+   */
+  async countVerifiedUsers(): Promise<number> {
+    return this.prisma.user.count({
+      where: { emailVerified: true },
     });
   }
 }

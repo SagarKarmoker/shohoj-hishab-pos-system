@@ -1,40 +1,48 @@
-import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Request, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProperty } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProperty, ApiQuery } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 
-class VerifyTokenDto {
-  @ApiProperty({ description: 'Firebase authentication token from OTP verification' })
-  firebaseToken!: string;
+class SignupDto {
+  @ApiProperty({ description: 'User email address', example: 'user@example.com' })
+  email!: string;
+
+  @ApiProperty({ description: 'Password (min 8 chars, uppercase, lowercase, number)', example: 'SecurePass123' })
+  password!: string;
+
+  @ApiProperty({ description: 'Display name', example: 'John Doe', required: false })
+  displayName?: string;
 }
 
 class LoginDto {
-  @ApiProperty({ description: 'User phone number', example: '+8801712345678' })
-  phoneNumber!: string;
+  @ApiProperty({ description: 'User email address', example: 'user@example.com' })
+  email!: string;
 
   @ApiProperty({ description: 'User password', example: 'SecurePass123' })
   password!: string;
 }
 
-class SignupDto {
-  @ApiProperty({ description: 'Firebase authentication token from OTP verification' })
-  firebaseToken!: string;
-
-  @ApiProperty({ description: 'Password to set for the account', example: 'SecurePass123' })
-  password!: string;
+class ForgotPasswordDto {
+  @ApiProperty({ description: 'Email address to send reset link', example: 'user@example.com' })
+  email!: string;
 }
 
 class ResetPasswordDto {
-  @ApiProperty({ description: 'Firebase authentication token from OTP verification' })
-  firebaseToken!: string;
+  @ApiProperty({ description: 'Password reset token from email' })
+  token!: string;
 
-  @ApiProperty({ description: 'New password to set', example: 'NewSecurePass123' })
+  @ApiProperty({ description: 'New password', example: 'NewSecurePass123' })
   newPassword!: string;
 }
 
+class ResendVerificationDto {
+  @ApiProperty({ description: 'Email address to resend verification', example: 'user@example.com' })
+  email!: string;
+}
+
 class CheckUserDto {
-  @ApiProperty({ description: 'Phone number to check', example: '+8801712345678' })
-  phoneNumber!: string;
+  @ApiProperty({ description: 'Email to check', example: 'user@example.com' })
+  email!: string;
 }
 
 @ApiTags('Authentication')
@@ -42,58 +50,81 @@ class CheckUserDto {
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('verify-token')
+  @Post('signup')
   @ApiOperation({ 
-    summary: 'Verify Firebase token',
-    description: 'Verify Firebase token and return JWT session token (for OTP-based login)' 
+    summary: 'Sign up new user',
+    description: 'Create a new user account with email and password. Sends verification email.' 
   })
-  @ApiResponse({ status: 200, description: 'Token verified successfully, JWT token returned' })
-  @ApiResponse({ status: 401, description: 'Invalid or expired Firebase token' })
-  async verifyToken(@Body() dto: VerifyTokenDto) {
-    return this.authService.verifyFirebaseToken(dto.firebaseToken);
+  @ApiResponse({ status: 201, description: 'Signup successful, verification email sent' })
+  @ApiResponse({ status: 400, description: 'Invalid input or password requirements not met' })
+  @ApiResponse({ status: 409, description: 'Email already registered' })
+  async signup(@Body() dto: SignupDto) {
+    return this.authService.signup(dto.email, dto.password, dto.displayName);
+  }
+
+  @Get('verify-email')
+  @ApiOperation({ 
+    summary: 'Verify email with token',
+    description: 'Verify user email address using token from email link' 
+  })
+  @ApiQuery({ name: 'token', description: 'Email verification token', required: true })
+  @ApiResponse({ status: 200, description: 'Email verified successfully, JWT token returned' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
   }
 
   @Post('login')
   @ApiOperation({ 
-    summary: 'Login with password',
-    description: 'Login with phone number and password' 
+    summary: 'Login with email and password',
+    description: 'Authenticate user and return JWT token' 
   })
   @ApiResponse({ status: 200, description: 'Login successful, JWT token returned' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials or email not verified' })
   async login(@Body() dto: LoginDto) {
-    return this.authService.loginWithPassword(dto.phoneNumber, dto.password);
+    return this.authService.login(dto.email, dto.password);
   }
 
-  @Post('signup')
+  @Post('forgot-password')
   @ApiOperation({ 
-    summary: 'Sign up new user',
-    description: 'Signup with OTP verification and set password' 
+    summary: 'Request password reset',
+    description: 'Send password reset link to email' 
   })
-  @ApiResponse({ status: 201, description: 'User created successfully, JWT token returned' })
-  @ApiResponse({ status: 400, description: 'User already exists or invalid token' })
-  async signup(@Body() dto: SignupDto) {
-    return this.authService.signupWithPassword(dto.firebaseToken, dto.password);
+  @ApiResponse({ status: 200, description: 'Reset link sent if email exists' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.requestPasswordReset(dto.email);
   }
 
   @Post('reset-password')
   @ApiOperation({ 
-    summary: 'Reset password',
-    description: 'Reset password with OTP verification' 
+    summary: 'Reset password with token',
+    description: 'Reset user password using token from reset email' 
   })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid token or user not found' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto.firebaseToken, dto.newPassword);
+    return this.authService.resetPasswordWithToken(dto.token, dto.newPassword);
+  }
+
+  @Post('resend-verification')
+  @ApiOperation({ 
+    summary: 'Resend verification email',
+    description: 'Resend email verification link' 
+  })
+  @ApiResponse({ status: 200, description: 'Verification email sent' })
+  @ApiResponse({ status: 400, description: 'Email not found or already verified' })
+  async resendVerification(@Body() dto: ResendVerificationDto) {
+    return this.authService.resendVerificationEmail(dto.email);
   }
 
   @Post('check-user')
   @ApiOperation({ 
-    summary: 'Check user existence',
-    description: 'Check if user exists and has password set' 
+    summary: 'Check if user exists',
+    description: 'Check if email is registered and verified' 
   })
   @ApiResponse({ status: 200, description: 'User status returned' })
   async checkUser(@Body() dto: CheckUserDto) {
-    return this.authService.checkUserExists(dto.phoneNumber);
+    return this.authService.checkUserExists(dto.email);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -108,8 +139,6 @@ export class AuthController {
   async getProfile(@Request() req: any) {
     return {
       id: req.user.id,
-      firebaseUid: req.user.firebaseUid,
-      phoneNumber: req.user.phoneNumber,
       email: req.user.email,
       displayName: req.user.displayName,
       role: req.user.role,

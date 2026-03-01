@@ -147,22 +147,24 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-slate-800 dark:to-slate-900 flex flex-col">
                     <div className="h-16 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-6">
                       <span className="font-bold text-lg">ড্যাশবোর্ড</span>
-                      <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center shadow-md">
+                        <Icon name="person" className="text-white text-lg" />
+                      </div>
                     </div>
                     <div className="p-6 space-y-4">
                       <div className="flex gap-4">
                         <div className="flex-1 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
-                          <div className="text-xs text-slate-500">আজকের বিক্রি</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">আজকের বিক্রি</div>
                           <div className="text-xl font-bold text-primary">৳ ৪,৫০০</div>
                         </div>
                         <div className="flex-1 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
-                          <div className="text-xs text-slate-500">মোট অর্ডার</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">মোট অর্ডার</div>
                           <div className="text-xl font-bold text-slate-800 dark:text-white">১২টি</div>
                         </div>
                       </div>
                       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4">
                         <div className="flex justify-between items-center mb-4">
-                          <span className="font-bold text-sm">সাম্প্রতিক লেনদেন</span>
+                          <span className="font-bold text-sm text-slate-800 dark:text-slate-100">সাম্প্রতিক লেনদেন</span>
                           <span className="text-xs text-primary cursor-pointer">সব দেখুন</span>
                         </div>
                         <div className="space-y-3">
@@ -172,11 +174,11 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
                                 <Icon name="shopping_bag" className="text-sm" />
                               </div>
                               <div>
-                                <div className="font-medium">অর্ডার #১০২</div>
-                                <div className="text-xs text-slate-400">মিনু রহমান</div>
+                                <div className="font-medium text-slate-800 dark:text-slate-100">অর্ডার #১০২</div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500">মিনু রহমান</div>
                               </div>
                             </div>
-                            <span className="font-bold">৳ ৫২০</span>
+                            <span className="font-bold text-slate-800 dark:text-slate-100">৳ ৫২০</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <div className="flex items-center gap-3">
@@ -184,11 +186,11 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
                                 <Icon name="shopping_bag" className="text-sm" />
                               </div>
                               <div>
-                                <div className="font-medium">অর্ডার #১০১</div>
-                                <div className="text-xs text-slate-400">করিম শেখ</div>
+                                <div className="font-medium text-slate-800 dark:text-slate-100">অর্ডার #১০১</div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500">করিম শেখ</div>
                               </div>
                             </div>
-                            <span className="font-bold">৳ ১,২০০</span>
+                            <span className="font-bold text-slate-800 dark:text-slate-100">৳ ১,২০০</span>
                           </div>
                         </div>
                       </div>

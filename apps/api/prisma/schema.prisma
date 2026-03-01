@@ -21,14 +21,26 @@ enum UserRole {
 // User model for authentication
 model User {
   id            String    @id @default(uuid())
-  firebaseUid   String    @unique
-  phoneNumber   String    @unique
-  email         String?
+  
+  // Email as primary identifier
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+  
+  // Optional fields (kept for future use)
+  phoneNumber   String?
+  firebaseUid   String?
+  
   displayName   String?
   photoURL      String?
   
-  // Password (hashed)
-  password      String?
+  // Password (required for email auth)
+  password      String
+  
+  // Password reset
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
   
   isActive      Boolean   @default(true)
   

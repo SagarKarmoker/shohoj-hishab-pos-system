@@ -1,9 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { createLogger } from './config/logger.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: createLogger(),
+  });
+  
+  // Use Winston logger for NestJS
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  
   app.enableCors();
 
   const config = new DocumentBuilder()
@@ -26,6 +34,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT ?? 8080);
+  const port = process.env.PORT ?? 8080;
+  await app.listen(port);
+  
+  // Log startup message
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
+  logger.log(`🚀 Application is running on: http://localhost:${port}`, 'Bootstrap');
+  logger.log(`📚 API Documentation: http://localhost:${port}/api`, 'Bootstrap');
 }
 bootstrap();

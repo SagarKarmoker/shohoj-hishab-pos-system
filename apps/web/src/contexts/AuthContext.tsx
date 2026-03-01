@@ -1,20 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
-import { 
-  sendOTP, 
-  verifyOTP, 
-  getFirebaseToken, 
-  signOut as firebaseSignOut,
-  formatBangladeshPhone,
-} from '../firebase';
-import { ConfirmationResult } from 'firebase/auth';
 
 interface AuthUser {
-  uid: string;
-  phoneNumber: string;
-  email?: string;
+  id: string;
+  email: string;
   displayName?: string;
   role?: string;
+  emailVerified: boolean;
 }
 
 interface AuthContextType {
@@ -24,14 +16,15 @@ interface AuthContextType {
   needsApproval: boolean;
   subscriptionStartDate?: string;
   subscriptionEndDate?: string;
-  phoneNumber: string;
-  confirmationResult: ConfirmationResult | null;
-  firebaseToken: string | null;
-  setPhoneNumber: (phone: string) => void;
-  loginWithPhone: () => Promise<void>;
-  verifyCode: (code: string) => Promise<any>;
+  email: string;
+  setEmail: (email: string) => void;
+  signup: (email: string, password: string, displayName?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   logout: () => Promise<void>;
-  resetAuth: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,10 +34,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [email, setEmail] = useState('');
   const [jwtToken, setJwtToken] = useState<string | null>(null);
-  const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
   const [needsApproval, setNeedsApproval] = useState(false);
   const [subscriptionStartDate, setSubscriptionStartDate] = useState<string | undefined>();
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | undefined>();
@@ -64,27 +55,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const loginWithPhone = useCallback(async () => {
-    if (!phoneNumber) {
-      throw new Error('Phone number is required');
-    }
-
-    const formattedPhone = formatBangladeshPhone(phoneNumber);
-    const result = await sendOTP(formattedPhone);
-    setConfirmationResult(result);
-  }, [phoneNumber]);
-
-  const verifyCode = useCallback(async (code: string): Promise<any> => {
-    if (!confirmationResult) {
-      throw new Error('No confirmation result available');
-    }
-
-    const firebaseUser = await verifyOTP(confirmationResult, code);
-    const firebaseToken = await getFirebaseToken(firebaseUser);
-
-    // Send Firebase token to backend for verification and JWT generation
+  const signup = useCallback(async (email: string, password: string, displayName?: string): Promise<void> => {
     try {
-      const response = await axios.post(`${API_URL}/auth/verify-token`, { firebaseToken });
+      await axios.post(`${API_URL}/auth/signup`, { email, password, displayName });
+      // Signup successful - user needs to verify email
+      setEmail(email);
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Signup failed');
+    }
+  }, []);
+
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const data = response.data;
     
       // Store JWT token
@@ -99,49 +83,87 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Set user data
       const authUser: AuthUser = {
-        uid: firebaseUser.uid,
-        phoneNumber: firebaseUser.phoneNumber || phoneNumber,
-        email: firebaseUser.email || undefined,
-        displayName: firebaseUser.displayName || undefined,
+        id: data.user.id,
+        email: data.user.email,
+        displayName: data.user.displayName,
         role: data.user.role,
+        emailVerified: data.user.emailVerified,
       };
       
-      // Store Firebase token for later use (password reset/signup)
-      setFirebaseToken(firebaseToken);
+      setUser(authUser);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Login failed');
+    }
+  }, []);
+
+  const verifyEmail = useCallback(async (token: string): Promise<void> => {
+    try {
+      const response = await axios.get(`${API_URL}/auth/verify-email?token=${token}`);
+      const data = response.data;
+    
+      // Store JWT token
+      localStorage.setItem('jwt_token', data.token);
+      setJwtToken(data.token);
+
+      // Store approval status and subscription dates
+      setNeedsApproval(data.needsApproval || false);
+      setSubscriptionStartDate(data.subscriptionStartDate);
+      setSubscriptionEndDate(data.subscriptionEndDate);
+      localStorage.setItem('needs_approval', String(data.needsApproval || false));
+
+      // Set user data
+      const authUser: AuthUser = {
+        id: data.user.id,
+        email: data.user.email,
+        displayName: data.user.displayName,
+        role: data.user.role,
+        emailVerified: true,
+      };
       
       setUser(authUser);
-      setConfirmationResult(null);
-      
-      // Return firebase user for token retrieval
-      return firebaseUser;
     } catch (error) {
-      console.error('Error verifying token with backend:', error);
-      throw new Error(error instanceof Error ? error.message : 'Authentication failed');
+      console.error('Email verification error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Email verification failed');
     }
-  }, [confirmationResult, phoneNumber]);
+  }, []);
+
+  const requestPasswordReset = useCallback(async (email: string): Promise<void> => {
+    try {
+      await axios.post(`${API_URL}/auth/forgot-password`, { email });
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Password reset request failed');
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (token: string, newPassword: string): Promise<void> => {
+    try {
+      await axios.post(`${API_URL}/auth/reset-password`, { token, newPassword });
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Password reset failed');
+    }
+  }, []);
+
+  const resendVerification = useCallback(async (email: string): Promise<void> => {
+    try {
+      await axios.post(`${API_URL}/auth/resend-verification`, { email });
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      throw new Error(error instanceof Error ? error.message : 'Resend verification failed');
+    }
+  }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await firebaseSignOut();
-    } catch (error) {
-      console.error('Firebase sign out error:', error);
-    }
-    
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('needs_approval');
     setJwtToken(null);
     setUser(null);
-    setPhoneNumber('');
-    setConfirmationResult(null);
+    setEmail('');
     setNeedsApproval(false);
     setSubscriptionStartDate(undefined);
     setSubscriptionEndDate(undefined);
-  }, []);
-
-  const resetAuth = useCallback(() => {
-    setConfirmationResult(null);
-    setPhoneNumber('');
-    setFirebaseToken(null);
   }, []);
 
   return (
@@ -149,18 +171,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isLoading,
-        isAuthenticated: !!user && !!jwtToken && !needsApproval,
+        isAuthenticated: !!user && !!jwtToken && !needsApproval && user.emailVerified,
         needsApproval,
         subscriptionStartDate,
         subscriptionEndDate,
-        phoneNumber,
-        confirmationResult,
-        firebaseToken,
-        setPhoneNumber,
-        loginWithPhone,
-        verifyCode,
+        email,
+        setEmail,
+        signup,
+        login,
+        verifyEmail,
+        requestPasswordReset,
+        resetPassword,
+        resendVerification,
         logout,
-        resetAuth,
       }}
     >
       {children}

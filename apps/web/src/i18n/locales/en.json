@@ -97,7 +97,8 @@
     "hishab": "Hishab",
     "back": "Back",
     "loading": "Loading...",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "backToLogin": "Back to Login"
   },
   "admin": {
     "title": "Admin Panel",
@@ -122,44 +123,87 @@
   },
   "login": {
     "title": "Welcome Back",
-    "subtitle": "Sign in to your account to continue",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "Enter your email",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Enter your password",
-    "rememberMe": "Remember me",
-    "forgotPassword": "Forgot password?",
-    "loginButton": "Sign In",
-    "loggingIn": "Signing in...",
-    "phoneLabel": "Phone Number",
-    "phonePlaceholder": "Enter your phone number",
-    "phoneHint": "Example: 01XXXXXXXXX (Bangladesh)",
-    "phoneRequired": "Phone number is required",
-    "phoneInvalid": "Please enter a valid Bangladesh phone number",
-    "sendOtp": "Send OTP",
-    "sending": "Sending OTP...",
-    "enterOtp": "Enter OTP",
-    "otpLabel": "Verification Code",
-    "otpPlaceholder": "Enter 6-digit code",
-    "otpSentTo": "Code sent to {{phone}}",
-    "otpRequired": "Please enter the verification code",
-    "invalidOtp": "Invalid verification code",
-    "verifyButton": "Verify",
-    "verifying": "Verifying...",
-    "resendOtp": "Resend Code",
-    "resendIn": "Resend in {{seconds}}s",
-    "changeNumber": "Change phone number",
-    "smsFailed": "Failed to send SMS. Please try again.",
+    "subtitle": "Sign in to your account",
+    "signupSubtitle": "Create an account to get started",
+    "resetSubtitle": "Reset your password",
+    "verificationSubtitle": "Check your email",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "displayName": "Display Name",
+    "displayNamePlaceholder": "Your name",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "loginButton": "Login",
+    "signupButton": "Sign Up",
+    "resetButton": "Send Reset Link",
     "noAccount": "Don't have an account?",
-    "signUp": "Sign up",
-    "orContinueWith": "Or continue with",
+    "signupLink": "Sign Up",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Login",
+    "forgotPassword": "Forgot password?",
+    "rememberPassword": "Remember your password?",
+    "backToLogin": "Back to login",
+    "checkInbox": "We've sent a verification link to your email. Please click the link to verify your account.",
+    "resendVerification": "Resend verification email",
     "errors": {
       "emailRequired": "Email is required",
-      "emailInvalid": "Please enter a valid email",
+      "emailInvalid": "Invalid email format",
       "passwordRequired": "Password is required",
-      "passwordMin": "Password must be at least 6 characters",
-      "invalidCredentials": "Invalid email or password",
-      "needsApproval": "Your account is pending approval. Please contact admin to activate your account."
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordRequirements": "Password must contain uppercase, lowercase, and number",
+      "passwordMismatch": "Passwords do not match",
+      "loginFailed": "Login failed",
+      "signupFailed": "Signup failed",
+      "resetFailed": "Password reset failed",
+      "resendFailed": "Failed to resend verification email"
+    },
+    "success": {
+      "verificationSent": "Verification email sent! Please check your inbox.",
+      "resetLinkSent": "Password reset link sent! Check your email.",
+      "verificationResent": "Verification email resent!"
+    }
+  },
+  "verification": {
+    "verifying": "Verifying Your Email...",
+    "pleaseWait": "Please wait while we verify your email address.",
+    "resendButton": "Resend Verification Email",
+    "success": {
+      "title": "Email Verified!",
+      "message": "Your email has been successfully verified. Redirecting to dashboard...",
+      "resent": "Verification email resent! Please check your inbox."
+    },
+    "error": {
+      "title": "Verification Failed",
+      "message": "The verification link may have expired or is invalid.",
+      "noEmail": "Email address not found"
+    },
+    "errors": {
+      "failed": "Email verification failed",
+      "resendFailed": "Failed to resend verification email"
+    }
+  },
+  "reset": {
+    "subtitle": "Set your new password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "resetButton": "Reset Password",
+    "redirecting": "Redirecting to login...",
+    "passwordHint": "At least 8 characters with uppercase, lowercase, and number",
+    "passwordStrength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "success": {
+      "title": "Password Reset Successfully!",
+      "message": "Your password has been changed. You can now login with your new password."
+    },
+    "errors": {
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordRequirements": "Password must contain uppercase, lowercase, and number",
+      "passwordMismatch": "Passwords do not match",
+      "failed": "Password reset failed"
     }
   },
   "dashboard": {
