@@ -387,7 +387,7 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
                 {isCreditSale && (
                   <>
                     <select
-                      value={creditCustomerId}
+                      value={creditCustomerId ?? ''}
                       onChange={(e) => {
                         setCreditCustomerId(e.target.value || null);
                         setPaidAmountInput(String(Math.round(cartTotal)));

@@ -19,10 +19,10 @@ export class TransactionController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async list(
     @Param('shopId') shopId: string,
+    @Request() req: { user: { id: string } },
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
     @Query('customerId') customerId?: string,
-    @Request() req: { user: { id: string } },
   ) {
     const options: { dateFrom?: Date; dateTo?: Date; customerId?: string } = {};
     if (dateFrom) options.dateFrom = new Date(dateFrom);
