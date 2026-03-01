@@ -2,12 +2,12 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./generated/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // User roles enum
@@ -67,6 +67,8 @@ model User {
   createdUsers  User[]    @relation("CreatedByRelation")
   salesPerson   SalesPerson?
   sales         Sale[]
+  auditLogs     AuditLog[] @relation("AuditLogUser")
+  loginHistory  LoginHistory[] @relation("LoginHistoryUser")
 }
 
 // Shop model - represents a business/store
@@ -209,4 +211,39 @@ model Sale {
   commissionAmount Decimal          @db.Decimal(10, 2)
   saleAmount      Decimal           @db.Decimal(10, 2)
   createdAt       DateTime          @default(now())
+}
+
+// Audit Log for tracking admin actions
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String   // Who performed the action
+  user        User     @relation("AuditLogUser", fields: [userId], references: [id])
+  action      String   // e.g., "USER_ACTIVATED", "PLAN_UPDATED"
+  entityType  String   // e.g., "User", "Plan", "Sale"
+  entityId    String?  // ID of the affected entity
+  oldValue    String?  // JSON string of previous state
+  newValue    String?  // JSON string of new state
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+  @@index([entityType, entityId])
+}
+
+// User Login History
+model LoginHistory {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation("LoginHistoryUser", fields: [userId], references: [id])
+  ipAddress      String?
+  userAgent      String?
+  success        Boolean
+  failureReason  String?
+  createdAt      DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
 }

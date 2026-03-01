@@ -13,6 +13,7 @@ import { CreditPage } from './pages/CreditPage'
 import { AccountsPage } from './pages/AccountsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { AdminPage } from './pages/AdminPage'
+import { SalesDashboardPage } from './pages/SalesDashboardPage'
 import { TermsPage } from './pages/TermsPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { SettingsProvider } from './contexts/SettingsContext'
@@ -56,10 +57,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 /** ADMIN/SUPER_ADMIN don't need a shop — send them to Admin Panel */
+/** SALES users go to Sales Dashboard */
 function DashboardRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
   if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
     return <Navigate to="/admin" replace />
+  }
+  if (user?.role === 'SALES') {
+    return <Navigate to="/sales" replace />
   }
   return <>{children}</>
 }
@@ -151,6 +156,7 @@ function AppRoutes() {
           <Route path="settings" element={<SettingsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
         </Route>
         <Route path="/admin" element={<ProtectedRoute><AdminPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} /></ProtectedRoute>} />
+        <Route path="/sales" element={<ProtectedRoute><SalesDashboardPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} /></ProtectedRoute>} />
 
         <Route path="/terms" element={<TermsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToLanding={() => navigate('/')} />} />
         <Route path="/privacy" element={<PrivacyPage isDark={isDark} onToggleTheme={toggleTheme} onBackToLanding={() => navigate('/')} />} />

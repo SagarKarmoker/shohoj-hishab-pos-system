@@ -1,20 +1,26 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { UserRole } from '@prisma/client';
 
+/**
+ * Guard that allows access to SALES, ADMIN, and SUPER_ADMIN roles
+ * Used for sales dashboard endpoints
+ */
 @Injectable()
 export class SalesRoleGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const user = request.user as { role?: string } | undefined;
+    const user = request.user;
 
-    if (!user?.role) {
-      throw new ForbiddenException('Access denied');
+    if (!user) {
+      throw new ForbiddenException('User not authenticated');
     }
 
-    if (user.role === 'SALES' || user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-      return true;
+    const allowedRoles = [UserRole.SALES, UserRole.ADMIN, UserRole.SUPER_ADMIN];
+    
+    if (!allowedRoles.includes(user.role)) {
+      throw new ForbiddenException('Access denied. Sales role required.');
     }
 
-    throw new ForbiddenException('Only sales or admin users can access this resource');
+    return true;
   }
 }
-
