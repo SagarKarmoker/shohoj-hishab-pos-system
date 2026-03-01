@@ -7,9 +7,11 @@ interface NavbarProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onNavigateToLogin: () => void;
+  onNavigateToDashboard?: () => void;
+  isAuthenticated?: boolean;
 }
 
-export function Navbar({ isDark, onToggleTheme, onNavigateToLogin }: NavbarProps) {
+export function Navbar({ isDark, onToggleTheme, onNavigateToLogin, onNavigateToDashboard, isAuthenticated }: NavbarProps) {
   const { t } = useTranslation();
   const { currentLanguage, toggleLanguage } = useLanguage();
   const { handleNavClick } = useSmoothScroll();
@@ -73,12 +75,12 @@ export function Navbar({ isDark, onToggleTheme, onNavigateToLogin }: NavbarProps
             )}
           </button>
           
-          {/* Login Button */}
+          {/* Login / Dashboard Button */}
           <button 
-            onClick={onNavigateToLogin}
+            onClick={isAuthenticated && onNavigateToDashboard ? onNavigateToDashboard : onNavigateToLogin}
             className="px-4 py-2 md:px-6 md:py-2.5 bg-primary text-white text-sm md:text-base font-semibold rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer"
           >
-            {t('nav.login')}
+            {isAuthenticated ? t('nav.goToDashboard') : t('nav.login')}
           </button>
         </div>
       </div>

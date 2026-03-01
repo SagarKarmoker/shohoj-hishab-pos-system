@@ -4,14 +4,19 @@
     "features": "Features",
     "pricing": "Pricing",
     "contact": "Contact",
-    "login": "Login"
+    "login": "Login",
+    "goToDashboard": "Go to Dashboard",
+    "dashboard": "Dashboard"
   },
   "hero": {
     "badge": "Best Solution for Small Business",
     "title": "Your business accounts are now",
     "highlight": "in your hands",
+    "titleLoggedIn": "Welcome back!",
+    "subtitleLoggedIn": "Continue managing your business",
     "description": "Easily manage your shop's sales, stock management, and profit-loss accounts through the Shohoj Hishab app. Without any pen and paper.",
     "ctaPrimary": "Start for Free",
+    "ctaPrimaryLoggedIn": "Go to Dashboard",
     "ctaSecondary": "Watch Video",
     "feature1": "Unlimited Products",
     "feature2": "Offline Support"
@@ -98,7 +103,8 @@
     "back": "Back",
     "loading": "Loading...",
     "backToHome": "Back to Home",
-    "backToLogin": "Back to Login"
+    "backToLogin": "Back to Login",
+    "logout": "Logout"
   },
   "admin": {
     "title": "Admin Panel",
@@ -230,7 +236,17 @@
     "orderNow": "Order Now",
     "recentTransactions": "Recent Transactions",
     "todayList": "Today's List",
-    "viewMore": "View More"
+    "viewMore": "View More",
+    "createShop": "Create Your Shop",
+    "createShopSubtitle": "Add your first shop to get started",
+    "shopNamePlaceholder": "Shop name",
+    "addressPlaceholder": "Address (optional)",
+    "phonePlaceholder": "Phone (optional)",
+    "createButton": "Create Shop",
+    "loading": "Loading...",
+    "noLowStock": "All products are well stocked",
+    "noTransactions": "No recent transactions",
+    "transactions": "transactions"
   },
   "pos": {
     "quickBilling": "Quick Billing",

@@ -40,19 +40,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [subscriptionStartDate, setSubscriptionStartDate] = useState<string | undefined>();
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | undefined>();
 
-  // Check for existing JWT token on mount
+  // Check for existing JWT token on mount and fetch user profile
   useEffect(() => {
     const token = localStorage.getItem('jwt_token');
+    const approvalStatus = localStorage.getItem('needs_approval') === 'true';
+    setNeedsApproval(approvalStatus);
+
     if (token) {
       setJwtToken(token);
-      // Optionally verify token with backend here
+      axios
+        .get(`${API_URL}/auth/profile`, { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => {
+          setUser({
+            id: res.data.id,
+            email: res.data.email,
+            displayName: res.data.displayName,
+            role: res.data.role,
+            emailVerified: true,
+          });
+        })
+        .catch(() => {
+          localStorage.removeItem('jwt_token');
+          setJwtToken(null);
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
-    // Check for approval status
-    const approvalStatus = localStorage.getItem('needs_approval');
-    if (approvalStatus === 'true') {
-      setNeedsApproval(true);
-    }
-    setIsLoading(false);
   }, []);
 
   const signup = useCallback(async (email: string, password: string, displayName?: string): Promise<void> => {

@@ -4,14 +4,19 @@
     "features": "ফিচারসমূহ",
     "pricing": "প্রাইসিং",
     "contact": "যোগাযোগ",
-    "login": "লগইন করুন"
+    "login": "লগইন করুন",
+    "goToDashboard": "ড্যাশবোর্ডে যান",
+    "dashboard": "ড্যাশবোর্ড"
   },
   "hero": {
     "badge": "ছোট ব্যবসার সেরা সমাধান",
     "title": "আপনার ব্যবসার হিসাব এখন",
     "highlight": "হাতের মুঠোয়",
+    "titleLoggedIn": "আবার স্বাগতম!",
+    "subtitleLoggedIn": "আপনার ব্যবসা পরিচালনা চালিয়ে যান",
     "description": "সহজ হিসাব অ্যাপের মাধ্যমে আপনার দোকানের বেচা-কেনা, স্টক ম্যানেজমেন্ট এবং লাভ-ক্ষতির হিসাব রাখুন খুব সহজে। কোনো খাতা-কলম ছাড়াই।",
     "ctaPrimary": "ফ্রি শুরু করুন",
+    "ctaPrimaryLoggedIn": "ড্যাশবোর্ডে যান",
     "ctaSecondary": "ভিডিও দেখুন",
     "feature1": "আনলিমিটেড পণ্য",
     "feature2": "অফলাইন সাপোর্ট"
@@ -197,7 +202,17 @@
     "orderNow": "অর্ডার করুন",
     "recentTransactions": "সাম্প্রতিক লেনদেন",
     "todayList": "আজকের তালিকা",
-    "viewMore": "আরও দেখুন"
+    "viewMore": "আরও দেখুন",
+    "createShop": "আপনার দোকান তৈরি করুন",
+    "createShopSubtitle": "শুরু করতে আপনার প্রথম দোকান যোগ করুন",
+    "shopNamePlaceholder": "দোকানের নাম",
+    "addressPlaceholder": "ঠিকানা (ঐচ্ছিক)",
+    "phonePlaceholder": "ফোন (ঐচ্ছিক)",
+    "createButton": "দোকান তৈরি করুন",
+    "loading": "লোড হচ্ছে...",
+    "noLowStock": "সব পণ্য ভালোভাবে মজুদ আছে",
+    "noTransactions": "কোনো সাম্প্রতিক লেনদেন নেই",
+    "transactions": "লেনদেন"
   },
   "pos": {
     "quickBilling": "কুইক বিলিং",
@@ -231,7 +246,8 @@
     "back": "ফিরে যান",
     "loading": "লোড হচ্ছে...",
     "backToHome": "হোমে ফিরুন",
-    "backToLogin": "লগইনে ফিরে যান"
+    "backToLogin": "লগইনে ফিরে যান",
+    "logout": "লগআউট"
   },
   "admin": {
     "title": "অ্যাডমিন প্যানেল",

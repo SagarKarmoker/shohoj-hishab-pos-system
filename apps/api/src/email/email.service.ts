@@ -18,7 +18,7 @@ export class EmailService {
    */
   async sendVerificationEmail(email: string, token: string, displayName?: string): Promise<void> {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
-    const verificationLink = `${frontendUrl}?page=verify-email&token=${token}`;
+    const verificationLink = `${frontendUrl}/auth/verify-email?token=${token}`;
 
     await this.mailerService.sendMail({
       to: email,
@@ -37,7 +37,7 @@ export class EmailService {
    */
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
-    const resetLink = `${frontendUrl}?page=reset-password&token=${token}`;
+    const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
 
     await this.mailerService.sendMail({
       to: email,

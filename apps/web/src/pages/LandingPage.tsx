@@ -10,18 +10,20 @@ interface LandingPageProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onNavigateToLogin: () => void;
+  onNavigateToDashboard: () => void;
   onNavigateToTerms: () => void;
   onNavigateToPrivacy: () => void;
+  isAuthenticated?: boolean;
 }
 
-export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNavigateToTerms, onNavigateToPrivacy }: LandingPageProps) {
+export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNavigateToDashboard, onNavigateToTerms, onNavigateToPrivacy, isAuthenticated }: LandingPageProps) {
   const { t } = useTranslation();
   const { handleNavClick } = useSmoothScroll();
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <Navbar isDark={isDark} onToggleTheme={onToggleTheme} onNavigateToLogin={onNavigateToLogin} />
+      <Navbar isDark={isDark} onToggleTheme={onToggleTheme} onNavigateToLogin={onNavigateToLogin} onNavigateToDashboard={onNavigateToDashboard} isAuthenticated={isAuthenticated} />
       
       <main className="overflow-hidden">
         {/* Hero Section */}
@@ -49,30 +51,36 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
                   transition={{ duration: 0.7, delay: 0.1 }}
                   className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-slate-900 dark:text-white"
                 >
-                  {t('hero.title')} <br/>
-                  <motion.span 
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 0.3, type: "spring", bounce: 0.4 }}
-                    className="text-primary relative inline-block"
-                  >
-                    {t('hero.highlight')}
-                    <motion.svg 
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 1, delay: 0.8, ease: "easeInOut" }}
-                      className="absolute w-full h-3 -bottom-1 left-0 text-orange-200 -z-10" 
-                      preserveAspectRatio="none" 
-                      viewBox="0 0 100 10"
-                    >
-                      <motion.path 
-                        d="M0 5 Q 50 10 100 5" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="8"
-                      />
-                    </motion.svg>
-                  </motion.span>
+                  {isAuthenticated ? (
+                    t('hero.titleLoggedIn')
+                  ) : (
+                    <>
+                      {t('hero.title')} <br/>
+                      <motion.span 
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.3, type: "spring", bounce: 0.4 }}
+                        className="text-primary relative inline-block"
+                      >
+                        {t('hero.highlight')}
+                        <motion.svg 
+                          initial={{ pathLength: 0, opacity: 0 }}
+                          animate={{ pathLength: 1, opacity: 1 }}
+                          transition={{ duration: 1, delay: 0.8, ease: "easeInOut" }}
+                          className="absolute w-full h-3 -bottom-1 left-0 text-orange-200 -z-10" 
+                          preserveAspectRatio="none" 
+                          viewBox="0 0 100 10"
+                        >
+                          <motion.path 
+                            d="M0 5 Q 50 10 100 5" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="8"
+                          />
+                        </motion.svg>
+                      </motion.span>
+                    </>
+                  )}
                 </motion.h1>
                 
                 <motion.p 
@@ -81,7 +89,7 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
                   transition={{ duration: 0.6, delay: 0.4 }}
                   className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto lg:mx-0"
                 >
-                  {t('hero.description')}
+                  {isAuthenticated ? t('hero.subtitleLoggedIn') : t('hero.description')}
                 </motion.p>
                 
                 <motion.div 
@@ -93,10 +101,11 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
                   <motion.button 
                     whileHover={{ scale: 1.05, y: -5 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={isAuthenticated ? onNavigateToDashboard : undefined}
                     className="cursor-pointer w-full sm:w-auto px-8 py-4 bg-primary text-white text-lg font-bold rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-orange-500/20 flex items-center justify-center gap-2"
                   >
-                    <Icon name="rocket_launch" />
-                    {t('hero.ctaPrimary')}
+                    <Icon name={isAuthenticated ? "dashboard" : "rocket_launch"} />
+                    {isAuthenticated ? t('hero.ctaPrimaryLoggedIn') : t('hero.ctaPrimary')}
                   </motion.button>
                   <motion.button 
                     whileHover={{ scale: 1.05 }}

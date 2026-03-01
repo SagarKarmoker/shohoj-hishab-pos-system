@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LandingPage } from './pages/LandingPage'
@@ -15,39 +16,13 @@ import { AdminPage } from './pages/AdminPage'
 import { TermsPage } from './pages/TermsPage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { SettingsProvider } from './contexts/SettingsContext'
+import { ShopProvider } from './contexts/ShopContext'
 
-type Page = 'landing' | 'login' | 'verify-email' | 'reset-password' | 'dashboard' | 'pos' | 'stock' | 'credit' | 'accounts' | 'settings' | 'admin' | 'terms' | 'privacy'
-
-function AppContent() {
-  const { logout, needsApproval, isAuthenticated } = useAuth()
-  
-  // Check for saved theme preference or default to light
+function useTheme() {
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme')
-    if (saved) {
-      return saved === 'dark'
-    }
-    return false // Default to light mode
+    return saved === 'dark'
   })
-
-  // Simple page routing with URL params support
-  const [currentPage, setCurrentPage] = useState<Page>('landing')
-  const [pageParams, setPageParams] = useState<Record<string, string>>({})
-
-  // Handle URL parameters on mount and when URL changes
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const page = params.get('page') as Page
-    const token = params.get('token')
-    
-    if (page === 'verify-email' && token) {
-      setCurrentPage('verify-email')
-      setPageParams({ token })
-    } else if (page === 'reset-password' && token) {
-      setCurrentPage('reset-password')
-      setPageParams({ token })
-    }
-  }, [])
 
   useEffect(() => {
     if (isDark) {
@@ -61,73 +36,84 @@ function AppContent() {
     }
   }, [isDark])
 
-  const navigateToLogin = () => {
-    window.history.pushState({}, '', '/')
-    setCurrentPage('login')
-    setPageParams({})
-    window.scrollTo(0, 0)
-  }
+  return [isDark, () => setIsDark((v) => !v)] as const
+}
 
-  const navigateToLanding = () => {
-    window.history.pushState({}, '', '/')
-    setCurrentPage('landing')
-    setPageParams({})
-    window.scrollTo(0, 0)
-  }
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, needsApproval, isLoading } = useAuth()
+  const location = useLocation()
 
-  const navigateToDashboard = () => {
-    // Check if user needs approval before accessing dashboard
-    const needsApproval = localStorage.getItem('needs_approval') === 'true';
-    if (needsApproval) {
-      // Stay on login page with approval message
-      setCurrentPage('login');
-      return;
-    }
-    window.history.pushState({}, '', '/')
-    setCurrentPage('dashboard')
-    setPageParams({})
-    window.scrollTo(0, 0)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    )
   }
+  if (needsApproval) return <Navigate to="/auth" state={{ from: location }} replace />
+  if (!isAuthenticated) return <Navigate to="/auth" state={{ from: location }} replace />
+  return <>{children}</>
+}
 
-  const navigateToPOS = () => {
-    setCurrentPage('pos')
-    window.scrollTo(0, 0)
-  }
+function AuthRedirect({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, needsApproval, isLoading } = useAuth()
 
-  const navigateToStock = () => {
-    setCurrentPage('stock')
-    window.scrollTo(0, 0)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    )
   }
+  if (isAuthenticated && !needsApproval) return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
 
-  const navigateToCredit = () => {
-    setCurrentPage('credit')
-    window.scrollTo(0, 0)
-  }
+function VerifyEmailRoute() {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const token = searchParams.get('token') || ''
+  return <EmailVerificationPage token={token} onVerificationSuccess={() => navigate('/dashboard')} onBackToLogin={() => navigate('/auth')} />
+}
 
-  const navigateToAccounts = () => {
-    setCurrentPage('accounts')
-    window.scrollTo(0, 0)
-  }
+function ResetPasswordRoute() {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const token = searchParams.get('token') || ''
+  return <PasswordResetPage token={token} onResetSuccess={() => navigate('/auth')} onBackToLogin={() => navigate('/auth')} />
+}
 
-  const navigateToSettings = () => {
-    setCurrentPage('settings')
-    window.scrollTo(0, 0)
-  }
+function LandingRoute() {
+  const navigate = useNavigate()
+  const [isDark, toggleTheme] = useTheme()
+  const { isAuthenticated, needsApproval, isLoading } = useAuth()
 
-  const navigateToAdmin = () => {
-    setCurrentPage('admin')
-    window.scrollTo(0, 0)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    )
   }
+  if (isAuthenticated && !needsApproval) return <Navigate to="/dashboard" replace />
 
-  const navigateToTerms = () => {
-    setCurrentPage('terms')
-    window.scrollTo(0, 0)
-  }
+  return (
+    <LandingPage
+      isDark={isDark}
+      onToggleTheme={toggleTheme}
+      onNavigateToLogin={() => navigate('/auth')}
+      onNavigateToDashboard={() => navigate('/dashboard')}
+      onNavigateToTerms={() => navigate('/terms')}
+      onNavigateToPrivacy={() => navigate('/privacy')}
+      isAuthenticated={isAuthenticated}
+    />
+  )
+}
 
-  const navigateToPrivacy = () => {
-    setCurrentPage('privacy')
-    window.scrollTo(0, 0)
-  }
+function AppRoutes() {
+  const navigate = useNavigate()
+  const [isDark, toggleTheme] = useTheme()
+  const { logout } = useAuth()
 
   const handleLogout = async () => {
     try {
@@ -135,111 +121,32 @@ function AppContent() {
     } catch (error) {
       console.error('Logout error:', error)
     }
-    setCurrentPage('landing')
-    window.scrollTo(0, 0)
+    navigate('/')
   }
 
   return (
     <SettingsProvider>
-      {currentPage === 'landing' && (
-        <LandingPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onNavigateToLogin={navigateToLogin}
-          onNavigateToTerms={navigateToTerms}
-          onNavigateToPrivacy={navigateToPrivacy}
-        />
-      )}
-      {currentPage === 'login' && (
-        <LoginPage
-          onBackToHome={navigateToLanding}
-          onLoginSuccess={navigateToDashboard}
-        />
-      )}
-      {currentPage === 'verify-email' && (
-        <EmailVerificationPage
-          token={pageParams.token || ''}
-          onVerificationSuccess={navigateToDashboard}
-          onBackToLogin={navigateToLogin}
-        />
-      )}
-      {currentPage === 'reset-password' && (
-        <PasswordResetPage
-          token={pageParams.token || ''}
-          onResetSuccess={navigateToLogin}
-          onBackToLogin={navigateToLogin}
-        />
-      )}
-      {currentPage === 'dashboard' && (
-        <DashboardPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onLogout={handleLogout}
-          onNavigateToPOS={navigateToPOS}
-          onNavigateToStock={navigateToStock}
-          onNavigateToCredit={navigateToCredit}
-          onNavigateToAccounts={navigateToAccounts}
-          onNavigateToSettings={navigateToSettings}
-          onNavigateToAdmin={navigateToAdmin}
-        />
-      )}
-      {currentPage === 'pos' && (
-        <POSPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToDashboard={navigateToDashboard}
-        />
-      )}
-      {currentPage === 'stock' && (
-        <StockPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToDashboard={navigateToDashboard}
-        />
-      )}
-      {currentPage === 'credit' && (
-        <CreditPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToDashboard={navigateToDashboard}
-        />
-      )}
-      {currentPage === 'accounts' && (
-        <AccountsPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToDashboard={navigateToDashboard}
-        />
-      )}
-      {currentPage === 'settings' && (
-        <SettingsPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToDashboard={navigateToDashboard}
-        />
-      )}
-      {currentPage === 'admin' && (
-        <AdminPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToDashboard={navigateToDashboard}
-          onLogout={handleLogout}
-        />
-      )}
-      {currentPage === 'terms' && (
-        <TermsPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToLanding={navigateToLanding}
-        />
-      )}
-      {currentPage === 'privacy' && (
-        <PrivacyPage
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(!isDark)}
-          onBackToLanding={navigateToLanding}
-        />
-      )}
+      <Routes>
+        <Route path="/" element={<LandingRoute />} />
+
+        <Route path="/auth" element={<AuthRedirect><LoginPage onBackToHome={() => navigate('/')} onLoginSuccess={() => navigate('/dashboard')} /></AuthRedirect>} />
+        <Route path="/auth/verify-email" element={<AuthRedirect><VerifyEmailRoute /></AuthRedirect>} />
+        <Route path="/auth/reset-password" element={<AuthRedirect><ResetPasswordRoute /></AuthRedirect>} />
+
+        <Route path="/dashboard" element={<ProtectedRoute><ShopProvider><DashboardPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} onNavigateToPOS={() => navigate('/dashboard/pos')} onNavigateToStock={() => navigate('/dashboard/stock')} onNavigateToCredit={() => navigate('/dashboard/credit')} onNavigateToAccounts={() => navigate('/dashboard/accounts')} onNavigateToSettings={() => navigate('/settings')} onNavigateToAdmin={() => navigate('/admin')} /></ShopProvider></ProtectedRoute>} />
+        <Route path="/dashboard/pos" element={<ProtectedRoute><ShopProvider><POSPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
+        <Route path="/dashboard/stock" element={<ProtectedRoute><ShopProvider><StockPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
+        <Route path="/dashboard/credit" element={<ProtectedRoute><ShopProvider><CreditPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
+        <Route path="/dashboard/accounts" element={<ProtectedRoute><ShopProvider><AccountsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
+
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} onLogout={handleLogout} /></ProtectedRoute>} />
+
+        <Route path="/terms" element={<TermsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToLanding={() => navigate('/')} />} />
+        <Route path="/privacy" element={<PrivacyPage isDark={isDark} onToggleTheme={toggleTheme} onBackToLanding={() => navigate('/')} />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </SettingsProvider>
   )
 }
@@ -248,7 +155,9 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <AppContent />
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
       </AuthProvider>
     </LanguageProvider>
   )

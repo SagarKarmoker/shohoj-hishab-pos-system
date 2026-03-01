@@ -282,7 +282,7 @@ export function AdminPage({
     }
   };
 
-  // Create sales person
+  // Create sales person (used by Add button in Sales tab)
   const createSalesPerson = async (userId: string, commissionRate: number = 5) => {
     try {
       await axios.post(
@@ -801,6 +801,17 @@ export function AdminPage({
         {/* Sales Tab */}
         {activeTab === 'sales' && (
           <div>
+            <div className="mb-4 flex justify-end">
+              <button
+                onClick={() => {
+                  const userId = window.prompt(t('admin.addSalesPerson', 'Enter user ID to add as sales person'));
+                  if (userId) createSalesPerson(userId.trim(), 5);
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium cursor-pointer"
+              >
+                {t('admin.addSalesPerson', 'Add Sales Person')}
+              </button>
+            </div>
             {loading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
