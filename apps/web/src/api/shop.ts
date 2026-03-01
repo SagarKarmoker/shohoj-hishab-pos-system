@@ -60,6 +60,13 @@ export async function createShop(dto: { name: string; address?: string; phone?: 
   return data;
 }
 
+export async function updateShop(shopId: string, dto: { name?: string; address?: string; phone?: string }): Promise<Shop> {
+  const { data } = await axios.patch<Shop>(`${API_URL}/shops/${shopId}`, dto, {
+    headers: getAuthHeaders(),
+  });
+  return data;
+}
+
 export async function getShopDashboard(shopId: string): Promise<DashboardData> {
   const { data } = await axios.get<DashboardData>(`${API_URL}/shops/${shopId}/dashboard`, {
     headers: getAuthHeaders(),

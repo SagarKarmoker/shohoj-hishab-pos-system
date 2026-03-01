@@ -5,19 +5,19 @@ import { Icon } from './Icon';
 interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product: Product | null;
-  onAddToCart: (product: Product, quantity: number, displayQuantity: string) => void;
+  product: ProductModalProduct | null;
+  onAddToCart: (product: ProductModalProduct, quantity: number, displayQuantity: string) => void;
 }
 
-interface Product {
-  id: number;
+export interface ProductModalProduct {
+  id: string | number;
   name: string;
-  nameEn: string;
+  nameEn?: string;
   price: number;
   stock: number;
   unit: string;
-  category: string;
-  image: string;
+  category?: string | null;
+  image?: string;
   baseUnit?: string;
   conversionRate?: number;
 }
@@ -58,7 +58,7 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
   const getActualQuantity = (): number => {
     const qty = parseFloat(quantity) || 0;
     
-    // Convert to base unit (kg)
+    // Convert to base unit (kg or liter)
     if (unit === 'গ্রাম' || unit === 'g' || unit === 'gram') {
       return qty / 1000;
     } else if (unit === 'মিলি' || unit === 'ml' || unit === 'milli') {
@@ -72,7 +72,8 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
 
   // Quick select quantities based on unit type
   const getQuickQuantities = () => {
-    if (product.unit === 'কেজি' || product.unit === 'kg') {
+    const unit = product.unit?.toLowerCase() ?? '';
+    if (unit === 'কেজি' || unit === 'kg') {
       return [
         { label: '100g', value: '100', unit: 'গ্রাম' },
         { label: '250g', value: '250', unit: 'গ্রাম' },
@@ -81,7 +82,7 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
         { label: '2kg', value: '2', unit: 'কেজি' },
         { label: '5kg', value: '5', unit: 'কেজি' },
       ];
-    } else if (product.unit === 'লি' || product.unit === 'l' || product.unit === 'liter') {
+    } else if (unit === 'লি' || unit === 'l' || unit === 'liter') {
       return [
         { label: '250ml', value: '250', unit: 'মিলি' },
         { label: '500ml', value: '500', unit: 'মিলি' },
@@ -89,7 +90,7 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
         { label: '2L', value: '2', unit: 'লি' },
         { label: '5L', value: '5', unit: 'লি' },
       ];
-    } else if (product.unit === 'ডজন' || product.unit === 'dozen') {
+    } else if (unit === 'ডজন' || unit === 'dozen') {
       return [
         { label: '1pc', value: '0.083', unit: 'ডজন' },
         { label: '3pc', value: '0.25', unit: 'ডজন' },
@@ -162,22 +163,30 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
 
         {/* Product Image */}
         <div className="relative h-48 bg-slate-100 dark:bg-slate-700">
+          {product.image ? (
           <img
             src={product.image}
-            alt={i18n.language === 'bn' ? product.name : product.nameEn}
+            alt={i18n.language === 'bn' ? product.name : (product.nameEn ?? product.name)}
             className="w-full h-full object-cover"
           />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Icon name="inventory_2" className="text-6xl text-slate-400" />
+            </div>
+          )}
           <div className="absolute bottom-4 left-4">
+            {product.category && (
             <span className="px-3 py-1 bg-primary text-white rounded-full text-sm font-medium">
               {product.category}
             </span>
+          )}
           </div>
         </div>
 
         {/* Product Details */}
         <div className="p-6">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
-            {i18n.language === 'bn' ? product.name : product.nameEn}
+            {i18n.language === 'bn' ? product.name : (product.nameEn ?? product.name)}
           </h2>
           
           <div className="flex items-center gap-3 mb-4">
@@ -235,18 +244,18 @@ export function ProductModal({ isOpen, onClose, product, onAddToCart }: ProductM
                 }}
                 className="px-4 py-3 bg-slate-100 dark:bg-slate-700 border-2 border-transparent rounded-xl font-medium focus:border-primary focus:outline-none cursor-pointer"
               >
-                {product.unit === 'কেজি' || product.unit === 'kg' ? (
+                {unit === 'কেজি' || unit === 'kg' ? (
                   <>
-                    <option value="কেজি">কেজি</option>
-                    <option value="গ্রাম">গ্রাম</option>
+                    <option value="kg">kg</option>
+                    <option value="gram">gram</option>
                   </>
-                ) : product.unit === 'লি' || product.unit === 'l' ? (
+                ) : unit === 'লি' || unit === 'l' || unit === 'liter' ? (
                   <>
-                    <option value="লি">লি</option>
-                    <option value="মিলি">মিলি</option>
+                    <option value="liter">liter</option>
+                    <option value="ml">ml</option>
                   </>
                 ) : (
-                  <option value={product.unit}>{product.unit}</option>
+                  <option value={product.unit}>{product.unit || 'piece'}</option>
                 )}
               </select>
             </div>

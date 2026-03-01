@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { getShops, createShop, type Shop } from '../api/shop';
+import { getShops, createShop, updateShop, type Shop } from '../api/shop';
 
 interface ShopContextType {
   currentShop: Shop | null;
@@ -8,6 +8,7 @@ interface ShopContextType {
   error: string | null;
   loadShops: () => Promise<void>;
   createShopAndSet: (name: string, address?: string, phone?: string) => Promise<Shop>;
+  updateShopAndRefresh: (shopId: string, dto: { name?: string; address?: string; phone?: string }) => Promise<Shop>;
   setCurrentShop: (shop: Shop | null) => void;
 }
 
@@ -45,6 +46,16 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const updateShopAndRefresh = useCallback(
+    async (shopId: string, dto: { name?: string; address?: string; phone?: string }) => {
+      const shop = await updateShop(shopId, dto);
+      setShops((prev) => prev.map((s) => (s.id === shopId ? shop : s)));
+      setCurrentShopState((prev) => (prev?.id === shopId ? shop : prev));
+      return shop;
+    },
+    [],
+  );
+
   const setCurrentShop = useCallback((shop: Shop | null) => {
     setCurrentShopState(shop);
   }, []);
@@ -58,6 +69,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         error,
         loadShops,
         createShopAndSet,
+        updateShopAndRefresh,
         setCurrentShop,
       }}
     >

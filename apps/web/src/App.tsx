@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useSearchParams, Outlet } from 'react-router-dom'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LandingPage } from './pages/LandingPage'
@@ -133,13 +133,14 @@ function AppRoutes() {
         <Route path="/auth/verify-email" element={<AuthRedirect><VerifyEmailRoute /></AuthRedirect>} />
         <Route path="/auth/reset-password" element={<AuthRedirect><ResetPasswordRoute /></AuthRedirect>} />
 
-        <Route path="/dashboard" element={<ProtectedRoute><ShopProvider><DashboardPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} onNavigateToPOS={() => navigate('/dashboard/pos')} onNavigateToStock={() => navigate('/dashboard/stock')} onNavigateToCredit={() => navigate('/dashboard/credit')} onNavigateToAccounts={() => navigate('/dashboard/accounts')} onNavigateToSettings={() => navigate('/settings')} onNavigateToAdmin={() => navigate('/admin')} /></ShopProvider></ProtectedRoute>} />
-        <Route path="/dashboard/pos" element={<ProtectedRoute><ShopProvider><POSPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
-        <Route path="/dashboard/stock" element={<ProtectedRoute><ShopProvider><StockPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
-        <Route path="/dashboard/credit" element={<ProtectedRoute><ShopProvider><CreditPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
-        <Route path="/dashboard/accounts" element={<ProtectedRoute><ShopProvider><AccountsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ShopProvider></ProtectedRoute>} />
-
-        <Route path="/settings" element={<ProtectedRoute><SettingsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} /></ProtectedRoute>} />
+        <Route element={<ProtectedRoute><ShopProvider><Outlet /></ShopProvider></ProtectedRoute>}>
+          <Route path="dashboard" element={<DashboardPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} onNavigateToPOS={() => navigate('/dashboard/pos')} onNavigateToStock={() => navigate('/dashboard/stock')} onNavigateToCredit={() => navigate('/dashboard/credit')} onNavigateToAccounts={() => navigate('/dashboard/accounts')} onNavigateToSettings={() => navigate('/settings')} onNavigateToAdmin={() => navigate('/admin')} />} />
+          <Route path="dashboard/pos" element={<POSPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
+          <Route path="dashboard/stock" element={<StockPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
+          <Route path="dashboard/credit" element={<CreditPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
+          <Route path="dashboard/accounts" element={<AccountsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
+          <Route path="settings" element={<SettingsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
+        </Route>
         <Route path="/admin" element={<ProtectedRoute><AdminPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} onLogout={handleLogout} /></ProtectedRoute>} />
 
         <Route path="/terms" element={<TermsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToLanding={() => navigate('/')} />} />

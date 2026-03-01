@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Icon } from '../components/Icon';
@@ -862,10 +863,10 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
             <div>
               <h4 className="font-bold text-lg mb-6">{t('footer.links')}</h4>
               <ul className="space-y-4 text-sm text-slate-500 dark:text-slate-400">
-                <li><a href="#" className="hover:text-primary transition-colors cursor-pointer">{t('footer.home')}</a></li>
+                <li><Link to="/" className="hover:text-primary transition-colors cursor-pointer">{t('footer.home')}</Link></li>
                 <li><a href="#features" onClick={(e) => handleNavClick(e, 'features')} className="hover:text-primary transition-colors cursor-pointer">{t('nav.features')}</a></li>
                 <li><a href="#pricing" onClick={(e) => handleNavClick(e, 'pricing')} className="hover:text-primary transition-colors cursor-pointer">{t('nav.pricing')}</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors cursor-pointer">{t('footer.blog')}</a></li>
+                <li><a href="#" onClick={(e) => e.preventDefault()} className="hover:text-primary transition-colors cursor-pointer" title="Coming soon">{t('footer.blog')}</a></li>
               </ul>
             </div>
             <div>

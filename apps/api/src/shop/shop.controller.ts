@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ShopService } from './shop.service';
 import { CreateShopDto } from './dto/create-shop.dto';
+import { UpdateShopDto } from './dto/update-shop.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Shops')
@@ -36,6 +37,17 @@ export class ShopController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getDashboard(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     return this.shopService.getDashboard(id, req.user.id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update shop', description: 'Update shop details (must be owner)' })
+  @ApiResponse({ status: 200, description: 'Shop updated' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Shop not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async update(@Param('id') id: string, @Body() dto: UpdateShopDto, @Request() req: { user: { id: string } }) {
+    return this.shopService.update(id, req.user.id, dto);
   }
 
   @Get(':id')

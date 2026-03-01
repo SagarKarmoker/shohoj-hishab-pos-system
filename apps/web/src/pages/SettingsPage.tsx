@@ -1,7 +1,87 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { useSettings } from '../contexts/SettingsContext';
+import { useShop } from '../contexts/ShopContext';
+import type { Shop } from '../api/shop';
+import type { TFunction } from 'i18next';
+
+function GeneralShopForm({
+    shop,
+    onSave,
+    isSaving,
+    saveError,
+    t,
+}: {
+    shop: Shop;
+    onSave: (dto: { name?: string; address?: string; phone?: string }) => Promise<void>;
+    isSaving: boolean;
+    saveError: string | null;
+    t: TFunction;
+}) {
+    const [name, setName] = useState(shop.name);
+    const [address, setAddress] = useState(shop.address ?? '');
+    const [phone, setPhone] = useState(shop.phone ?? '');
+
+    useEffect(() => {
+        setName(shop.name);
+        setAddress(shop.address ?? '');
+        setPhone(shop.phone ?? '');
+    }, [shop.id, shop.name, shop.address, shop.phone]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await onSave({ name, address: address || undefined, phone: phone || undefined });
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {t('settings.shopName')}
+                </label>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {t('settings.shopAddress')}
+                </label>
+                <textarea
+                    rows={3}
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    {t('settings.phone')}
+                </label>
+                <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+            </div>
+            {saveError && (
+                <p className="text-red-600 dark:text-red-400 text-sm">{saveError}</p>
+            )}
+            <button
+                type="submit"
+                disabled={isSaving}
+                className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:opacity-90 disabled:opacity-60 transition-opacity"
+            >
+                {isSaving ? t('common.loading') : t('settings.save')}
+            </button>
+        </form>
+    );
+}
 
 interface SettingsPageProps {
     isDark: boolean;
@@ -12,21 +92,36 @@ interface SettingsPageProps {
 export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: SettingsPageProps) {
     const { t, i18n } = useTranslation();
     const {
-        shopSettings,
         paymentSettings,
-        updateShopSettings,
         updatePaymentSettings
     } = useSettings();
+    const { currentShop, loadShops, updateShopAndRefresh, isLoading: shopsLoading } = useShop();
 
     const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'preferences'>('general');
     const [isSaved, setIsSaved] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
-    // Temporary local state for form inputs to avoid excessive re-renders/writes
-    // In a real app, we might use React Hook Form or similar
-    // For simplicity, we'll just use the context values directly in inputs, 
-    // but let's wrap the update in a handler that shows a "Saved" feedback.
+    useEffect(() => {
+        loadShops();
+    }, [loadShops]);
 
-    const handleSave = () => {
+    const handleSaveGeneral = async (dto: { name?: string; address?: string; phone?: string }) => {
+        if (!currentShop) return;
+        setIsSaving(true);
+        setSaveError(null);
+        try {
+            await updateShopAndRefresh(currentShop.id, dto);
+            setIsSaved(true);
+            setTimeout(() => setIsSaved(false), 2000);
+        } catch (err) {
+            setSaveError(err instanceof Error ? err.message : 'Failed to save');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSavePayment = () => {
         setIsSaved(true);
         setTimeout(() => setIsSaved(false), 2000);
     };
@@ -114,50 +209,25 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                     <Icon name="store" className="text-primary" />
                                     {t('settings.shopInfo')}
                                 </h2>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            {t('settings.shopName')}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={shopSettings.shopName}
-                                            onChange={(e) => {
-                                                updateShopSettings({ shopName: e.target.value });
-                                                handleSave();
-                                            }}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        />
+                                {shopsLoading ? (
+                                    <div className="flex items-center justify-center py-12">
+                                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            {t('settings.shopAddress')}
-                                        </label>
-                                        <textarea
-                                            rows={3}
-                                            value={shopSettings.shopAddress}
-                                            onChange={(e) => {
-                                                updateShopSettings({ shopAddress: e.target.value });
-                                                handleSave();
-                                            }}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        />
+                                ) : !currentShop ? (
+                                    <div className="py-8 text-center text-slate-500 dark:text-slate-400">
+                                        <Icon name="store" className="text-4xl mx-auto mb-3 opacity-50" />
+                                        <p className="font-medium">{t('settings.noShop')}</p>
+                                        <p className="text-sm mt-1">{t('settings.noShopHint')}</p>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            {t('settings.phone')}
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={shopSettings.phone}
-                                            onChange={(e) => {
-                                                updateShopSettings({ phone: e.target.value });
-                                                handleSave();
-                                            }}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        />
-                                    </div>
-                                </div>
+                                ) : (
+                                    <GeneralShopForm
+                                        shop={currentShop}
+                                        onSave={handleSaveGeneral}
+                                        isSaving={isSaving}
+                                        saveError={saveError}
+                                        t={t}
+                                    />
+                                )}
                             </div>
                         )}
 
@@ -178,7 +248,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                                 value={paymentSettings.bkashNumber}
                                                 onChange={(e) => {
                                                     updatePaymentSettings({ bkashNumber: e.target.value });
-                                                    handleSave();
+                                                    handleSavePayment();
                                                 }}
                                                 placeholder="017..."
                                                 className="w-full pl-12 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#e2136e]/20 focus:border-[#e2136e] transition-all"
@@ -198,7 +268,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                                 value={paymentSettings.nagadNumber}
                                                 onChange={(e) => {
                                                     updatePaymentSettings({ nagadNumber: e.target.value });
-                                                    handleSave();
+                                                    handleSavePayment();
                                                 }}
                                                 placeholder="017..."
                                                 className="w-full pl-12 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#ec1d24]/20 focus:border-[#ec1d24] transition-all"
@@ -218,7 +288,7 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                                                 value={paymentSettings.rocketNumber}
                                                 onChange={(e) => {
                                                     updatePaymentSettings({ rocketNumber: e.target.value });
-                                                    handleSave();
+                                                    handleSavePayment();
                                                 }}
                                                 placeholder="017..."
                                                 className="w-full pl-12 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8c3494]/20 focus:border-[#8c3494] transition-all"

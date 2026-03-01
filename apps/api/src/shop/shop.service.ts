@@ -37,6 +37,18 @@ export class ShopService {
     return shop;
   }
 
+  async update(id: string, userId: string, data: { name?: string; address?: string; phone?: string }) {
+    await this.findOne(id, userId);
+    return this.prisma.shop.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.address !== undefined && { address: data.address }),
+        ...(data.phone !== undefined && { phone: data.phone }),
+      },
+    });
+  }
+
   async getDashboard(shopId: string, userId: string) {
     await this.findOne(shopId, userId);
 

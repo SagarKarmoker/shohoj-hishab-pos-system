@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
@@ -194,13 +195,15 @@ export function DashboardPage({
             >
               <Icon name="settings" className="text-slate-500" />
             </button>
-            <button
-              onClick={onNavigateToAdmin}
-              className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title={t('admin.title', 'Admin Panel')}
-            >
-              <Icon name="admin_panel_settings" className="text-slate-500" />
-            </button>
+            {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+              <button
+                onClick={onNavigateToAdmin}
+                className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title={t('admin.title', 'Admin Panel')}
+              >
+                <Icon name="admin_panel_settings" className="text-slate-500" />
+              </button>
+            )}
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen((v) => !v)}
@@ -305,12 +308,15 @@ export function DashboardPage({
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Icon name="monitoring" className="text-green-600" />
+                  <Icon name="analytics" className="text-green-600" />
                   {t('dashboard.todaySummary')}
                 </h2>
-                <a href="#" className="text-sm text-green-600 font-medium hover:underline">
+                <button
+                  onClick={onNavigateToAccounts}
+                  className="text-sm text-green-600 font-medium hover:underline cursor-pointer"
+                >
                   {t('dashboard.viewDetails')}
-                </a>
+                </button>
               </div>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden">
@@ -431,7 +437,10 @@ export function DashboardPage({
                   )}
                 </div>
                 <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-center">
-                  <button className="text-sm font-bold text-primary hover:text-orange-700 transition-colors w-full cursor-pointer">
+                  <button
+                    onClick={onNavigateToAccounts}
+                    className="text-sm font-bold text-primary hover:text-orange-700 transition-colors w-full cursor-pointer"
+                  >
                     {t('dashboard.viewMore')}
                   </button>
                 </div>
@@ -446,18 +455,18 @@ export function DashboardPage({
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <span className="font-bold tracking-tight text-slate-500">{t('nav.brand')}</span>
-            <span className="text-xs text-slate-400">© ২০২৬ {t('footer.copyright')}</span>
+            <span className="text-xs text-slate-400">{t('footer.copyright')}</span>
           </div>
           <div className="flex gap-6">
-            <a href="#" className="text-sm text-slate-500 hover:text-green-600 transition-colors">
+            <a href="mailto:support@shohojhishab.com" className="text-sm text-slate-500 hover:text-green-600 transition-colors">
               {t('footer.help')}
             </a>
-            <a href="#" className="text-sm text-slate-500 hover:text-green-600 transition-colors">
+            <Link to="/privacy" className="text-sm text-slate-500 hover:text-green-600 transition-colors">
               {t('footer.privacy')}
-            </a>
-            <a href="#" className="text-sm text-slate-500 hover:text-green-600 transition-colors">
+            </Link>
+            <Link to="/terms" className="text-sm text-slate-500 hover:text-green-600 transition-colors">
               {t('footer.terms')}
-            </a>
+            </Link>
           </div>
         </div>
       </footer>

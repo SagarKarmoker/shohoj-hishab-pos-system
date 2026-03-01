@@ -90,6 +90,7 @@
     "home": "Home",
     "blog": "Blog",
     "copyright": "© 2026 Shohoj Hishab. All rights reserved.",
+    "help": "Help",
     "terms": "Terms",
     "privacy": "Privacy Policy"
   },
@@ -268,7 +269,15 @@
     "available": "Available",
     "exceedsStock": "Exceeds Stock",
     "enterValidQuantity": "Enter Valid Quantity",
-    "remove": "Remove"
+    "remove": "Remove",
+    "all": "All",
+    "checkoutSuccess": "Sale completed! Invoice",
+    "noShop": "No shop yet",
+    "noShopHint": "Create a shop from the dashboard first.",
+    "sellOnCredit": "Sell on credit",
+    "selectCustomer": "Select customer",
+    "amountPaid": "Amount paid",
+    "dueAfter": "Due after"
   },
   "stock": {
     "title": "Stock Management",
@@ -293,7 +302,18 @@
     "add10": "Add 10",
     "edit": "Edit",
     "updated": "Updated",
-    "noProducts": "No products found"
+    "noProducts": "No products found",
+    "productName": "Product Name",
+    "minStock": "Min Stock",
+    "unit": "Unit",
+    "createProduct": "Create Product",
+    "noShop": "No shop yet",
+    "noShopHint": "Create a shop from the dashboard first.",
+    "unitPiece": "Piece",
+    "unitKg": "kg",
+    "unitLiter": "Liter",
+    "unitPack": "Pack",
+    "unitDozen": "Dozen"
   },
   "credit": {
     "title": "Credit Management",
@@ -307,7 +327,15 @@
     "lastTransaction": "Last Transaction",
     "collect": "Collect",
     "history": "History",
-    "noCustomers": "No customers found"
+    "noCustomers": "No customers found",
+    "noShop": "No shop yet",
+    "noShopHint": "Create a shop from the dashboard first.",
+    "collectPayment": "Collect Payment",
+    "amount": "Amount",
+    "createCustomer": "Add Customer",
+    "customerName": "Customer Name",
+    "phone": "Phone",
+    "noTransactionsYet": "No transactions yet"
   },
   "accounts": {
     "title": "All Accounts",
@@ -327,7 +355,12 @@
     "payment": "Payment",
     "amount": "Amount",
     "time": "Time",
-    "noTransactions": "No transactions found"
+    "noTransactions": "No transactions found",
+    "noShop": "No shop yet",
+    "noShopHint": "Create a shop from the dashboard first.",
+    "sale": "Sale",
+    "credit": "Credit",
+    "cash": "Cash"
   },
   "settings": {
     "title": "Settings",
@@ -343,7 +376,10 @@
     "nagadNumber": "Nagad Number",
     "rocketNumber": "Rocket Number",
     "appPreferences": "App Preferences",
-    "theme": "Theme"
+    "theme": "Theme",
+    "save": "Save",
+    "noShop": "No shop yet",
+    "noShopHint": "Create a shop from the dashboard to manage settings."
   },
   "howItWorks": {
     "badge": "How It Works",
