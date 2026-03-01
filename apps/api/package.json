@@ -20,7 +20,12 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "db:seed": "prisma generate && ts-node -P tsconfig.seed.json prisma/seed.ts",
+    "db:seed:admin": "prisma generate && ts-node -P tsconfig.seed.json prisma/seed-admin.ts"
+  },
+  "prisma": {
+    "seed": "ts-node -P tsconfig.seed.json prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",

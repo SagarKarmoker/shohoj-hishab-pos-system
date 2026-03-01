@@ -9,7 +9,9 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "seed": "pnpm --filter @shohoj-hishab/api run db:seed",
+    "seed:admin": "pnpm --filter @shohoj-hishab/api run db:seed:admin"
   },
   "devDependencies": {
     "turbo": "^2.4.0",
