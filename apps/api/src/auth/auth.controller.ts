@@ -2,6 +2,7 @@ import { Controller, Post, Body, UseGuards, Get, Request, Query } from '@nestjs/
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProperty, ApiQuery } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { SalesRoleGuard } from './guards/sales-role.guard';
 
 class SignupDto {
   @ApiProperty({ description: 'User email address', example: 'user@example.com' })
@@ -43,6 +44,17 @@ class ResendVerificationDto {
 class CheckUserDto {
   @ApiProperty({ description: 'Email to check', example: 'user@example.com' })
   email!: string;
+}
+
+class CreateUserBySalesDto {
+  @ApiProperty({ description: 'New user email', example: 'shop-owner@example.com' })
+  email!: string;
+
+  @ApiProperty({ description: 'Display name', required: false, example: 'Shop Owner' })
+  displayName?: string;
+
+  @ApiProperty({ description: 'Phone number', required: false, example: '+8801XXXXXXXXX' })
+  phoneNumber?: string;
 }
 
 @ApiTags('Authentication')
@@ -125,6 +137,24 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User status returned' })
   async checkUser(@Body() dto: CheckUserDto) {
     return this.authService.checkUserExists(dto.email);
+  }
+
+  @UseGuards(AuthGuard('jwt'), SalesRoleGuard)
+  @Post('sales/create-user')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Create user as sales/admin',
+    description: 'SALES, ADMIN or SUPER_ADMIN can onboard a new USER and send verification email.',
+  })
+  @ApiResponse({ status: 201, description: 'User created, verification email sent.' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 409, description: 'Email already registered' })
+  @ApiResponse({ status: 403, description: 'Forbidden - only sales/admin can access' })
+  async createUserBySales(@Body() dto: CreateUserBySalesDto, @Request() req: any) {
+    return this.authService.createUserBySales(dto, {
+      id: req.user.id,
+      role: req.user.role,
+    });
   }
 
   @UseGuards(AuthGuard('jwt'))

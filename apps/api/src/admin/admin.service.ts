@@ -86,17 +86,33 @@ export class AdminService {
   /**
    * Update user (activate/deactivate, change plan)
    */
-  async updateUser(id: string, data: {
-    isActive?: boolean;
-    role?: UserRole;
-    subscriptionPlanId?: string;
-    subscriptionStartDate?: Date;
-    subscriptionEndDate?: Date;
-  }) {
+  async updateUser(
+    id: string,
+    data: {
+      isActive?: boolean;
+      role?: UserRole;
+      subscriptionPlanId?: string;
+      subscriptionStartDate?: Date;
+      subscriptionEndDate?: Date;
+    },
+    requesterRole: UserRole,
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    // Any change that touches admin roles (ADMIN / SUPER_ADMIN), either for the
+    // existing user or the target role, must be performed by a Super Admin.
+    const touchesAdminRole =
+      user.role === UserRole.ADMIN ||
+      user.role === UserRole.SUPER_ADMIN ||
+      data.role === UserRole.ADMIN ||
+      data.role === UserRole.SUPER_ADMIN;
+
+    if (touchesAdminRole && requesterRole !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Only Super Admin can manage admin roles');
     }
 
     return this.prisma.user.update({
@@ -109,11 +125,19 @@ export class AdminService {
   /**
    * Delete user
    */
-  async deleteUser(id: string) {
+  async deleteUser(id: string, requesterRole: UserRole) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    // Only Super Admin can delete admin-level users (ADMIN / SUPER_ADMIN)
+    if (
+      (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) &&
+      requesterRole !== UserRole.SUPER_ADMIN
+    ) {
+      throw new ForbiddenException('Only Super Admin can delete admin users');
     }
 
     await this.prisma.user.delete({ where: { id } });
@@ -244,12 +268,17 @@ export class AdminService {
   }
 
   /**
-   * Create new admin
+   * Create new admin user.
+   * Only Super Admin can create ADMIN or SUPER_ADMIN accounts.
    */
-  async createAdmin(data: {
-    userId: string;
-    role: 'ADMIN' | 'SUPER_ADMIN';
-  }) {
+  async createAdmin(
+    data: { userId: string; role: 'ADMIN' | 'SUPER_ADMIN' },
+    requesterRole: UserRole,
+  ) {
+    if (requesterRole !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Only Super Admin can create admin users');
+    }
+
     const user = await this.prisma.user.findUnique({ where: { id: data.userId } });
 
     if (!user) {
@@ -263,9 +292,10 @@ export class AdminService {
   }
 
   /**
-   * Remove admin role
+   * Remove admin role.
+   * Only Super Admin can remove ADMIN or SUPER_ADMIN privileges.
    */
-  async removeAdmin(id: string) {
+  async removeAdmin(id: string, requesterRole: UserRole) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
@@ -274,6 +304,10 @@ export class AdminService {
 
     if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
       throw new ForbiddenException('User is not an admin');
+    }
+
+    if (requesterRole !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Only Super Admin can manage admin users');
     }
 
     return this.prisma.user.update({
@@ -316,6 +350,10 @@ export class AdminService {
       throw new NotFoundException('User not found');
     }
 
+    if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Cannot convert an admin user to sales');
+    }
+
     const existingSalesPerson = await this.prisma.salesPerson.findUnique({
       where: { userId: data.userId },
     });
@@ -324,6 +362,7 @@ export class AdminService {
       throw new ForbiddenException('User is already a sales person');
     }
 
+    // Promote user to SALES role and create SalesPerson record
     return this.prisma.salesPerson.create({
       data: {
         userId: data.userId,
@@ -339,6 +378,12 @@ export class AdminService {
           },
         },
       },
+    }).then(async (salesPerson) => {
+      await this.prisma.user.update({
+        where: { id: data.userId },
+        data: { role: UserRole.SALES },
+      });
+      return salesPerson;
     });
   }
 
@@ -372,6 +417,12 @@ export class AdminService {
     }
 
     await this.prisma.salesPerson.delete({ where: { id } });
+
+    // Demote back to USER role if they were SALES
+    await this.prisma.user.update({
+      where: { id: salesPerson.userId },
+      data: { role: UserRole.USER },
+    });
 
     return { message: 'Sales person removed successfully' };
   }

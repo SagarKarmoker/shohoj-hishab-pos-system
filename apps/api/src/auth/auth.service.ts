@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException, BadRequestException, ConflictException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ConflictException, ServiceUnavailableException, Inject, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { UserRole } from '@prisma/client';
 
 export interface LoginResponse {
   token: string;
@@ -83,10 +84,80 @@ export class AuthService {
     });
 
     // Send verification email
-    await this.emailService.sendVerificationEmail(email, verificationToken, displayName);
+    try {
+      await this.emailService.sendVerificationEmail(email, verificationToken, displayName);
+    } catch (err) {
+      this.logger.error('Failed to send verification email', { context: 'AuthService', email, err });
+      throw new ServiceUnavailableException('Could not send verification email. Please try again later or use Resend.');
+    }
 
     this.logger.info('Signup successful, verification email sent', { context: 'AuthService', email });
     return { message: 'Signup successful. Please check your email to verify your account.' };
+  }
+
+  /**
+   * Create a new USER account on behalf of someone else (Sales/Admin flow).
+   * - Allowed roles: SALES, ADMIN, SUPER_ADMIN (enforced by SalesRoleGuard)
+   * - Behaviour: same verification flow as signup, but password is generated and never returned.
+   */
+  async createUserBySales(
+    dto: { email: string; displayName?: string; phoneNumber?: string },
+    creator: { id: string; role: string },
+  ): Promise<{ message: string }> {
+    const { email, displayName, phoneNumber } = dto;
+    this.logger.info('Create user by sales/admin attempt', { context: 'AuthService', email, creatorId: creator.id, creatorRole: creator.role });
+
+    // Extra safety: ensure role is allowed even if guard is misconfigured
+    const allowedRoles: UserRole[] = [UserRole.SALES, UserRole.ADMIN, UserRole.SUPER_ADMIN];
+    if (!allowedRoles.includes(creator.role as UserRole)) {
+      throw new ForbiddenException('Only sales or admin users can create users');
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      this.logger.warn('Invalid email format during createUserBySales', { context: 'AuthService', email });
+      throw new BadRequestException('Invalid email format');
+    }
+
+    // Check if user already exists
+    const existingUser = await this.usersService.findByEmail(email);
+    if (existingUser) {
+      this.logger.warn('createUserBySales attempted with existing email', { context: 'AuthService', email });
+      throw new ConflictException('Email already registered');
+    }
+
+    // Generate a strong temporary password (user will set real one after verification)
+    const tempPassword = `Temp${Date.now().toString(36)}Aa1`;
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Generate verification token
+    const verificationToken = this.emailService.generateToken();
+    const verificationExpires = this.emailService.getVerificationExpiry();
+
+    // Create user as plain USER, linked to creator
+    await this.usersService.createUser({
+      email,
+      password: hashedPassword,
+      displayName,
+      phoneNumber,
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires,
+      role: UserRole.USER,
+      createdById: creator.id,
+    });
+
+    // Send verification email
+    try {
+      await this.emailService.sendVerificationEmail(email, verificationToken, displayName);
+    } catch (err) {
+      this.logger.error('Failed to send verification email (createUserBySales)', { context: 'AuthService', email, err });
+      throw new ServiceUnavailableException('Could not send verification email. Please try again later.');
+    }
+
+    this.logger.info('createUserBySales successful, verification email sent', { context: 'AuthService', email });
+    return { message: 'User created. Please ask them to check their email to verify the account.' };
   }
 
   /**
@@ -120,8 +191,10 @@ export class AuthService {
       emailVerificationExpires: null,
     });
 
-    // Send welcome email
-    await this.emailService.sendWelcomeEmail(updatedUser.email, updatedUser.displayName || undefined);
+    // Send welcome email (non-blocking; log failure)
+    this.emailService.sendWelcomeEmail(updatedUser.email, updatedUser.displayName || undefined).catch((err) => {
+      this.logger.warn('Failed to send welcome email', { context: 'AuthService', email: updatedUser.email, err });
+    });
 
     // Generate JWT token
     const payload = {
@@ -232,7 +305,12 @@ export class AuthService {
     });
 
     // Send password reset email
-    await this.emailService.sendPasswordResetEmail(user.email, resetToken);
+    try {
+      await this.emailService.sendPasswordResetEmail(user.email, resetToken);
+    } catch (err) {
+      this.logger.error('Failed to send password reset email', { context: 'AuthService', email: user.email, err });
+      throw new ServiceUnavailableException('Could not send password reset email. Please try again later.');
+    }
 
     return { message: 'If the email exists, a password reset link has been sent.' };
   }
@@ -310,7 +388,12 @@ export class AuthService {
     });
 
     // Send verification email
-    await this.emailService.sendVerificationEmail(user.email, verificationToken, user.displayName || undefined);
+    try {
+      await this.emailService.sendVerificationEmail(user.email, verificationToken, user.displayName || undefined);
+    } catch (err) {
+      this.logger.error('Failed to resend verification email', { context: 'AuthService', email: user.email, err });
+      throw new ServiceUnavailableException('Could not send verification email. Please try again later.');
+    }
 
     return { message: 'Verification email sent. Please check your inbox.' };
   }

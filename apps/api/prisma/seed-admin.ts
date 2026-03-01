@@ -18,7 +18,7 @@ async function main() {
     },
   });
 
-  console.log('Admin user ready:', admin.email);
+  console.log('Super Admin ready:', admin.email);
   console.log('Login: admin@example.com / Password1');
 }
 

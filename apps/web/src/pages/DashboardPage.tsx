@@ -103,13 +103,24 @@ export function DashboardPage({
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8 relative">
-          <button
-            onClick={onLogout}
-            className="absolute top-4 right-4 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 cursor-pointer"
-            title="Logout"
-          >
-            <Icon name="logout" />
-          </button>
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+              <button
+                onClick={onNavigateToAdmin}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 cursor-pointer"
+                title={t('admin.title', 'Admin Panel')}
+              >
+                <Icon name="admin_panel_settings" />
+              </button>
+            )}
+            <button
+              onClick={onLogout}
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 cursor-pointer"
+              title="Logout"
+            >
+              <Icon name="logout" />
+            </button>
+          </div>
           <h2 className="text-xl font-bold mb-2">{t('dashboard.createShop')}</h2>
           <p className="text-slate-600 dark:text-slate-400 mb-6">{t('dashboard.createShopSubtitle')}</p>
           <form onSubmit={handleCreateShop} className="space-y-4">
@@ -147,6 +158,15 @@ export function DashboardPage({
             >
               {createShopSubmitting ? t('common.loading') : t('dashboard.createButton')}
             </button>
+            {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+              <button
+                type="button"
+                onClick={onNavigateToAdmin}
+                className="w-full py-2.5 text-sm text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer"
+              >
+                {t('admin.title', 'Admin Panel')} →
+              </button>
+            )}
           </form>
         </div>
       </div>

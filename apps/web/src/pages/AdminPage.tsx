@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
+import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 interface User {
   id: string;
-  phoneNumber: string;
+  phoneNumber?: string | null;
   email?: string;
   displayName?: string;
   role: string;
@@ -33,7 +34,7 @@ interface SalesPerson {
   id: string;
   userId: string;
   displayName?: string;
-  phoneNumber: string;
+  phoneNumber?: string | null;
   commissionRate: number;
   totalSales: number;
   totalEarnings: number;
@@ -43,7 +44,6 @@ interface SalesPerson {
 interface AdminPageProps {
   isDark: boolean;
   onToggleTheme: () => void;
-  onBackToDashboard: () => void;
   onLogout: () => void;
 }
 
@@ -52,10 +52,11 @@ type TabType = 'users' | 'plans' | 'sales' | 'analytics';
 export function AdminPage({
   isDark,
   onToggleTheme,
-  onBackToDashboard,
   onLogout,
 }: AdminPageProps) {
   const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
   const [activeTab, setActiveTab] = useState<TabType>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -98,7 +99,8 @@ export function AdminPage({
       const response = await axios.get(`${API_URL}/admin/users`, {
         headers: getAuthHeaders(),
       });
-      setUsers(response.data);
+      const res = response.data;
+      setUsers(Array.isArray(res) ? res : res?.data ?? []);
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch users');
@@ -313,7 +315,7 @@ export function AdminPage({
   // Filter users
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.phoneNumber.includes(userSearch) ||
+      user.phoneNumber?.includes(userSearch) ||
       user.displayName?.toLowerCase().includes(userSearch.toLowerCase()) ||
       user.email?.toLowerCase().includes(userSearch.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -339,12 +341,6 @@ export function AdminPage({
       <nav className="sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button
-              onClick={onBackToDashboard}
-              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              <Icon name="arrow_back" className="text-slate-500" />
-            </button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                 <Icon name="admin_panel_settings" className="text-white" />
@@ -486,19 +482,25 @@ export function AdminPage({
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {user.phoneNumber}
+                          {user.phoneNumber ?? '–'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <select
-                            value={user.role}
-                            onChange={(e) => updateUserRole(user.id, e.target.value)}
-                            className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${getRoleBadgeColor(user.role)}`}
-                          >
-                            <option value="USER">{t('admin.user', 'User')}</option>
-                            <option value="ADMIN">{t('admin.admin', 'Admin')}</option>
-                            <option value="SUPER_ADMIN">{t('admin.superAdmin', 'Super Admin')}</option>
-                            <option value="SALES">{t('admin.sales', 'Sales')}</option>
-                          </select>
+                          {user.role === 'SUPER_ADMIN' && !isSuperAdmin ? (
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${getRoleBadgeColor(user.role)}`}>
+                              {t('admin.superAdmin', 'Super Admin')}
+                            </span>
+                          ) : (
+                            <select
+                              value={user.role}
+                              onChange={(e) => updateUserRole(user.id, e.target.value)}
+                              className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${getRoleBadgeColor(user.role)}`}
+                            >
+                              <option value="USER">{t('admin.user', 'User')}</option>
+                              <option value="ADMIN">{t('admin.admin', 'Admin')}</option>
+                              <option value="SUPER_ADMIN">{t('admin.superAdmin', 'Super Admin')}</option>
+                              <option value="SALES">{t('admin.sales', 'Sales')}</option>
+                            </select>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {user.subscriptionPlan || t('admin.free', 'Free')}
@@ -515,19 +517,23 @@ export function AdminPage({
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => user.isActive ? toggleUserStatus(user.id, user.isActive) : openApprovalModal(user)}
-                            className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                              user.isActive
-                                ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
-                                : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
-                            }`}
-                          >
-                            <Icon
-                              name={user.isActive ? 'block' : 'check_circle'}
-                              className="w-5 h-5"
-                            />
-                          </button>
+                          {user.role === 'SUPER_ADMIN' && !isSuperAdmin ? (
+                            <span className="text-slate-400 text-xs" title={t('admin.cannotModifySuperAdmin', 'Only Super Admin can modify')}>—</span>
+                          ) : (
+                            <button
+                              onClick={() => user.isActive ? toggleUserStatus(user.id, user.isActive) : openApprovalModal(user)}
+                              className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                                user.isActive
+                                  ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                  : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                              }`}
+                            >
+                              <Icon
+                                name={user.isActive ? 'block' : 'check_circle'}
+                                className="w-5 h-5"
+                              />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -860,7 +866,7 @@ export function AdminPage({
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {sp.phoneNumber}
+                          {sp.phoneNumber ?? '–'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {sp.commissionRate}%

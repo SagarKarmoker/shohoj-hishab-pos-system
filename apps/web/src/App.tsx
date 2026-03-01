@@ -55,6 +55,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+/** ADMIN/SUPER_ADMIN don't need a shop — send them to Admin Panel */
+function DashboardRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth()
+  if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
+    return <Navigate to="/admin" replace />
+  }
+  return <>{children}</>
+}
+
 function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, needsApproval, isLoading } = useAuth()
 
@@ -134,14 +143,14 @@ function AppRoutes() {
         <Route path="/auth/reset-password" element={<AuthRedirect><ResetPasswordRoute /></AuthRedirect>} />
 
         <Route element={<ProtectedRoute><ShopProvider><Outlet /></ShopProvider></ProtectedRoute>}>
-          <Route path="dashboard" element={<DashboardPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} onNavigateToPOS={() => navigate('/dashboard/pos')} onNavigateToStock={() => navigate('/dashboard/stock')} onNavigateToCredit={() => navigate('/dashboard/credit')} onNavigateToAccounts={() => navigate('/dashboard/accounts')} onNavigateToSettings={() => navigate('/settings')} onNavigateToAdmin={() => navigate('/admin')} />} />
+          <Route path="dashboard" element={<DashboardRoute><DashboardPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} onNavigateToPOS={() => navigate('/dashboard/pos')} onNavigateToStock={() => navigate('/dashboard/stock')} onNavigateToCredit={() => navigate('/dashboard/credit')} onNavigateToAccounts={() => navigate('/dashboard/accounts')} onNavigateToSettings={() => navigate('/settings')} onNavigateToAdmin={() => navigate('/admin')} /></DashboardRoute>} />
           <Route path="dashboard/pos" element={<POSPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
           <Route path="dashboard/stock" element={<StockPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
           <Route path="dashboard/credit" element={<CreditPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
           <Route path="dashboard/accounts" element={<AccountsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
           <Route path="settings" element={<SettingsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} />} />
         </Route>
-        <Route path="/admin" element={<ProtectedRoute><AdminPage isDark={isDark} onToggleTheme={toggleTheme} onBackToDashboard={() => navigate('/dashboard')} onLogout={handleLogout} /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminPage isDark={isDark} onToggleTheme={toggleTheme} onLogout={handleLogout} /></ProtectedRoute>} />
 
         <Route path="/terms" element={<TermsPage isDark={isDark} onToggleTheme={toggleTheme} onBackToLanding={() => navigate('/')} />} />
         <Route path="/privacy" element={<PrivacyPage isDark={isDark} onToggleTheme={toggleTheme} onBackToLanding={() => navigate('/')} />} />

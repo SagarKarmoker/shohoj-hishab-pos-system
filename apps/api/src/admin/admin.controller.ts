@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProperty, ApiQuery } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { UserRole } from '@prisma/client';
+import { AdminRoleGuard } from '../auth/guards/admin-role.guard';
 
 class CreatePlanDto {
   @ApiProperty({ description: 'Plan name', example: 'Premium' })
@@ -98,7 +99,7 @@ class GetUsersQuery {
 
 @ApiTags('Admin')
 @Controller('admin')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), AdminRoleGuard)
 @ApiBearerAuth('JWT-auth')
 export class AdminController {
   constructor(private adminService: AdminService) {}
@@ -135,17 +136,19 @@ export class AdminController {
   @Patch('users/:id')
   @ApiOperation({ summary: 'Update user', description: 'Update user information including role and subscription' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden - ADMIN cannot modify SUPER_ADMIN' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.adminService.updateUser(id, dto);
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto, @Request() req: { user: { role: string } }) {
+    return this.adminService.updateUser(id, dto, req.user.role as UserRole);
   }
 
   @Delete('users/:id')
   @ApiOperation({ summary: 'Delete user', description: 'Permanently delete a user account' })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
+  @ApiResponse({ status: 403, description: 'Forbidden - ADMIN cannot delete SUPER_ADMIN' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async deleteUser(@Param('id') id: string) {
-    return this.adminService.deleteUser(id);
+  async deleteUser(@Param('id') id: string, @Request() req: { user: { role: string } }) {
+    return this.adminService.deleteUser(id, req.user.role as UserRole);
   }
 
   // ============ Subscription Plan Management ============
@@ -208,19 +211,19 @@ export class AdminController {
   }
 
   @Post('admins')
-  @ApiOperation({ summary: 'Create admin', description: 'Promote a user to admin role (Super Admin only)' })
+  @ApiOperation({ summary: 'Create admin', description: 'Promote a user to admin role' })
   @ApiResponse({ status: 201, description: 'Admin created successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Super Admin only' })
-  async createAdmin(@Body() dto: CreateAdminDto) {
-    return this.adminService.createAdmin(dto);
+  @ApiResponse({ status: 403, description: 'Forbidden - Only Super Admin can create Super Admin' })
+  async createAdmin(@Body() dto: CreateAdminDto, @Request() req: { user: { role: string } }) {
+    return this.adminService.createAdmin(dto, req.user.role as UserRole);
   }
 
   @Delete('admins/:id')
-  @ApiOperation({ summary: 'Remove admin', description: 'Remove admin privileges from a user (Super Admin only)' })
+  @ApiOperation({ summary: 'Remove admin', description: 'Remove admin privileges from a user' })
   @ApiResponse({ status: 200, description: 'Admin removed successfully' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Super Admin only' })
-  async removeAdmin(@Param('id') id: string) {
-    return this.adminService.removeAdmin(id);
+  @ApiResponse({ status: 403, description: 'Forbidden - Only Super Admin can remove Super Admin' })
+  async removeAdmin(@Param('id') id: string, @Request() req: { user: { role: string } }) {
+    return this.adminService.removeAdmin(id, req.user.role as UserRole);
   }
 
   // ============ Sales Person Management ============
