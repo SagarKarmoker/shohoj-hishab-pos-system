@@ -54,6 +54,8 @@ export class EmailService {
    * Send welcome email after successful verification
    */
   async sendWelcomeEmail(email: string, displayName?: string): Promise<void> {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+
     await this.mailerService.sendMail({
       to: email,
       subject: 'Welcome to Shohoj Hishab - সহজ হিসাবে স্বাগতম',
@@ -61,6 +63,7 @@ export class EmailService {
       context: {
         displayName: displayName || 'User',
         email,
+        frontendUrl,
       },
     });
   }

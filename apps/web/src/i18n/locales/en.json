@@ -142,6 +142,7 @@
     "loginLink": "Login",
     "forgotPassword": "Forgot password?",
     "rememberPassword": "Remember your password?",
+    "rememberMe": "Remember me",
     "backToLogin": "Back to login",
     "checkInbox": "We've sent a verification link to your email. Please click the link to verify your account.",
     "resendVerification": "Resend verification email",

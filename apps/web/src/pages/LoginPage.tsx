@@ -19,11 +19,21 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Load remembered email on mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   // Reset form when mode changes
   useEffect(() => {
@@ -80,6 +90,14 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
     setIsLoading(true);
     try {
       await login(email, password);
+      
+      // Handle remember me
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+      
       onLoginSuccess();
     } catch (err: any) {
       setError(err.message || t('login.errors.loginFailed'));
@@ -275,6 +293,27 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
                 </div>
               )}
 
+              {mode === 'login' && (
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 peer-checked:bg-primary peer-checked:border-primary peer-focus:ring-2 peer-focus:ring-primary/20 peer-focus:ring-offset-2 transition-all duration-200 flex items-center justify-center peer-checked:shadow-sm">
+                        <Icon name="check" className={`text-white text-sm transition-all duration-200 ${rememberMe ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`} />
+                      </div>
+                    </div>
+                    <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">
+                      {t('login.rememberMe') || 'Remember me'}
+                    </span>
+                  </label>
+                </div>
+              )}
+
               {mode === 'signup' && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -303,12 +342,12 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-primary text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full py-3 bg-primary text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
               >
                 {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Icon name="progress_activity" className="animate-spin" />
-                    {t('common.loading') || 'Loading...'}
+                  <span className="inline-flex items-center justify-center gap-2 min-w-0">
+                    <Icon name="progress_activity" className="animate-spin shrink-0 w-5 h-5 min-w-5 min-h-5 overflow-hidden inline-flex items-center justify-center text-base" />
+                    <span className="shrink-0">{t('common.loading') || 'Loading...'}</span>
                   </span>
                 ) : (
                   <>
