@@ -242,8 +242,11 @@
     "noShopHint": "প্রথমে ড্যাশবোর্ড থেকে একটি দোকান তৈরি করুন।",
     "sellOnCredit": "কিস্তিতে বিক্রয়",
     "selectCustomer": "গ্রাহক নির্বাচন করুন",
+    "addCustomer": "নতুন গ্রাহক যোগ করুন",
     "amountPaid": "প্রদত্ত অর্থ",
-    "dueAfter": "বাকি"
+    "dueAfter": "বাকি",
+    "downloadInvoice": "ইনভয়েস ডাউনলোড",
+    "total": "মোট"
   },
   "common": {
     "language": "ভাষা",
@@ -254,6 +257,9 @@
     "saved": "সংরক্ষণ করা হয়েছে",
     "back": "ফিরে যান",
     "loading": "লোড হচ্ছে...",
+    "uploading": "আপলোড হচ্ছে...",
+    "add": "যোগ করুন",
+    "done": "সম্পন্ন",
     "backToHome": "হোমে ফিরুন",
     "backToLogin": "লগইনে ফিরে যান",
     "logout": "লগআউট"
@@ -311,6 +317,7 @@
     "addProduct": "নতুন পণ্য",
     "product": "পণ্য",
     "category": "ক্যাটাগরি",
+    "image": "ছবির লিংক",
     "price": "দর",
     "stock": "স্টক",
     "status": "অবস্থা",
@@ -326,6 +333,7 @@
     "minStock": "ন্যূনতম স্টক",
     "unit": "একক",
     "createProduct": "পণ্য তৈরি করুন",
+    "uploadImage": "ছবি আপলোড",
     "noShop": "এখনও কোনো দোকান নেই",
     "noShopHint": "প্রথমে ড্যাশবোর্ড থেকে একটি দোকান তৈরি করুন।",
     "unitPiece": "পিস",
@@ -366,6 +374,7 @@
     "today": "আজ",
     "week": "এই সপ্তাহ",
     "month": "এই মাস",
+    "all": "সব",
     "searchTransactions": "লেনদেন খুঁজুন...",
     "allTypes": "সব ধরন",
     "id": "আইডি",
@@ -379,7 +388,9 @@
     "noShopHint": "প্রথমে ড্যাশবোর্ড থেকে একটি দোকান তৈরি করুন।",
     "sale": "বিক্রি",
     "credit": "বাকি",
-    "cash": "নগদ"
+    "cash": "নগদ",
+    "downloadPDF": "পিডিএফ ডাউনলোড",
+    "downloadInvoice": "ইনভয়েস ডাউনলোড"
   },
   "legal": {
     "document": "আইনি নথি",

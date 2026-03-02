@@ -29,6 +29,7 @@ export class ProductService {
       description?: string;
       category?: string;
       unit?: string;
+      imageUrl?: string;
       price: number;
       costPrice?: number;
       stock?: number;
@@ -43,6 +44,7 @@ export class ProductService {
         description: data.description,
         category: data.category,
         unit: data.unit ?? 'piece',
+        imageUrl: data.imageUrl,
         price: data.price,
         costPrice: data.costPrice,
         stock: data.stock ?? 0,
@@ -63,6 +65,7 @@ export class ProductService {
       description?: string;
       category?: string;
       unit?: string;
+      imageUrl?: string;
       price?: number;
       costPrice?: number;
       stock?: number;
@@ -82,6 +85,7 @@ export class ProductService {
         ...(data.description !== undefined && { description: data.description }),
         ...(data.category !== undefined && { category: data.category }),
         ...(data.unit !== undefined && { unit: data.unit }),
+        ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
         ...(data.price !== undefined && { price: data.price }),
         ...(data.costPrice !== undefined && { costPrice: data.costPrice }),
         ...(data.stock !== undefined && { stock: data.stock }),

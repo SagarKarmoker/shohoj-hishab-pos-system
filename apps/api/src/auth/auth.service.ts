@@ -34,6 +34,25 @@ export class AuthService {
    * Signup with email and password
    */
   async signup(email: string, password: string, displayName?: string): Promise<{ message: string }> {
+    // #region agent log
+    void fetch('http://127.0.0.1:7716/ingest/9912b8ac-f081-4fd9-94a0-2ce0562546c7', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '3851d7',
+      },
+      body: JSON.stringify({
+        sessionId: '3851d7',
+        runId: 'pre-fix',
+        hypothesisId: 'H0',
+        location: 'auth.service.ts:signup',
+        message: 'Signup called',
+        data: { hasEmail: !!email },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion agent log
+
     this.logger.info('Signup attempt started', { context: 'AuthService', email });
 
     // Validate email format

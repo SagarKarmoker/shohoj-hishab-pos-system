@@ -84,6 +84,7 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     
     if (!validateEmail() || !validatePassword()) return;
     
@@ -91,7 +92,6 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
     try {
       await login(email, password);
       
-      // Handle remember me
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
       } else {
@@ -100,7 +100,14 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
       
       onLoginSuccess();
     } catch (err: any) {
-      setError(err.message || t('login.errors.loginFailed'));
+      const errorMessage = err.message || t('login.errors.loginFailed');
+      setError(errorMessage);
+      
+      if (errorMessage.toLowerCase().includes('verify') || errorMessage.toLowerCase().includes('verification')) {
+        setEmail(email);
+        setContextEmail(email);
+        setMode('verification-sent');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -173,9 +180,12 @@ export function LoginPage({ onBackToHome, onLoginSuccess }: LoginPageProps) {
       {/* Back button */}
       <button
         onClick={onBackToHome}
-        className="fixed top-6 left-6 z-50 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all cursor-pointer hover:scale-105"
+        className="fixed top-6 left-6 z-50 p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all cursor-pointer hover:scale-105 flex items-center gap-2"
       >
         <Icon name="arrow_back" className="text-slate-700 dark:text-slate-300" />
+        <span className="text-slate-700 dark:text-slate-300 text-sm font-medium">
+          {t('common.back') || 'Back'}
+        </span>
       </button>
 
       {/* Main content */}

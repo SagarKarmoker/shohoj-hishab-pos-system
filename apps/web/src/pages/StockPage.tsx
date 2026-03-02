@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { useShop } from '../contexts/ShopContext';
 import { getProducts, createProduct, updateProduct, type Product } from '../api/product';
+import { uploadImage, uploadImageFromUrl } from '../api/upload';
 
 interface StockPageProps {
   isDark: boolean;
@@ -19,12 +20,16 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'low'>('all');
-  const [addForm, setAddForm] = useState({ name: '', category: '', unit: 'piece', price: '', minStock: '0', stock: '0' });
+  const [addForm, setAddForm] = useState({ name: '', category: '', unit: 'piece', price: '', minStock: '0', stock: '0', imageUrl: '' });
   const [addSubmitting, setAddSubmitting] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', category: '', unit: 'piece', price: '', minStock: '0', stock: '0' });
+  const [editForm, setEditForm] = useState({ name: '', category: '', unit: 'piece', price: '', minStock: '0', stock: '0', imageUrl: '' });
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [addImageUploading, setAddImageUploading] = useState(false);
+  const [editImageUploading, setEditImageUploading] = useState(false);
+  const addFileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   const loadProducts = useCallback(async () => {
     if (!currentShop) return;
@@ -76,10 +81,11 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
         price: parseFloat(addForm.price) || 0,
         minStock: parseInt(addForm.minStock, 10) || 0,
         stock: parseInt(addForm.stock, 10) || 0,
+        imageUrl: addForm.imageUrl.trim() || undefined,
       });
       setProducts((prev) => [created, ...prev]);
       setShowAddModal(false);
-      setAddForm({ name: '', category: '', unit: 'piece', price: '', minStock: '0', stock: '0' });
+      setAddForm({ name: '', category: '', unit: 'piece', price: '', minStock: '0', stock: '0', imageUrl: '' });
     } catch (err) {
       setAddError(err instanceof Error ? err.message : 'Failed to create product');
     } finally {
@@ -96,6 +102,7 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
         price: String(editingProduct.price),
         minStock: String(editingProduct.minStock),
         stock: String(editingProduct.stock),
+        imageUrl: (editingProduct as any).imageUrl ?? '',
       });
       setEditError(null);
     }
@@ -111,6 +118,7 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
         name: editForm.name.trim(),
         category: editForm.category.trim() || undefined,
         unit: editForm.unit,
+        imageUrl: editForm.imageUrl.trim() || undefined,
         price: parseFloat(editForm.price) || 0,
         minStock: parseInt(editForm.minStock, 10) || 0,
         stock: parseInt(editForm.stock, 10) || 0,
@@ -121,6 +129,70 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
       setEditError(err instanceof Error ? err.message : 'Failed to update product');
     } finally {
       setEditSubmitting(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (isEdit) {
+      setEditImageUploading(true);
+    } else {
+      setAddImageUploading(true);
+    }
+
+    try {
+      const result = await uploadImage(file);
+      if (isEdit) {
+        setEditForm((f) => ({ ...f, imageUrl: result.url }));
+      } else {
+        setAddForm((f) => ({ ...f, imageUrl: result.url }));
+      }
+    } catch (err) {
+      if (isEdit) {
+        setEditError(err instanceof Error ? err.message : 'Failed to upload image');
+      } else {
+        setAddError(err instanceof Error ? err.message : 'Failed to upload image');
+      }
+    } finally {
+      if (isEdit) {
+        setEditImageUploading(false);
+      } else {
+        setAddImageUploading(false);
+      }
+    }
+  };
+
+  const handleImageUrlSubmit = async (isEdit: boolean) => {
+    const url = isEdit ? editForm.imageUrl : addForm.imageUrl;
+    if (!url) return;
+
+    if (isEdit) {
+      setEditImageUploading(true);
+    } else {
+      setAddImageUploading(true);
+    }
+
+    try {
+      const result = await uploadImageFromUrl(url);
+      if (isEdit) {
+        setEditForm((f) => ({ ...f, imageUrl: result.url }));
+      } else {
+        setAddForm((f) => ({ ...f, imageUrl: result.url }));
+      }
+    } catch (err) {
+      if (isEdit) {
+        setEditError(err instanceof Error ? err.message : 'Failed to fetch image from URL');
+      } else {
+        setAddError(err instanceof Error ? err.message : 'Failed to fetch image from URL');
+      }
+    } finally {
+      if (isEdit) {
+        setEditImageUploading(false);
+      } else {
+        setAddImageUploading(false);
+      }
     }
   };
 
@@ -161,8 +233,12 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
               <span className="text-xs text-slate-500 dark:text-slate-400">{t('stock.manageInventory')}</span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={onToggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onToggleTheme}
+              className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer inline-flex items-center justify-center"
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
               {isDark ? <Icon name="light_mode" className="text-slate-400" /> : <Icon name="dark_mode" className="text-slate-500" />}
             </button>
           </div>
@@ -376,6 +452,64 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  {t('stock.image') || 'Product Image'}
+                </label>
+                <input
+                  type="file"
+                  ref={addFileInputRef}
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, false)}
+                  className="hidden"
+                />
+                {addForm.imageUrl ? (
+                  <div className="relative mb-2">
+                    <img
+                      src={addForm.imageUrl}
+                      alt="Product"
+                      className="w-24 h-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setAddForm((f) => ({ ...f, imageUrl: '' }))}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : null}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => addFileInputRef.current?.click()}
+                    disabled={addImageUploading}
+                    className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <Icon name="upload" className="text-lg" />
+                    {addImageUploading ? t('common.uploading') : t('stock.uploadImage')}
+                  </button>
+                </div>
+                <div className="mt-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={addForm.imageUrl}
+                      onChange={(e) => setAddForm((f) => ({ ...f, imageUrl: e.target.value }))}
+                      placeholder="Or paste image URL"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleImageUrlSubmit(false)}
+                      disabled={!addForm.imageUrl || addImageUploading}
+                      className="px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {t('common.add')}
+                    </button>
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">{t('stock.price')}</label>
@@ -467,6 +601,64 @@ export function StockPage({ isDark, onToggleTheme, onBackToDashboard }: StockPag
                   onChange={(e) => setEditForm((f) => ({ ...f, category: e.target.value }))}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  {t('stock.image') || 'Product Image'}
+                </label>
+                <input
+                  type="file"
+                  ref={editFileInputRef}
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, true)}
+                  className="hidden"
+                />
+                {editForm.imageUrl ? (
+                  <div className="relative mb-2">
+                    <img
+                      src={editForm.imageUrl}
+                      alt="Product"
+                      className="w-24 h-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditForm((f) => ({ ...f, imageUrl: '' }))}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : null}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => editFileInputRef.current?.click()}
+                    disabled={editImageUploading}
+                    className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <Icon name="upload" className="text-lg" />
+                    {editImageUploading ? t('common.uploading') : t('stock.uploadImage')}
+                  </button>
+                </div>
+                <div className="mt-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={editForm.imageUrl}
+                      onChange={(e) => setEditForm((f) => ({ ...f, imageUrl: e.target.value }))}
+                      placeholder="Or paste image URL"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleImageUrlSubmit(true)}
+                      disabled={!editForm.imageUrl || editImageUploading}
+                      className="px-3 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {t('common.add')}
+                    </button>
+                  </div>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

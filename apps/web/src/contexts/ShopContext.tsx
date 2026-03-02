@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { getShops, createShop, updateShop, type Shop } from '../api/shop';
 
 interface ShopContextType {
@@ -19,6 +19,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [shops, setShops] = useState<Shop[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const loadShops = useCallback(async () => {
     setIsLoading(true);
@@ -33,8 +34,15 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       setCurrentShopState(null);
     } finally {
       setIsLoading(false);
+      setIsInitialized(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      loadShops();
+    }
+  }, [isInitialized, loadShops]);
 
   const createShopAndSet = useCallback(
     async (name: string, address?: string, phone?: string) => {

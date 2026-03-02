@@ -95,16 +95,12 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
         paymentSettings,
         updatePaymentSettings
     } = useSettings();
-    const { currentShop, loadShops, updateShopAndRefresh, isLoading: shopsLoading } = useShop();
+    const { currentShop, updateShopAndRefresh, isLoading: shopsLoading } = useShop();
 
     const [activeTab, setActiveTab] = useState<'general' | 'payment' | 'preferences'>('general');
     const [isSaved, setIsSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
-
-    useEffect(() => {
-        loadShops();
-    }, [loadShops]);
 
     const handleSaveGeneral = async (dto: { name?: string; address?: string; phone?: string }) => {
         if (!currentShop) return;
@@ -153,7 +149,8 @@ export function SettingsPage({ isDark, onToggleTheme, onBackToDashboard }: Setti
                         )}
                         <button
                             onClick={onToggleTheme}
-                            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                            className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer inline-flex items-center justify-center"
+                            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                         >
                             {isDark ? (
                                 <Icon name="light_mode" className="text-slate-400" />

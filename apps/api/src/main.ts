@@ -3,14 +3,15 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { createLogger } from './config/logger.config';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: createLogger(),
   });
   
-  // Use Winston logger for NestJS
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  app.useGlobalFilters(new GlobalExceptionFilter());
   
   app.enableCors();
 

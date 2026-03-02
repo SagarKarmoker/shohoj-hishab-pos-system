@@ -103,6 +103,9 @@
     "hishab": "Hishab",
     "back": "Back",
     "loading": "Loading...",
+    "uploading": "Uploading...",
+    "add": "Add",
+    "done": "Done",
     "backToHome": "Back to Home",
     "backToLogin": "Back to Login",
     "logout": "Logout"
@@ -276,8 +279,11 @@
     "noShopHint": "Create a shop from the dashboard first.",
     "sellOnCredit": "Sell on credit",
     "selectCustomer": "Select customer",
+    "addCustomer": "Add Customer",
     "amountPaid": "Amount paid",
-    "dueAfter": "Due after"
+    "dueAfter": "Due after",
+    "downloadInvoice": "Download Invoice",
+    "total": "Total"
   },
   "stock": {
     "title": "Stock Management",
@@ -292,6 +298,7 @@
     "addProduct": "Add Product",
     "product": "Product",
     "category": "Category",
+    "image": "Image URL",
     "price": "Price",
     "stock": "Stock",
     "status": "Status",
@@ -307,6 +314,8 @@
     "minStock": "Min Stock",
     "unit": "Unit",
     "createProduct": "Create Product",
+    "uploadImage": "Upload Image",
+    "editProduct": "Save Changes",
     "noShop": "No shop yet",
     "noShopHint": "Create a shop from the dashboard first.",
     "unitPiece": "Piece",
@@ -347,6 +356,7 @@
     "today": "Today",
     "week": "This Week",
     "month": "This Month",
+    "all": "All",
     "searchTransactions": "Search transactions...",
     "allTypes": "All Types",
     "id": "ID",
@@ -360,7 +370,9 @@
     "noShopHint": "Create a shop from the dashboard first.",
     "sale": "Sale",
     "credit": "Credit",
-    "cash": "Cash"
+    "cash": "Cash",
+    "downloadPDF": "Download Report",
+    "downloadInvoice": "Download Invoice"
   },
   "settings": {
     "title": "Settings",

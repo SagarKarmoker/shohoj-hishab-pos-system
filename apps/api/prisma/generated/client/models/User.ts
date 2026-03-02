@@ -30,8 +30,8 @@ export type UserMinAggregateOutputType = {
   emailVerified: boolean | null
   emailVerificationToken: string | null
   emailVerificationExpires: Date | null
-  phoneNumber: string | null
   firebaseUid: string | null
+  phoneNumber: string | null
   displayName: string | null
   photoURL: string | null
   password: string | null
@@ -54,8 +54,8 @@ export type UserMaxAggregateOutputType = {
   emailVerified: boolean | null
   emailVerificationToken: string | null
   emailVerificationExpires: Date | null
-  phoneNumber: string | null
   firebaseUid: string | null
+  phoneNumber: string | null
   displayName: string | null
   photoURL: string | null
   password: string | null
@@ -78,8 +78,8 @@ export type UserCountAggregateOutputType = {
   emailVerified: number
   emailVerificationToken: number
   emailVerificationExpires: number
-  phoneNumber: number
   firebaseUid: number
+  phoneNumber: number
   displayName: number
   photoURL: number
   password: number
@@ -104,8 +104,8 @@ export type UserMinAggregateInputType = {
   emailVerified?: true
   emailVerificationToken?: true
   emailVerificationExpires?: true
-  phoneNumber?: true
   firebaseUid?: true
+  phoneNumber?: true
   displayName?: true
   photoURL?: true
   password?: true
@@ -128,8 +128,8 @@ export type UserMaxAggregateInputType = {
   emailVerified?: true
   emailVerificationToken?: true
   emailVerificationExpires?: true
-  phoneNumber?: true
   firebaseUid?: true
+  phoneNumber?: true
   displayName?: true
   photoURL?: true
   password?: true
@@ -152,8 +152,8 @@ export type UserCountAggregateInputType = {
   emailVerified?: true
   emailVerificationToken?: true
   emailVerificationExpires?: true
-  phoneNumber?: true
   firebaseUid?: true
+  phoneNumber?: true
   displayName?: true
   photoURL?: true
   password?: true
@@ -249,8 +249,8 @@ export type UserGroupByOutputType = {
   emailVerified: boolean
   emailVerificationToken: string | null
   emailVerificationExpires: Date | null
-  phoneNumber: string | null
   firebaseUid: string | null
+  phoneNumber: string | null
   displayName: string | null
   photoURL: string | null
   password: string
@@ -294,8 +294,8 @@ export type UserWhereInput = {
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   emailVerificationToken?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerificationExpires?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
   firebaseUid?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
   displayName?: Prisma.StringNullableFilter<"User"> | string | null
   photoURL?: Prisma.StringNullableFilter<"User"> | string | null
   password?: Prisma.StringFilter<"User"> | string
@@ -329,8 +329,8 @@ export type UserOrderByWithRelationInput = {
   emailVerified?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerificationExpires?: Prisma.SortOrderInput | Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   firebaseUid?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   displayName?: Prisma.SortOrderInput | Prisma.SortOrder
   photoURL?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrder
@@ -361,6 +361,7 @@ export type UserOrderByWithRelationInput = {
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  firebaseUid?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -368,7 +369,6 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   emailVerificationToken?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerificationExpires?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
-  firebaseUid?: Prisma.StringNullableFilter<"User"> | string | null
   displayName?: Prisma.StringNullableFilter<"User"> | string | null
   photoURL?: Prisma.StringNullableFilter<"User"> | string | null
   password?: Prisma.StringFilter<"User"> | string
@@ -394,7 +394,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sales?: Prisma.SaleListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
   loginHistory?: Prisma.LoginHistoryListRelationFilter
-}, "id" | "email">
+}, "id" | "email" | "firebaseUid">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -402,8 +402,8 @@ export type UserOrderByWithAggregationInput = {
   emailVerified?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerificationExpires?: Prisma.SortOrderInput | Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   firebaseUid?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   displayName?: Prisma.SortOrderInput | Prisma.SortOrder
   photoURL?: Prisma.SortOrderInput | Prisma.SortOrder
   password?: Prisma.SortOrder
@@ -432,8 +432,8 @@ export type UserScalarWhereWithAggregatesInput = {
   emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   emailVerificationToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   emailVerificationExpires?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
-  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   firebaseUid?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   displayName?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   photoURL?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   password?: Prisma.StringWithAggregatesFilter<"User"> | string
@@ -456,8 +456,8 @@ export type UserCreateInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -489,8 +489,8 @@ export type UserUncheckedCreateInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -522,8 +522,8 @@ export type UserUpdateInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -555,8 +555,8 @@ export type UserUncheckedUpdateInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -588,8 +588,8 @@ export type UserCreateManyInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -612,8 +612,8 @@ export type UserUpdateManyMutationInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -634,8 +634,8 @@ export type UserUncheckedUpdateManyInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -673,8 +673,8 @@ export type UserCountOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrder
   emailVerificationExpires?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   photoURL?: Prisma.SortOrder
   password?: Prisma.SortOrder
@@ -697,8 +697,8 @@ export type UserMaxOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrder
   emailVerificationExpires?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   photoURL?: Prisma.SortOrder
   password?: Prisma.SortOrder
@@ -721,8 +721,8 @@ export type UserMinOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrder
   emailVerificationExpires?: Prisma.SortOrder
-  phoneNumber?: Prisma.SortOrder
   firebaseUid?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   photoURL?: Prisma.SortOrder
   password?: Prisma.SortOrder
@@ -988,8 +988,8 @@ export type UserCreateWithoutCreatedUsersInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1020,8 +1020,8 @@ export type UserUncheckedCreateWithoutCreatedUsersInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1057,8 +1057,8 @@ export type UserCreateWithoutCreatedByInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1089,8 +1089,8 @@ export type UserUncheckedCreateWithoutCreatedByInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1142,8 +1142,8 @@ export type UserUpdateWithoutCreatedUsersInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1174,8 +1174,8 @@ export type UserUncheckedUpdateWithoutCreatedUsersInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1225,8 +1225,8 @@ export type UserScalarWhereInput = {
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
   emailVerificationToken?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerificationExpires?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
-  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
   firebaseUid?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
   displayName?: Prisma.StringNullableFilter<"User"> | string | null
   photoURL?: Prisma.StringNullableFilter<"User"> | string | null
   password?: Prisma.StringFilter<"User"> | string
@@ -1249,8 +1249,8 @@ export type UserCreateWithoutShopsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1281,8 +1281,8 @@ export type UserUncheckedCreateWithoutShopsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1329,8 +1329,8 @@ export type UserUpdateWithoutShopsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1361,8 +1361,8 @@ export type UserUncheckedUpdateWithoutShopsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1393,8 +1393,8 @@ export type UserCreateWithoutProductsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1425,8 +1425,8 @@ export type UserUncheckedCreateWithoutProductsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1473,8 +1473,8 @@ export type UserUpdateWithoutProductsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1505,8 +1505,8 @@ export type UserUncheckedUpdateWithoutProductsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1537,8 +1537,8 @@ export type UserCreateWithoutCustomersInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1569,8 +1569,8 @@ export type UserUncheckedCreateWithoutCustomersInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1617,8 +1617,8 @@ export type UserUpdateWithoutCustomersInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1649,8 +1649,8 @@ export type UserUncheckedUpdateWithoutCustomersInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1681,8 +1681,8 @@ export type UserCreateWithoutTransactionsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1713,8 +1713,8 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1761,8 +1761,8 @@ export type UserUpdateWithoutTransactionsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1793,8 +1793,8 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1825,8 +1825,8 @@ export type UserCreateWithoutPlanInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1857,8 +1857,8 @@ export type UserUncheckedCreateWithoutPlanInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1915,8 +1915,8 @@ export type UserCreateWithoutSalesPersonInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1947,8 +1947,8 @@ export type UserUncheckedCreateWithoutSalesPersonInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -1995,8 +1995,8 @@ export type UserUpdateWithoutSalesPersonInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2027,8 +2027,8 @@ export type UserUncheckedUpdateWithoutSalesPersonInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2059,8 +2059,8 @@ export type UserCreateWithoutSalesInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2091,8 +2091,8 @@ export type UserUncheckedCreateWithoutSalesInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2139,8 +2139,8 @@ export type UserUpdateWithoutSalesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2171,8 +2171,8 @@ export type UserUncheckedUpdateWithoutSalesInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2203,8 +2203,8 @@ export type UserCreateWithoutAuditLogsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2235,8 +2235,8 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2283,8 +2283,8 @@ export type UserUpdateWithoutAuditLogsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2315,8 +2315,8 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2347,8 +2347,8 @@ export type UserCreateWithoutLoginHistoryInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2379,8 +2379,8 @@ export type UserUncheckedCreateWithoutLoginHistoryInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2427,8 +2427,8 @@ export type UserUpdateWithoutLoginHistoryInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2459,8 +2459,8 @@ export type UserUncheckedUpdateWithoutLoginHistoryInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2491,8 +2491,8 @@ export type UserCreateManyCreatedByInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2514,8 +2514,8 @@ export type UserUpdateWithoutCreatedByInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2546,8 +2546,8 @@ export type UserUncheckedUpdateWithoutCreatedByInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2578,8 +2578,8 @@ export type UserUncheckedUpdateManyWithoutCreatedByInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2601,8 +2601,8 @@ export type UserCreateManyPlanInput = {
   emailVerified?: boolean
   emailVerificationToken?: string | null
   emailVerificationExpires?: Date | string | null
-  phoneNumber?: string | null
   firebaseUid?: string | null
+  phoneNumber?: string | null
   displayName?: string | null
   photoURL?: string | null
   password: string
@@ -2624,8 +2624,8 @@ export type UserUpdateWithoutPlanInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2656,8 +2656,8 @@ export type UserUncheckedUpdateWithoutPlanInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2688,8 +2688,8 @@ export type UserUncheckedUpdateManyWithoutPlanInput = {
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firebaseUid?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photoURL?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   password?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2805,8 +2805,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   emailVerified?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpires?: boolean
-  phoneNumber?: boolean
   firebaseUid?: boolean
+  phoneNumber?: boolean
   displayName?: boolean
   photoURL?: boolean
   password?: boolean
@@ -2841,8 +2841,8 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   emailVerified?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpires?: boolean
-  phoneNumber?: boolean
   firebaseUid?: boolean
+  phoneNumber?: boolean
   displayName?: boolean
   photoURL?: boolean
   password?: boolean
@@ -2867,8 +2867,8 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   emailVerified?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpires?: boolean
-  phoneNumber?: boolean
   firebaseUid?: boolean
+  phoneNumber?: boolean
   displayName?: boolean
   photoURL?: boolean
   password?: boolean
@@ -2893,8 +2893,8 @@ export type UserSelectScalar = {
   emailVerified?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpires?: boolean
-  phoneNumber?: boolean
   firebaseUid?: boolean
+  phoneNumber?: boolean
   displayName?: boolean
   photoURL?: boolean
   password?: boolean
@@ -2911,7 +2911,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerificationToken" | "emailVerificationExpires" | "phoneNumber" | "firebaseUid" | "displayName" | "photoURL" | "password" | "passwordResetToken" | "passwordResetExpires" | "isActive" | "subscriptionStartDate" | "subscriptionEndDate" | "subscriptionPlan" | "subscriptionPlanId" | "role" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "emailVerified" | "emailVerificationToken" | "emailVerificationExpires" | "firebaseUid" | "phoneNumber" | "displayName" | "photoURL" | "password" | "passwordResetToken" | "passwordResetExpires" | "isActive" | "subscriptionStartDate" | "subscriptionEndDate" | "subscriptionPlan" | "subscriptionPlanId" | "role" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   plan?: boolean | Prisma.User$planArgs<ExtArgs>
   createdBy?: boolean | Prisma.User$createdByArgs<ExtArgs>
@@ -2956,8 +2956,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     emailVerified: boolean
     emailVerificationToken: string | null
     emailVerificationExpires: Date | null
-    phoneNumber: string | null
     firebaseUid: string | null
+    phoneNumber: string | null
     displayName: string | null
     photoURL: string | null
     password: string
@@ -3411,8 +3411,8 @@ export interface UserFieldRefs {
   readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly emailVerificationToken: Prisma.FieldRef<"User", 'String'>
   readonly emailVerificationExpires: Prisma.FieldRef<"User", 'DateTime'>
-  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
   readonly firebaseUid: Prisma.FieldRef<"User", 'String'>
+  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
   readonly displayName: Prisma.FieldRef<"User", 'String'>
   readonly photoURL: Prisma.FieldRef<"User", 'String'>
   readonly password: Prisma.FieldRef<"User", 'String'>

@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import { Icon } from '../components/Icon';
 import { ProductModal, type ProductModalProduct } from '../components/ProductModal';
 import { useShop } from '../contexts/ShopContext';
 import { getProducts, type Product } from '../api/product';
 import { createTransaction } from '../api/transaction';
-import { getCustomers, type Customer } from '../api/customer';
+import { getCustomers, createCustomer, type Customer } from '../api/customer';
+import { generateInvoicePDF as createInvoicePDF } from '../utils/pdfInvoice';
 
 interface POSPageProps {
   isDark: boolean;
@@ -33,7 +35,7 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
   const [selectedCategory, setSelectedCategory] = useState<string>('__all__');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bkash'>('cash');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductModalProduct | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -42,6 +44,11 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
   const [isCreditSale, setIsCreditSale] = useState(false);
   const [creditCustomerId, setCreditCustomerId] = useState<string | null>(null);
   const [paidAmountInput, setPaidAmountInput] = useState('');
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ name: '', phone: '' });
+  const [customerSubmitting, setCustomerSubmitting] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [lastTransactionData, setLastTransactionData] = useState<any>(null);
 
   const loadProducts = useCallback(async () => {
     if (!currentShop) return;
@@ -85,7 +92,10 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
   });
 
   const openProductModal = (product: Product) => {
-    setSelectedProduct(product);
+    setSelectedProduct({
+      ...product,
+      image: product.imageUrl || undefined,
+    } as ProductModalProduct);
     setIsModalOpen(true);
   };
 
@@ -157,11 +167,62 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
       setCreditCustomerId(null);
       setPaidAmountInput('');
       loadProducts();
+      setLastTransactionData(result);
+      setShowInvoiceModal(true);
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : 'Checkout failed');
     } finally {
       setCheckoutLoading(false);
     }
+  };
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentShop || !newCustomer.name.trim()) return;
+    setCustomerSubmitting(true);
+    try {
+      const created = await createCustomer(currentShop.id, {
+        name: newCustomer.name.trim(),
+        phone: newCustomer.phone.trim() || undefined,
+      });
+      setCustomers((prev) => [created, ...prev]);
+      setShowCustomerModal(false);
+      setNewCustomer({ name: '', phone: '' });
+      setCreditCustomerId(created.id);
+      setIsCreditSale(true);
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : 'Failed to create customer');
+    } finally {
+      setCustomerSubmitting(false);
+    }
+  };
+
+  const generateInvoicePDF = async () => {
+    if (!lastTransactionData || !currentShop) return;
+    
+    const isBangla = i18n.language === 'bn';
+    
+    await createInvoicePDF(
+      {
+        invoiceNumber: lastTransactionData.invoiceNumber,
+        createdAt: lastTransactionData.createdAt || new Date().toISOString(),
+        shop: {
+          name: currentShop.name,
+          address: currentShop.address || undefined,
+          phone: currentShop.phone || undefined,
+        },
+        items: cart.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          totalPrice: item.price * item.quantity,
+        })),
+        totalAmount: cartTotal,
+        paidAmount: lastTransactionData.paidAmount,
+        dueAmount: lastTransactionData.dueAmount,
+      },
+      { isBangla }
+    );
   };
 
   if (!currentShop) {
@@ -198,7 +259,11 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
               <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{t('pos.online')}</span>
             </div>
-            <button onClick={onToggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+            <button
+              onClick={onToggleTheme}
+              className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer inline-flex items-center justify-center"
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
               {isDark ? <Icon name="light_mode" className="text-slate-400" /> : <Icon name="dark_mode" className="text-slate-500" />}
             </button>
           </div>
@@ -257,11 +322,19 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
                   className="group relative bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-green-500/10 border border-slate-200 dark:border-slate-700 hover:border-primary transition-all duration-200 active:scale-95 text-left h-full flex flex-col cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="aspect-square bg-slate-100 dark:bg-slate-700 relative overflow-hidden">
-                    <img
-                      src={PLACEHOLDER_IMG}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
+                    {(product as any).imageUrl ? (
+                      <img
+                        src={(product as any).imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <img
+                        src={PLACEHOLDER_IMG}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    )}
                     <div className="absolute bottom-2 right-2 bg-white/90 dark:bg-slate-900/90 px-2 py-1 rounded-lg text-sm font-bold shadow-sm">
                       ৳{product.price}/{product.unit}
                     </div>
@@ -399,6 +472,14 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
                         <option key={c.id} value={c.id}>{c.name}{c.phone ? ` (${c.phone})` : ''}</option>
                       ))}
                     </select>
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomerModal(true)}
+                      className="mt-2 w-full py-2 px-3 bg-primary/10 text-primary rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors flex items-center justify-center gap-1"
+                    >
+                      <Icon name="person_add" className="text-lg" />
+                      {t('pos.addCustomer') || 'Add New Customer'}
+                    </button>
                     {creditCustomerId && (
                       <div className="mt-2">
                         <label className="block text-xs text-slate-500 mb-1">{t('pos.amountPaid')}</label>
@@ -438,6 +519,114 @@ export function POSPage({ isDark, onToggleTheme, onBackToDashboard }: POSPagePro
       </div>
 
       <ProductModal isOpen={isModalOpen} onClose={closeProductModal} product={selectedProduct} onAddToCart={addToCart} />
+
+      {/* Add Customer Modal */}
+      {showCustomerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-bold mb-4">{t('pos.addCustomer') || 'Add Customer'}</h3>
+            <form onSubmit={handleCreateCustomer} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  {t('customer.name') || 'Name'} *
+                </label>
+                <input
+                  type="text"
+                  value={newCustomer.name}
+                  onChange={(e) => setNewCustomer((f) => ({ ...f, name: e.target.value }))}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  {t('customer.phone') || 'Phone'}
+                </label>
+                <input
+                  type="tel"
+                  value={newCustomer.phone}
+                  onChange={(e) => setNewCustomer((f) => ({ ...f, phone: e.target.value }))}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary outline-none"
+                  placeholder="+8801XXXXXXXXX"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCustomerModal(false);
+                    setNewCustomer({ name: '', phone: '' });
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={customerSubmitting || !newCustomer.name.trim()}
+                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-medium disabled:opacity-50"
+                >
+                  {customerSubmitting ? t('common.loading') : t('common.add') || 'Add'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice Modal */}
+      {showInvoiceModal && lastTransactionData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Icon name="check_circle" className="text-green-600 text-3xl" />
+              </div>
+              <h3 className="text-xl font-bold">{t('pos.checkoutSuccess')}</h3>
+              <p className="text-slate-500 mt-1">{lastTransactionData.invoiceNumber}</p>
+            </div>
+            
+            <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-4 mb-6">
+              <div className="flex justify-between mb-2">
+                <span className="text-slate-500">{t('pos.total')}</span>
+                <span className="font-bold">৳{Math.round(cartTotal)}</span>
+              </div>
+              {lastTransactionData.paidAmount > 0 && (
+                <div className="flex justify-between mb-2">
+                  <span className="text-slate-500">Paid</span>
+                  <span>৳{lastTransactionData.paidAmount}</span>
+                </div>
+              )}
+              {lastTransactionData.dueAmount > 0 && (
+                <div className="flex justify-between text-orange-600">
+                  <span>Due</span>
+                  <span className="font-bold">৳{lastTransactionData.dueAmount}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowInvoiceModal(false);
+                  setCart([]);
+                  setLastInvoice(null);
+                }}
+                className="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                {t('common.done') || 'Done'}
+              </button>
+              <button
+                onClick={generateInvoicePDF}
+                className="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center justify-center gap-2"
+              >
+                <Icon name="download" />
+                {t('pos.downloadInvoice') || 'Download'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

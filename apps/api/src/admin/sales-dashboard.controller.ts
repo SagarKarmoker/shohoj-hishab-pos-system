@@ -1,13 +1,20 @@
 import { Controller, Get, Post, Query, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiProperty } from '@nestjs/swagger';
 import { SalesDashboardService, type SalesDashboardStats, type SalesPerformanceData, type CustomerListItem } from './sales-dashboard.service';
 import { SalesRoleGuard } from '../auth/guards/sales-role.guard';
 
-class CreateCustomerDto {
+class SalesCreateCustomerDto {
+  @ApiProperty({ description: 'Customer email' })
   email!: string;
+
+  @ApiProperty({ description: 'Customer display name', required: false })
   displayName?: string;
+
+  @ApiProperty({ description: 'Customer phone number', required: false })
   phoneNumber?: string;
+
+  @ApiProperty({ description: 'Subscription plan ID' })
   planId!: string;
 }
 
@@ -85,7 +92,7 @@ export class SalesDashboardController {
   @ApiResponse({ status: 400, description: 'Invalid data' })
   async createCustomer(
     @Request() req: { user: { id: string } },
-    @Body() dto: CreateCustomerDto,
+    @Body() dto: SalesCreateCustomerDto,
   ): Promise<CustomerListItem> {
     return this.salesDashboardService.createCustomer(req.user.id, dto);
   }

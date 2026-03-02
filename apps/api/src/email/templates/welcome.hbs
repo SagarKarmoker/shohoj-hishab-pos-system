@@ -5,188 +5,397 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Shohoj Hishab</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #333;
-            max-width: 600px;
+            color: #1f2937;
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .email-wrapper {
+            max-width: 520px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
         }
-        .container {
-            background-color: #ffffff;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        
+        .email-container {
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
         }
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .logo-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        h1 {
-            color: #1e293b;
-            font-size: 28px;
-            margin-bottom: 10px;
+        
+        .header-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 40px 40px 60px;
+            position: relative;
             text-align: center;
         }
-        .subtitle {
-            color: #64748b;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 18px;
+        
+        .header-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: #ffffff;
+            border-radius: 50% 50% 0 0;
         }
-        .content {
-            margin-bottom: 20px;
-            font-size: 16px;
-            color: #475569;
-        }
-        .features {
-            background-color: #f8fafc;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 30px 0;
-        }
-        .feature-item {
-            display: flex;
-            align-items: start;
-            margin-bottom: 15px;
-        }
-        .feature-icon {
-            width: 24px;
-            height: 24px;
-            background-color: #f97316;
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.25);
             border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-center;
-            color: white;
-            font-weight: bold;
-            margin-right: 12px;
+            justify-content: center;
+            margin: 0 auto 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .success-icon svg {
+            width: 44px;
+            height: 44px;
+            color: #ffffff;
+        }
+        
+        .brand-name {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .brand-tagline {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .content-section {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        
+        .greeting {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+        
+        .celebration-emoji {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+        
+        .description {
+            color: #6b7280;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+        
+        .features-grid {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 32px 0;
+            text-align: left;
+        }
+        
+        .features-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
         }
+        
+        .feature-icon svg {
+            width: 18px;
+            height: 18px;
+            color: #ffffff;
+        }
+        
         .feature-text {
-            color: #475569;
+            flex: 1;
         }
-        .button {
-            display: inline-block;
-            padding: 14px 32px;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white !important;
-            text-decoration: none;
-            border-radius: 8px;
+        
+        .feature-title {
             font-weight: 600;
-            text-align: center;
-            margin: 20px 0;
-            box-shadow: 0 4px 6px rgba(249, 115, 22, 0.2);
-        }
-        .button-container {
-            text-align: center;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            color: #94a3b8;
+            color: #111827;
             font-size: 14px;
         }
-        .success-badge {
-            background-color: #d1fae5;
-            color: #065f46;
-            padding: 8px 16px;
-            border-radius: 20px;
+        
+        .feature-desc {
+            color: #6b7280;
+            font-size: 13px;
+        }
+        
+        .button-wrapper {
+            margin-bottom: 32px;
+        }
+        
+        .cta-button {
             display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 12px;
             font-weight: 600;
-            margin-bottom: 20px;
+            font-size: 16px;
+            box-shadow: 
+                0 10px 15px -3px rgba(16, 185, 129, 0.3),
+                0 4px 6px -2px rgba(16, 185, 129, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 20px 25px -5px rgba(16, 185, 129, 0.35),
+                0 10px 10px -5px rgba(16, 185, 129, 0.2);
+        }
+        
+        .offer-banner {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            text-align: center;
+        }
+        
+        .offer-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .offer-title {
+            color: #92400e;
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        
+        .offer-text {
+            color: #b45309;
+            font-size: 13px;
+        }
+        
+        .footer-section {
+            background: #f9fafb;
+            padding: 32px 40px;
+            text-align: center;
+        }
+        
+        .footer-text {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        
+        .footer-brand {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .footer-address {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        .footer-contact {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-contact a {
+            color: #f97316;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        
+        @media only screen and (max-width: 540px) {
+            body {
+                padding: 20px 16px;
+            }
+            
+            .header-banner {
+                padding: 32px 24px 50px;
+            }
+            
+            .content-section {
+                padding: 32px 24px;
+            }
+            
+            .footer-section {
+                padding: 24px;
+            }
+            
+            .greeting {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <div class="logo-icon">📊</div>
-            <h1>সহজ হিসাব<br/>Shohoj Hishab</h1>
-            <div class="success-badge">✓ Email Verified</div>
-            <p class="subtitle">Welcome Aboard! 🎉</p>
-        </div>
-
-        <div class="content">
-            <p>Hi {{displayName}},</p>
-            <p>Congratulations! Your email has been successfully verified. Welcome to Shohoj Hishab - Bangladesh's #1 Smart POS System!</p>
-            <p>You're now ready to streamline your business operations and take your shop to the next level.</p>
-        </div>
-
-        <div class="features">
-            <h3 style="color: #1e293b; margin-top: 0;">What you can do now:</h3>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <div class="header-banner">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="brand-name">Shohoj Hishab</div>
+                <div class="brand-tagline">সহজ হিসাব | Smart POS System</div>
+            </div>
             
-            <div class="feature-item">
-                <div class="feature-icon">✓</div>
-                <div class="feature-text">
-                    <strong>Manage Sales</strong> - Create digital invoices in just 3 clicks
+            <div class="content-section">
+                <div class="welcome-badge">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    Email Verified Successfully!
+                </div>
+                
+                <div class="celebration-emoji">🎉</div>
+                
+                <h1 class="greeting">Welcome Aboard, {{displayName}}!</h1>
+                
+                <p class="description">
+                    Congratulations! Your email has been verified. You're now part of 
+                    <strong>Shohoj Hishab</strong> - Bangladesh's smartest POS system!
+                </p>
+                
+                <div class="features-grid">
+                    <div class="features-title">What You Can Do</div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Create Digital Invoices</div>
+                            <div class="feature-desc">Generate professional invoices in just 3 clicks</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Smart Inventory</div>
+                            <div class="feature-desc">Real-time stock tracking with low-stock alerts</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Track Credit & Due</div>
+                            <div class="feature-desc">Manage customer credits with automatic reminders</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Analytics Dashboard</div>
+                            <div class="feature-desc">Real-time sales reports and profit tracking</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-wrapper">
+                    <a href="{{frontendUrl}}" class="cta-button">
+                        Go to Dashboard
+                    </a>
+                </div>
+                
+                <div class="offer-banner">
+                    <div class="offer-icon">🎁</div>
+                    <div class="offer-title">Special Launch Offer</div>
+                    <div class="offer-text">Try Pro plan FREE for 7 days! No credit card required.</div>
                 </div>
             </div>
-
-            <div class="feature-item">
-                <div class="feature-icon">✓</div>
-                <div class="feature-text">
-                    <strong>Track Inventory</strong> - Get alerts when stock is running low
+            
+            <div class="footer-section">
+                <p class="footer-text">
+                    © 2026 <span class="footer-brand">Shohoj Hishab</span>. All rights reserved.
+                </p>
+                <p class="footer-address">Banani, Dhaka-1213, Bangladesh</p>
+                <div class="footer-contact">
+                    <a href="mailto:support@shohojhishab.com">Need help? Contact Support</a>
                 </div>
             </div>
-
-            <div class="feature-item">
-                <div class="feature-icon">✓</div>
-                <div class="feature-text">
-                    <strong>Monitor Credit</strong> - Send automatic SMS reminders to customers
-                </div>
-            </div>
-
-            <div class="feature-item">
-                <div class="feature-icon">✓</div>
-                <div class="feature-text">
-                    <strong>View Reports</strong> - Real-time analytics of sales and profits
-                </div>
-            </div>
-        </div>
-
-        <div class="content">
-            <p><strong>Getting Started is Easy:</strong></p>
-            <ol style="color: #64748b;">
-                <li>Complete your shop profile</li>
-                <li>Add your first products</li>
-                <li>Start creating invoices</li>
-                <li>Watch your business grow!</li>
-            </ol>
-        </div>
-
-        <div class="button-container">
-            <a href="{{frontendUrl}}" class="button">
-                Login to Dashboard / ড্যাশবোর্ডে প্রবেশ করুন
-            </a>
-        </div>
-
-        <div class="content" style="margin-top: 30px; background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
-            <strong>🎁 Special Offer:</strong> Try our Pro plan free for 7 days! No credit card required.
-        </div>
-
-        <div class="footer">
-            <p>Need help? Contact us at <a href="mailto:support@shohojhishab.com" style="color: #f97316;">support@shohojhishab.com</a></p>
-            <p>Or call: +৮৮০ ১২৩৪ ৫৬৭৮৯০</p>
-            <p style="margin-top: 20px;">© 2026 Shohoj Hishab. All rights reserved.</p>
-            <p>বনানী, ঢাকা-১২১৩, Bangladesh</p>
         </div>
     </div>
 </body>

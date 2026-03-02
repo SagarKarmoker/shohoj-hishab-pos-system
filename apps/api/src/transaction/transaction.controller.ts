@@ -23,12 +23,29 @@ export class TransactionController {
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
     @Query('customerId') customerId?: string,
+    @Query('all') all?: string,
   ) {
+    if (all === 'true') {
+      return this.transactionService.findByShop(shopId, req.user.id);
+    }
     const options: { dateFrom?: Date; dateTo?: Date; customerId?: string } = {};
     if (dateFrom) options.dateFrom = new Date(dateFrom);
     if (dateTo) options.dateTo = new Date(dateTo);
     if (customerId) options.customerId = customerId;
     return this.transactionService.findByShop(shopId, req.user.id, options);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get transaction by ID', description: 'Get a single transaction with items' })
+  @ApiResponse({ status: 200, description: 'Transaction details' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
+  async getById(
+    @Param('shopId') shopId: string,
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.transactionService.findById(shopId, id, req.user.id);
   }
 
   @Post()

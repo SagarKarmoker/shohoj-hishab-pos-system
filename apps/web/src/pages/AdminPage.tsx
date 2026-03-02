@@ -895,13 +895,13 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
             <div className="flex items-center gap-3">
               <button
                 onClick={onToggleTheme}
-                className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all inline-flex items-center justify-center"
               >
                 <Icon name={isDark ? 'light_mode' : 'dark_mode'} className="text-slate-500" />
               </button>
               <button
                 onClick={onLogout}
-                className="px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                className="h-10 px-4 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all inline-flex items-center justify-center"
               >
                 {t('common.logout', 'Logout')}
               </button>

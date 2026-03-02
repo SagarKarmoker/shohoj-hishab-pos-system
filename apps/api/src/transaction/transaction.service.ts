@@ -25,17 +25,44 @@ export class TransactionService {
     if (options?.customerId) where.customerId = options.customerId;
     if (options?.dateFrom || options?.dateTo) {
       where.createdAt = {};
-      if (options.dateFrom) where.createdAt.gte = options.dateFrom;
-      if (options.dateTo) where.createdAt.lte = options.dateTo;
+      if (options.dateFrom) {
+        const start = new Date(options.dateFrom);
+        start.setHours(0, 0, 0, 0);
+        where.createdAt.gte = start;
+      }
+      if (options.dateTo) {
+        const end = new Date(options.dateTo);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
     }
     return this.prisma.transaction.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      take: 200,
+      take: 500,
       include: {
         customer: { select: { name: true } },
       },
     });
+  }
+
+  async findById(shopId: string, transactionId: string, userId: string) {
+    await this.verifyShopAccess(shopId, userId);
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { id: transactionId },
+      include: {
+        customer: { select: { id: true, name: true, phone: true } },
+        items: {
+          include: {
+            product: { select: { name: true } },
+          },
+        },
+        shop: { select: { name: true, address: true, phone: true } },
+      },
+    });
+    if (!transaction) throw new NotFoundException('Transaction not found');
+    if (transaction.shopId !== shopId) throw new NotFoundException('Transaction not found');
+    return transaction;
   }
 
   private async generateInvoiceNumber(shopId: string): Promise<string> {

@@ -4,11 +4,17 @@ CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'SUPER_ADMIN', 'SALES');
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
-    "firebaseUid" TEXT NOT NULL,
-    "phoneNumber" TEXT NOT NULL,
-    "email" TEXT,
+    "email" TEXT NOT NULL,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "emailVerificationToken" TEXT,
+    "emailVerificationExpires" TIMESTAMP(3),
+    "phoneNumber" TEXT,
+    "firebaseUid" TEXT,
     "displayName" TEXT,
     "photoURL" TEXT,
+    "password" TEXT NOT NULL,
+    "passwordResetToken" TEXT,
+    "passwordResetExpires" TIMESTAMP(3),
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "subscriptionStartDate" TIMESTAMP(3),
     "subscriptionEndDate" TIMESTAMP(3),
@@ -145,14 +151,61 @@ CREATE TABLE "Sale" (
     CONSTRAINT "Sale_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "AuditLog" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" TEXT,
+    "oldValue" TEXT,
+    "newValue" TEXT,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "LoginHistory" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "success" BOOLEAN NOT NULL,
+    "failureReason" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "LoginHistory_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
-CREATE UNIQUE INDEX "User_firebaseUid_key" ON "User"("firebaseUid");
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Transaction_invoiceNumber_key" ON "Transaction"("invoiceNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SalesPerson_userId_key" ON "SalesPerson"("userId");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_userId_idx" ON "AuditLog"("userId");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_createdAt_idx" ON "AuditLog"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_action_idx" ON "AuditLog"("action");
+
+-- CreateIndex
+CREATE INDEX "AuditLog_entityType_entityId_idx" ON "AuditLog"("entityType", "entityId");
+
+-- CreateIndex
+CREATE INDEX "LoginHistory_userId_idx" ON "LoginHistory"("userId");
+
+-- CreateIndex
+CREATE INDEX "LoginHistory_createdAt_idx" ON "LoginHistory"("createdAt");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_subscriptionPlanId_fkey" FOREIGN KEY ("subscriptionPlanId") REFERENCES "SubscriptionPlan"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -201,3 +254,9 @@ ALTER TABLE "Sale" ADD CONSTRAINT "Sale_userId_fkey" FOREIGN KEY ("userId") REFE
 
 -- AddForeignKey
 ALTER TABLE "Sale" ADD CONSTRAINT "Sale_planId_fkey" FOREIGN KEY ("planId") REFERENCES "SubscriptionPlan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LoginHistory" ADD CONSTRAINT "LoginHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

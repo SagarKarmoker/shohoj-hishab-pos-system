@@ -16,6 +16,7 @@ export interface Product {
   description?: string | null;
   category?: string | null;
   unit: string;
+  imageUrl?: string | null;
   price: number;
   costPrice?: number | null;
   stock: number;
@@ -45,6 +46,7 @@ export async function createProduct(
     description?: string;
     category?: string;
     unit?: string;
+    imageUrl?: string;
     price: number;
     costPrice?: number;
     stock?: number;
@@ -70,6 +72,7 @@ export async function updateProduct(
     description: string;
     category: string;
     unit: string;
+    imageUrl: string;
     price: number;
     costPrice: number;
     stock: number;

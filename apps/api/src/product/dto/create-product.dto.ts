@@ -16,6 +16,9 @@ export class CreateProductDto {
   @ApiProperty({ description: 'Unit (e.g. kg, piece, liter)', default: 'piece' })
   unit?: string;
 
+  @ApiProperty({ description: 'Product image URL (optional)', required: false })
+  imageUrl?: string;
+
   @ApiProperty({ description: 'Selling price' })
   price!: number;
 

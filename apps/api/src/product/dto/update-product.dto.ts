@@ -16,6 +16,9 @@ export class UpdateProductDto {
   @ApiProperty({ description: 'Unit', required: false })
   unit?: string;
 
+  @ApiProperty({ description: 'Product image URL (optional)', required: false })
+  imageUrl?: string;
+
   @ApiProperty({ description: 'Selling price', required: false })
   price?: number;
 

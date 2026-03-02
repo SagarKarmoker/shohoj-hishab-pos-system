@@ -40,11 +40,24 @@ export interface TransactionWithCustomer extends Transaction {
   customer?: { name: string } | null;
 }
 
+export interface TransactionDetail extends Transaction {
+  customer?: { id: string; name: string; phone?: string } | null;
+  items: Array<{
+    id: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    product: { name: string };
+  }>;
+  shop: { name: string; address?: string; phone?: string };
+}
+
 export async function getTransactions(
   shopId: string,
-  params?: { dateFrom?: string; dateTo?: string; customerId?: string },
+  params?: { dateFrom?: string; dateTo?: string; customerId?: string; all?: boolean },
 ): Promise<TransactionWithCustomer[]> {
   const searchParams = new URLSearchParams();
+  if (params?.all) searchParams.set('all', 'true');
   if (params?.dateFrom) searchParams.set('dateFrom', params.dateFrom);
   if (params?.dateTo) searchParams.set('dateTo', params.dateTo);
   if (params?.customerId) searchParams.set('customerId', params.customerId);
@@ -85,5 +98,23 @@ export async function createTransaction(shopId: string, input: CreateTransaction
     discount: Number(data.discount),
     paidAmount: Number(data.paidAmount),
     dueAmount: Number(data.dueAmount),
+  };
+}
+
+export async function getTransactionById(shopId: string, transactionId: string): Promise<TransactionDetail> {
+  const { data } = await axios.get<TransactionDetail>(`${API_URL}/shops/${shopId}/transactions/${transactionId}`, {
+    headers: getAuthHeaders(),
+  });
+  return {
+    ...data,
+    totalAmount: Number(data.totalAmount),
+    discount: Number(data.discount),
+    paidAmount: Number(data.paidAmount),
+    dueAmount: Number(data.dueAmount),
+    items: data.items.map((item) => ({
+      ...item,
+      unitPrice: Number(item.unitPrice),
+      totalPrice: Number(item.totalPrice),
+    })),
   };
 }

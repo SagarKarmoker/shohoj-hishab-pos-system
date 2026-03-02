@@ -142,8 +142,12 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
               <span className="text-xs text-slate-500 dark:text-slate-400">{t('credit.manageDues')}</span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={onToggleTheme} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onToggleTheme}
+              className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer inline-flex items-center justify-center"
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
               {isDark ? <Icon name="light_mode" className="text-slate-400" /> : <Icon name="dark_mode" className="text-slate-500" />}
             </button>
           </div>

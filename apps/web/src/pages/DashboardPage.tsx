@@ -40,7 +40,7 @@ export function DashboardPage({
 }: DashboardPageProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { currentShop, shops, isLoading: shopsLoading, loadShops, createShopAndSet } = useShop();
+  const { currentShop, shops, isLoading: shopsLoading, createShopAndSet } = useShop();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [createShopName, setCreateShopName] = useState('');
@@ -49,10 +49,6 @@ export function DashboardPage({
   const [createShopSubmitting, setCreateShopSubmitting] = useState(false);
   const [createShopError, setCreateShopError] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-
-  useEffect(() => {
-    loadShops();
-  }, [loadShops]);
 
   const fetchDashboard = useCallback(async () => {
     if (!currentShop) return;
@@ -199,7 +195,7 @@ export function DashboardPage({
           <div className="flex items-center gap-2">
             <button
               onClick={onToggleTheme}
-              className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer inline-flex items-center justify-center"
               aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? (
@@ -210,7 +206,7 @@ export function DashboardPage({
             </button>
             <button
               onClick={onNavigateToSettings}
-              className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer inline-flex items-center justify-center"
               title={t('dashboard.viewDetails')}
             >
               <Icon name="settings" className="text-slate-500" />
@@ -218,7 +214,7 @@ export function DashboardPage({
             {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
               <button
                 onClick={onNavigateToAdmin}
-                className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer inline-flex items-center justify-center"
                 title={t('admin.title', 'Admin Panel')}
               >
                 <Icon name="admin_panel_settings" className="text-slate-500" />

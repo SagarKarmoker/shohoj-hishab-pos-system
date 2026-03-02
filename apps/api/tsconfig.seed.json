@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
     "rootDir": ".",
     "outDir": "./dist-seed"
   },

@@ -20,67 +20,69 @@ enum UserRole {
 
 // User model for authentication
 model User {
-  id            String    @id @default(uuid())
-  
+  id String @id @default(uuid())
+
   // Email as primary identifier
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email                    String    @unique
+  emailVerified            Boolean   @default(false)
   emailVerificationToken   String?
   emailVerificationExpires DateTime?
-  
+
+  // Firebase UID for Firebase auth
+  firebaseUid String? @unique
+
   // Optional fields (kept for future use)
-  phoneNumber   String?
-  firebaseUid   String?
-  
-  displayName   String?
-  photoURL      String?
-  
+  phoneNumber String?
+
+  displayName String?
+  photoURL    String?
+
   // Password (required for email auth)
-  password      String
-  
+  password String
+
   // Password reset
   passwordResetToken   String?
   passwordResetExpires DateTime?
-  
-  isActive      Boolean   @default(true)
-  
+
+  isActive Boolean @default(true)
+
   // Subscription
   subscriptionStartDate DateTime?
   subscriptionEndDate   DateTime?
-  subscriptionPlan     String?   @default("free")
-  subscriptionPlanId   String?
-  plan                 SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id])
-  
+  subscriptionPlan      String?           @default("free")
+  subscriptionPlanId    String?
+  plan                  SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id])
+
   // Role Management
-  role         UserRole  @default(USER)
-  createdById  String?   
-  createdBy    User?     @relation("CreatedByRelation", fields: [createdById], references: [id])
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  role        UserRole @default(USER)
+  createdById String?
+  createdBy   User?    @relation("CreatedByRelation", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  shops         Shop[]
-  products      Product[]
-  transactions  Transaction[]
-  customers     Customer[]
-  createdUsers  User[]    @relation("CreatedByRelation")
-  salesPerson   SalesPerson?
-  sales         Sale[]
-  auditLogs     AuditLog[] @relation("AuditLogUser")
-  loginHistory  LoginHistory[] @relation("LoginHistoryUser")
+  shops        Shop[]
+  products     Product[]
+  transactions Transaction[]
+  customers    Customer[]
+  createdUsers User[]         @relation("CreatedByRelation")
+  salesPerson  SalesPerson?
+  sales        Sale[]
+  auditLogs    AuditLog[]     @relation("AuditLogUser")
+  loginHistory LoginHistory[] @relation("LoginHistoryUser")
 }
 
 // Shop model - represents a business/store
 model Shop {
-  id          String   @id @default(uuid())
-  name        String
-  address     String?
-  phone       String?
-  ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  phone     String?
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   products     Product[]
@@ -96,6 +98,7 @@ model Product {
   description String?
   category    String?
   unit        String   @default("piece")
+  imageUrl    String?
   price       Decimal  @db.Decimal(10, 2)
   costPrice   Decimal? @db.Decimal(10, 2)
   stock       Int      @default(0)
@@ -113,18 +116,18 @@ model Product {
 
 // Customer model
 model Customer {
-  id          String    @id @default(uuid())
-  name        String
-  phone       String?
-  email       String?
-  address     String?
-  dueBalance  Decimal   @default(0) @db.Decimal(10, 2)
-  shopId      String
-  shop        Shop      @relation(fields: [shopId], references: [id])
-  ownerId     String
-  owner       User      @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String   @id @default(uuid())
+  name       String
+  phone      String?
+  email      String?
+  address    String?
+  dueBalance Decimal  @default(0) @db.Decimal(10, 2)
+  shopId     String
+  shop       Shop     @relation(fields: [shopId], references: [id])
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relations
   transactions Transaction[]
@@ -132,22 +135,22 @@ model Customer {
 
 // Transaction model - sales transactions
 model Transaction {
-  id           String   @id @default(uuid())
-  invoiceNumber String   @unique
-  totalAmount  Decimal  @db.Decimal(10, 2)
-  discount     Decimal  @default(0) @db.Decimal(10, 2)
-  paidAmount   Decimal  @db.Decimal(10, 2)
-  dueAmount    Decimal  @default(0) @db.Decimal(10, 2)
-  paymentMethod String  @default("cash")
-  notes        String?
-  shopId       String
-  shop         Shop     @relation(fields: [shopId], references: [id])
-  customerId   String?
-  customer     Customer? @relation(fields: [customerId], references: [id])
-  sellerId     String
-  seller       User     @relation(fields: [sellerId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String    @id @default(uuid())
+  invoiceNumber String    @unique
+  totalAmount   Decimal   @db.Decimal(10, 2)
+  discount      Decimal   @default(0) @db.Decimal(10, 2)
+  paidAmount    Decimal   @db.Decimal(10, 2)
+  dueAmount     Decimal   @default(0) @db.Decimal(10, 2)
+  paymentMethod String    @default("cash")
+  notes         String?
+  shopId        String
+  shop          Shop      @relation(fields: [shopId], references: [id])
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  sellerId      String
+  seller        User      @relation(fields: [sellerId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
   items TransactionItem[]
@@ -155,78 +158,78 @@ model Transaction {
 
 // Transaction item - individual items in a transaction
 model TransactionItem {
-  id             String      @id @default(uuid())
-  quantity       Int
-  unitPrice      Decimal     @db.Decimal(10, 2)
-  totalPrice     Decimal     @db.Decimal(10, 2)
-  transactionId  String
-  transaction    Transaction @relation(fields: [transactionId], references: [id])
-  productId      String
-  product        Product     @relation(fields: [productId], references: [id])
-  createdAt      DateTime    @default(now())
+  id            String      @id @default(uuid())
+  quantity      Int
+  unitPrice     Decimal     @db.Decimal(10, 2)
+  totalPrice    Decimal     @db.Decimal(10, 2)
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+  createdAt     DateTime    @default(now())
 }
 
 // Subscription Plan model
 model SubscriptionPlan {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  price       Decimal  @db.Decimal(10, 2)
-  durationDays Int     // e.g., 30 for monthly, 365 for yearly
-  features    String?  // JSON string of features
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  price        Decimal  @db.Decimal(10, 2)
+  durationDays Int // e.g., 30 for monthly, 365 for yearly
+  features     String? // JSON string of features
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
-  users       User[]
-  sales       Sale[]
+  users User[]
+  sales Sale[]
 }
 
 // Sales Person model - for commission tracking
 model SalesPerson {
-  id              String    @id @default(uuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id])
-  commissionRate  Decimal   @default(5) @db.Decimal(5, 2) // percentage
-  totalSales      Decimal   @default(0) @db.Decimal(10, 2)
-  totalEarnings   Decimal   @default(0) @db.Decimal(10, 2)
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  commissionRate Decimal  @default(5) @db.Decimal(5, 2) // percentage
+  totalSales     Decimal  @default(0) @db.Decimal(10, 2)
+  totalEarnings  Decimal  @default(0) @db.Decimal(10, 2)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
-  sales           Sale[]
+  sales Sale[]
 }
 
 // Sale model - tracks subscriptions sold by sales persons
 model Sale {
-  id              String            @id @default(uuid())
-  salesPersonId   String
-  salesPerson     SalesPerson       @relation(fields: [salesPersonId], references: [id])
-  userId          String?           // The user who subscribed
-  user            User?             @relation(fields: [userId], references: [id])
-  planId          String
-  plan            SubscriptionPlan  @relation(fields: [planId], references: [id])
+  id               String           @id @default(uuid())
+  salesPersonId    String
+  salesPerson      SalesPerson      @relation(fields: [salesPersonId], references: [id])
+  userId           String? // The user who subscribed
+  user             User?            @relation(fields: [userId], references: [id])
+  planId           String
+  plan             SubscriptionPlan @relation(fields: [planId], references: [id])
   commissionAmount Decimal          @db.Decimal(10, 2)
-  saleAmount      Decimal           @db.Decimal(10, 2)
-  createdAt       DateTime          @default(now())
+  saleAmount       Decimal          @db.Decimal(10, 2)
+  createdAt        DateTime         @default(now())
 }
 
 // Audit Log for tracking admin actions
 model AuditLog {
-  id          String   @id @default(uuid())
-  userId      String   // Who performed the action
-  user        User     @relation("AuditLogUser", fields: [userId], references: [id])
-  action      String   // e.g., "USER_ACTIVATED", "PLAN_UPDATED"
-  entityType  String   // e.g., "User", "Plan", "Sale"
-  entityId    String?  // ID of the affected entity
-  oldValue    String?  // JSON string of previous state
-  newValue    String?  // JSON string of new state
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-  
+  id         String   @id @default(uuid())
+  userId     String // Who performed the action
+  user       User     @relation("AuditLogUser", fields: [userId], references: [id])
+  action     String // e.g., "USER_ACTIVATED", "PLAN_UPDATED"
+  entityType String // e.g., "User", "Plan", "Sale"
+  entityId   String? // ID of the affected entity
+  oldValue   String? // JSON string of previous state
+  newValue   String? // JSON string of new state
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
   @@index([userId])
   @@index([createdAt])
   @@index([action])
@@ -235,15 +238,15 @@ model AuditLog {
 
 // User Login History
 model LoginHistory {
-  id             String   @id @default(uuid())
-  userId         String
-  user           User     @relation("LoginHistoryUser", fields: [userId], references: [id])
-  ipAddress      String?
-  userAgent      String?
-  success        Boolean
-  failureReason  String?
-  createdAt      DateTime @default(now())
-  
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation("LoginHistoryUser", fields: [userId], references: [id])
+  ipAddress     String?
+  userAgent     String?
+  success       Boolean
+  failureReason String?
+  createdAt     DateTime @default(now())
+
   @@index([userId])
   @@index([createdAt])
 }

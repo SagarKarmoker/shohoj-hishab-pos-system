@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
+import { getErrorMessage } from '../utils/apiError';
 
 interface AuthUser {
   id: string;
@@ -72,11 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = useCallback(async (email: string, password: string, displayName?: string): Promise<void> => {
     try {
       await axios.post(`${API_URL}/auth/signup`, { email, password, displayName });
-      // Signup successful - user needs to verify email
       setEmail(email);
     } catch (error) {
       console.error('Signup error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Signup failed');
+      throw new Error(getErrorMessage(error, 'Signup failed. Please try again.'));
     }
   }, []);
 
@@ -85,17 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const data = response.data;
     
-      // Store JWT token
       localStorage.setItem('jwt_token', data.token);
       setJwtToken(data.token);
 
-      // Store approval status and subscription dates
       setNeedsApproval(data.needsApproval || false);
       setSubscriptionStartDate(data.subscriptionStartDate);
       setSubscriptionEndDate(data.subscriptionEndDate);
       localStorage.setItem('needs_approval', String(data.needsApproval || false));
 
-      // Set user data
       const authUser: AuthUser = {
         id: data.user.id,
         email: data.user.email,
@@ -107,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(authUser);
     } catch (error) {
       console.error('Login error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Login failed');
+      throw new Error(getErrorMessage(error, 'Login failed. Please check your credentials.'));
     }
   }, []);
 
@@ -116,17 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await axios.get(`${API_URL}/auth/verify-email?token=${token}`);
       const data = response.data;
     
-      // Store JWT token
       localStorage.setItem('jwt_token', data.token);
       setJwtToken(data.token);
 
-      // Store approval status and subscription dates
       setNeedsApproval(data.needsApproval || false);
       setSubscriptionStartDate(data.subscriptionStartDate);
       setSubscriptionEndDate(data.subscriptionEndDate);
       localStorage.setItem('needs_approval', String(data.needsApproval || false));
 
-      // Set user data
       const authUser: AuthUser = {
         id: data.user.id,
         email: data.user.email,
@@ -138,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(authUser);
     } catch (error) {
       console.error('Email verification error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Email verification failed');
+      throw new Error(getErrorMessage(error, 'Email verification failed. The link may have expired.'));
     }
   }, []);
 
@@ -147,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await axios.post(`${API_URL}/auth/forgot-password`, { email });
     } catch (error) {
       console.error('Password reset request error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Password reset request failed');
+      throw new Error(getErrorMessage(error, 'Failed to send password reset email. Please try again.'));
     }
   }, []);
 
@@ -156,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await axios.post(`${API_URL}/auth/reset-password`, { token, newPassword });
     } catch (error) {
       console.error('Password reset error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Password reset failed');
+      throw new Error(getErrorMessage(error, 'Failed to reset password. The link may have expired.'));
     }
   }, []);
 
@@ -165,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await axios.post(`${API_URL}/auth/resend-verification`, { email });
     } catch (error) {
       console.error('Resend verification error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Resend verification failed');
+      throw new Error(getErrorMessage(error, 'Failed to resend verification email. Please try again.'));
     }
   }, []);
 
@@ -213,14 +207,7 @@ export function useAuth() {
   return context;
 }
 
-// Helper hook to get JWT token
+// Helper hook to get JWT token - returns token synchronously without state
 export function useJwtToken() {
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('jwt_token');
-    setToken(token);
-  }, []);
-
-  return token;
+  return localStorage.getItem('jwt_token');
 }

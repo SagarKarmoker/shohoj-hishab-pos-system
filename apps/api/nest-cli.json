@@ -3,10 +3,7 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": false,
-    "assets": [
-      "**/*.hbs",
-      "email/templates/**/*"
-    ],
+    "assets": ["email/templates/**/*"],
     "watchAssets": true
   },
   "entryFile": "main"

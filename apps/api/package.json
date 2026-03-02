@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "dist/main.js",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && cp -r src/email/templates dist/src/email/",
     "dev": "pnpm build && nest start --watch",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -21,11 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "db:seed": "prisma generate && ts-node -P tsconfig.seed.json prisma/seed.ts",
-    "db:seed:admin": "prisma generate && ts-node -P tsconfig.seed.json prisma/seed-admin.ts"
-  },
-  "prisma": {
-    "seed": "ts-node -P tsconfig.seed.json prisma/seed.ts"
+    "db:seed": "prisma generate && tsx prisma/seed.ts",
+    "db:seed:admin": "prisma generate && tsx prisma/seed-admin.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
@@ -38,6 +35,7 @@
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "7.4.2",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.9.0",
     "handlebars": "^4.7.8",
     "morgan": "^1.10.1",
     "nest-winston": "^1.10.2",
@@ -58,6 +56,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.13.0",
     "@types/nodemailer": "^6.4.23",
     "@types/passport-jwt": "^4.0.1",

@@ -8,6 +8,7 @@ import { TransactionModule } from './transaction/transaction.module';
 import { CustomerModule } from './customer/customer.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AdminModule } from './admin/admin.module';
+import { UploadModule } from './upload/upload.module';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './config/logger.config';
 import { MorganMiddleware } from './middleware/morgan.middleware';
@@ -22,6 +23,7 @@ import { MorganMiddleware } from './middleware/morgan.middleware';
     TransactionModule,
     CustomerModule,
     AdminModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService, MorganMiddleware],

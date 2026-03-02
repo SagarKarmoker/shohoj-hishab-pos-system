@@ -65,7 +65,7 @@ export function Navbar({ isDark, onToggleTheme, onNavigateToLogin, onNavigateToD
           {/* Theme Toggle */}
           <button 
             onClick={onToggleTheme}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer inline-flex items-center justify-center"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? (
