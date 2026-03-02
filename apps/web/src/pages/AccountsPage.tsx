@@ -4,8 +4,8 @@ import i18n from '../i18n';
 import { Icon } from '../components/Icon';
 import { useShop } from '../contexts/ShopContext';
 import { getTransactions, getTransactionById, type TransactionWithCustomer } from '../api/transaction';
-import { jsPDF } from 'jspdf';
 import { generateInvoicePDF as createInvoicePDF } from '../utils/pdfInvoice';
+import html2pdf from 'html2pdf.js';
 
 interface AccountsPageProps {
   isDark: boolean;
@@ -103,90 +103,149 @@ export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: Accou
     return t('accounts.cash');
   };
 
-  const downloadTransactionsPDF = () => {
+  const downloadTransactionsPDF = async () => {
     if (filteredTransactions.length === 0 || !currentShop) return;
 
-    const doc = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4',
-    });
+    const isBangla = i18n.language === 'bn';
+    
+    const labels = isBangla ? {
+      title: 'লেনদেন রিপোর্ট',
+      shopName: 'দোকান',
+      dateRange: 'তারিখ',
+      date: 'তারিখ',
+      invoice: 'রসিদ',
+      customer: 'গ্রাহক',
+      type: 'ধরন',
+      payment: 'পেমেন্ট',
+      items: 'পণ্য',
+      total: 'মোট',
+      paid: 'প্রদত্ত',
+      due: 'বাকি',
+      credit: 'বিক্রয়',
+      sale: 'বিক্রয়',
+      generatedOn: 'তৈরি হয়েছে',
+      poweredBy: 'সহজ হিসাব দ্বারা পরিচালিত',
+    } : {
+      title: 'Transaction Report',
+      shopName: 'Shop',
+      dateRange: 'Date Range',
+      date: 'Date',
+      invoice: 'Invoice',
+      customer: 'Customer',
+      type: 'Type',
+      payment: 'Payment',
+      items: 'Items',
+      total: 'Total',
+      paid: 'Paid',
+      due: 'Due',
+      credit: 'Credit',
+      sale: 'Sale',
+      generatedOn: 'Generated on',
+      poweredBy: 'Powered by Shohoj Hishab',
+    };
 
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Shohoj Hishab - Transaction Report', 148, 15, { align: 'center' });
+    const fontFamily = isBangla ? '"Noto Sans Bengali", "Hind Siliguri", sans-serif' : 'Helvetica, Arial, sans-serif';
 
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(currentShop.name, 148, 22, { align: 'center' });
+    const headers = [
+      labels.date, labels.invoice, labels.customer, labels.type, 
+      labels.payment, labels.items || 'Items', labels.total, labels.paid, labels.due
+    ];
+    
+    const rowsHtml = filteredTransactions.map((tx, index) => `
+      <tr style="${index % 2 === 0 ? 'background: #f9fafb;' : ''}">
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${new Date(tx.createdAt).toLocaleDateString('en-GB')}</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.invoiceNumber.substring(0, 10)}</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.customer?.name || '-'}</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.dueAmount > 0 ? labels.credit : labels.sale}</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${getPaymentLabel(tx.paymentMethod)}</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">-</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.totalAmount.toFixed(0)}</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.paidAmount.toFixed(0)}</td>
+        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.dueAmount.toFixed(0)}</td>
+      </tr>
+    `).join('');
 
-    const dateRangeText = `${getDateRange(dateRange).dateFrom} to ${getDateRange(dateRange).dateTo}`;
-    doc.text(`Date Range: ${dateRangeText}`, 148, 28, { align: 'center' });
+    const headersHtml = headers.map(h => `<th style="padding: 10px 4px; text-align: center; font-size: 11px; font-weight: bold; background: #f97316; color: #ffffff;">${h}</th>`).join('');
 
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    const headers = ['Date', 'Invoice', 'Customer', 'Type', 'Payment', 'Total', 'Paid', 'Due'];
-    const colWidths = [25, 30, 40, 20, 25, 30, 30, 25];
-    let startX = 14;
-    let startY = 38;
+    const reportHtml = `
+      <div style="width: 297mm; font-family: ${fontFamily}; padding: 10mm; background: white; color: #000000;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="font-size: 24px; font-weight: bold; margin: 0 0 8px 0; color: #000000;">${isBangla ? 'সহজ হিসাব' : 'Shohoj Hishab'} - ${labels.title}</h1>
+          <p style="font-size: 14px; margin: 4px 0; color: #000000;">${currentShop.name}</p>
+          <p style="font-size: 12px; margin: 4px 0; color: #000000;">${labels.dateRange}: ${dateRange === 'all' ? (isBangla ? 'সব সময়' : 'All Time') : `${getDateRange(dateRange).dateFrom} to ${getDateRange(dateRange).dateTo}`}</p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px;">
+          <thead>
+            <tr>${headersHtml}</tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+        
+        <div style="background: #f97316; color: #ffffff; padding: 10px; display: flex; justify-content: space-between; font-weight: bold;">
+          <span>${labels.total}</span>
+          <span>${labels.paid}: ৳${totalIncome.toFixed(0)} | ${labels.due}: ৳${totalCredit.toFixed(0)}</span>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; font-size: 10px; color: #000000;">
+          <p>${labels.generatedOn}: ${new Date().toLocaleString()}</p>
+          <p>${labels.poweredBy}</p>
+        </div>
+      </div>
+    `;
 
-    doc.setFillColor(249, 115, 22);
-    doc.rect(14, startY - 5, 268, 8, 'F');
-    doc.setTextColor(255, 255, 255);
-    headers.forEach((header, i) => {
-      doc.text(header, startX + colWidths.slice(0, i).reduce((a, b) => a + b, 0) + colWidths[i] / 2, startY, { align: 'center' });
-    });
+    const container = document.createElement('div');
+    container.innerHTML = reportHtml;
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.zIndex = '-1000';
+    container.style.background = 'white';
+    document.body.appendChild(container);
 
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    startY += 8;
+    const element = container.querySelector('div') as HTMLElement;
 
-    filteredTransactions.forEach((tx, index) => {
-      if (startY > 180) {
-        doc.addPage();
-        startY = 20;
+    await waitForFonts();
+
+    const opt = {
+      margin: 0,
+      filename: `transactions-${dateRange === 'all' ? 'all' : `${getDateRange(dateRange).dateFrom}-to-${getDateRange(dateRange).dateTo}`}.pdf`,
+      image: { type: 'png' as const, quality: 1 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      },
+      jsPDF: { 
+        unit: 'mm' as const, 
+        format: 'a4' as const, 
+        orientation: 'landscape' as const
       }
+    };
 
-      const row = [
-        new Date(tx.createdAt).toLocaleDateString('en-GB'),
-        tx.invoiceNumber.substring(0, 10),
-        tx.customer?.name || '-',
-        tx.dueAmount > 0 ? 'Credit' : 'Sale',
-        getPaymentLabel(tx.paymentMethod),
-        `৳${tx.totalAmount.toFixed(0)}`,
-        `৳${tx.paidAmount.toFixed(0)}`,
-        `৳${tx.dueAmount.toFixed(0)}`,
-      ];
-
-      if (index % 2 === 0) {
-        doc.setFillColor(249, 250, 251);
-        doc.rect(14, startY - 4, 268, 7, 'F');
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('PDF generation error:', error);
+    } finally {
+      if (container.parentNode) {
+        container.parentNode.removeChild(container);
       }
-
-      row.forEach((cell, i) => {
-        doc.text(cell, startX + colWidths.slice(0, i).reduce((a, b) => a + b, 0) + colWidths[i] / 2, startY, { align: 'center' });
-      });
-
-      startY += 7;
-    });
-
-    startY += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.setFillColor(249, 115, 22);
-    doc.rect(14, startY - 4, 268, 7, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.text('Total', 40, startY);
-    doc.text(`৳${totalIncome.toFixed(0)}`, 175, startY, { align: 'center' });
-    doc.text(`৳${totalCredit.toFixed(0)}`, 205, startY, { align: 'center' });
-
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(8);
-    doc.text(`Generated on ${new Date().toLocaleString()}`, 148, 190, { align: 'center' });
-    doc.text('Powered by Shohoj Hishab', 148, 195, { align: 'center' });
-
-    const fileName = `transactions-${getDateRange(dateRange).dateFrom}-to-${getDateRange(dateRange).dateTo}.pdf`;
-    doc.save(fileName);
+    }
   };
+
+  function waitForFonts(): Promise<void> {
+    return new Promise((resolve) => {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => resolve());
+      } else {
+        setTimeout(resolve, 500);
+      }
+    });
+  }
 
   const downloadInvoicePDF = async (tx: TransactionWithCustomer) => {
     if (!currentShop) return;
