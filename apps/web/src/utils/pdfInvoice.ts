@@ -1,31 +1,4 @@
-import { jsPDF } from 'jspdf';
-
-const BANGLA_FONT_URL = 'https://fonts.gstatic.com/s/notosansbengali/v8/jizBRFtNs2ka5fXjeivQ4LroWlx-2zIZj1bIkNo.woff2';
-
-let fontLoaded = false;
-let fontBase64 = '';
-
-async function loadBanglaFont(): Promise<string> {
-  if (fontLoaded && fontBase64) {
-    return fontBase64;
-  }
-
-  try {
-    const response = await fetch(BANGLA_FONT_URL);
-    const arrayBuffer = await response.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    fontBase64 = btoa(binary);
-    fontLoaded = true;
-    return fontBase64;
-  } catch (error) {
-    console.error('Failed to load Bangla font:', error);
-    return '';
-  }
-}
+import html2pdf from 'html2pdf.js';
 
 interface InvoiceItem {
   name: string;
@@ -57,26 +30,21 @@ interface InvoiceOptions {
   isBangla: boolean;
 }
 
+function waitForFonts(): Promise<void> {
+  return new Promise((resolve) => {
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => resolve());
+    } else {
+      setTimeout(resolve, 500);
+    }
+  });
+}
+
 export async function generateInvoicePDF(
   data: InvoiceData,
   options: InvoiceOptions
 ): Promise<void> {
   const { isBangla } = options;
-  
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: [80, 150],
-  });
-
-  if (isBangla) {
-    const fontBase64 = await loadBanglaFont();
-    if (fontBase64) {
-      doc.addFileToVFS('NotoSansBengali-Regular.ttf', fontBase64);
-      doc.addFont('NotoSansBengali-Regular.ttf', 'NotoSansBengali', 'normal');
-      doc.setFont('NotoSansBengali', 'normal');
-    }
-  }
 
   const labels = isBangla ? {
     invoice: 'রসিদ',
@@ -110,101 +78,134 @@ export async function generateInvoicePDF(
     poweredBy: 'Powered by Shohoj Hishab',
   };
 
-  doc.setFontSize(16);
-  doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'bold');
-  doc.text(isBangla ? 'সহজ হিসাব' : 'Shohoj Hishab', 40, 8, { align: 'center' });
-  
-  doc.setFontSize(8);
-  doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'normal');
-  doc.text(data.shop.name, 40, 13, { align: 'center' });
-  if (data.shop.address) {
-    doc.text(data.shop.address, 40, 17, { align: 'center' });
-  }
-  if (data.shop.phone) {
-    doc.text(data.shop.phone, 40, 21, { align: 'center' });
-  }
+  const fontFamily = isBangla ? '"Noto Sans Bengali", "Hind Siliguri", sans-serif' : 'Helvetica, Arial, sans-serif';
+  const dateStr = new Date(data.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const timeStr = new Date(data.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-  doc.setLineWidth(0.3);
-  doc.line(5, 25, 75, 25);
+  const itemsHtml = data.items.map(item => `
+    <tr>
+      <td style="padding: 3px 2px; border-bottom: 1px solid #000000;">${item.name.length > 18 ? item.name.substring(0, 18) + '..' : item.name}</td>
+      <td style="text-align: center; padding: 3px 2px; border-bottom: 1px solid #000000;">${item.quantity}</td>
+      ${item.price !== undefined ? `<td style="text-align: right; padding: 3px 2px; border-bottom: 1px solid #000000;">৳${item.price}</td>` : ''}
+      <td style="text-align: right; padding: 3px 2px; border-bottom: 1px solid #000000;">৳${Number(item.totalPrice).toFixed(0)}</td>
+    </tr>
+  `).join('');
 
-  doc.setFontSize(10);
-  doc.text(`${labels.invoice}: ${data.invoiceNumber}`, 5, 30);
-  doc.text(`${labels.date}: ${new Date(data.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`, 5, 35);
-  doc.text(`${labels.time}: ${new Date(data.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`, 5, 40);
+  const invoiceHtml = `
+    <div id="invoice-content" style="width: 75mm; font-family: ${fontFamily}; font-size: 11px; color: #000000; padding: 5mm; background: white;">
+      <div style="text-align: center; margin-bottom: 10px;">
+        <h1 style="font-size: 18px; font-weight: bold; margin: 0; color: #000000;">${isBangla ? 'সহজ হিসাব' : 'Shohoj Hishab'}</h1>
+        <p style="font-size: 10px; margin: 3px 0; color: #000000;">${data.shop.name}</p>
+        ${data.shop.address ? `<p style="font-size: 9px; margin: 2px 0; color: #000000;">${data.shop.address}</p>` : ''}
+        ${data.shop.phone ? `<p style="font-size: 9px; margin: 2px 0; color: #000000;">${data.shop.phone}</p>` : ''}
+      </div>
+      
+      <div style="border-top: 1px dashed #999; margin: 8px 0;"></div>
+      
+      <div style="font-size: 10px; color: #000000;">
+        <p style="margin: 2px 0;"><strong>${labels.invoice}:</strong> ${data.invoiceNumber}</p>
+        <p style="margin: 2px 0;"><strong>${labels.date}:</strong> ${dateStr}</p>
+        <p style="margin: 2px 0;"><strong>${labels.time}:</strong> ${timeStr}</p>
+      </div>
+      
+      ${data.customer ? `
+      <div style="font-size: 10px; margin-top: 5px; color: #000000;">
+        <p style="margin: 2px 0;"><strong>${labels.customer}:</strong> ${data.customer.name}</p>
+        ${data.customer.phone ? `<p style="margin: 2px 0;"><strong>${labels.phone}:</strong> ${data.customer.phone}</p>` : ''}
+      </div>
+      ` : ''}
+      
+      <div style="border-top: 1px dashed #999; margin: 8px 0;"></div>
+      
+      <table style="width: 100%; font-size: 9px; border-collapse: collapse; color: #000000;">
+        <thead>
+          <tr style="background: #f5f5f5;">
+            <th style="text-align: left; padding: 4px 2px; font-weight: bold; color: #000000;">${labels.item}</th>
+            <th style="text-align: center; padding: 4px 2px; font-weight: bold; color: #000000;">${labels.qty}</th>
+            ${data.items[0]?.price !== undefined ? `<th style="text-align: right; padding: 4px 2px; font-weight: bold; color: #000000;">${labels.price}</th>` : ''}
+            <th style="text-align: right; padding: 4px 2px; font-weight: bold; color: #000000;">${labels.total}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+      
+      <div style="border-top: 1px dashed #999; margin: 8px 0;"></div>
+      
+      <div style="font-size: 11px; color: #000000;">
+        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+          <span style="font-weight: bold;">${labels.total}:</span>
+          <span style="font-weight: bold;">৳${Number(data.totalAmount).toFixed(0)}</span>
+        </div>
+        ${data.discount && Number(data.discount) > 0 ? `
+        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+          <span>${labels.discount}:</span>
+          <span>-৳${Number(data.discount).toFixed(0)}</span>
+        </div>
+        ` : ''}
+        ${data.paidAmount && Number(data.paidAmount) > 0 ? `
+        <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+          <span>${labels.paid}:</span>
+          <span>৳${Number(data.paidAmount).toFixed(0)}</span>
+        </div>
+        ` : ''}
+        ${data.dueAmount && Number(data.dueAmount) > 0 ? `
+        <div style="display: flex; justify-content: space-between; margin: 4px 0; font-weight: bold; font-size: 12px;">
+          <span>${labels.due}:</span>
+          <span>৳${Number(data.dueAmount).toFixed(0)}</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      <div style="border-top: 1px dashed #999; margin: 10px 0;"></div>
+      
+      <div style="text-align: center; font-size: 9px; color: #000000;">
+        <p style="margin: 3px 0; font-style: italic;">${labels.thankYou}</p>
+        <p style="margin: 3px 0;">${labels.poweredBy}</p>
+      </div>
+    </div>
+  `;
 
-  let customerY = 45;
-  if (data.customer) {
-    doc.text(`${labels.customer}: ${data.customer.name}`, 5, customerY);
-    customerY += 5;
-    if (data.customer.phone) {
-      doc.text(`${labels.phone}: ${data.customer.phone}`, 5, customerY);
-      customerY += 5;
+  const container = document.createElement('div');
+  container.innerHTML = invoiceHtml;
+  container.style.position = 'fixed';
+  container.style.left = '0';
+  container.style.top = '0';
+  container.style.zIndex = '-1000';
+  container.style.background = 'white';
+  document.body.appendChild(container);
+
+  const element = container.querySelector('#invoice-content') as HTMLElement;
+
+  await waitForFonts();
+
+  const opt = {
+    margin: 2,
+    filename: `invoice-${data.invoiceNumber}.pdf`,
+    image: { type: 'png' as const, quality: 1 },
+    html2canvas: { 
+      scale: 4, 
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff'
+    },
+    jsPDF: { 
+      unit: 'mm' as const, 
+      format: [80, 150] as [number, number], 
+      orientation: 'portrait' as const,
+      hotfixes: ['enablepng']
+    }
+  };
+
+  try {
+    await html2pdf().set(opt).from(element).save();
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    throw error;
+  } finally {
+    if (container.parentNode) {
+      container.parentNode.removeChild(container);
     }
   }
-
-  doc.line(5, customerY, 75, customerY);
-
-  let y = customerY + 4;
-  doc.setFontSize(8);
-  doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'bold');
-  doc.text(labels.item, 5, y);
-  doc.text(labels.qty, 45, y);
-  if (data.items[0]?.price !== undefined) {
-    doc.text(labels.price, 55, y);
-  }
-  doc.text(labels.total, 68, y);
-  
-  doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'normal');
-  y += 5;
-  
-  if (data.items && data.items.length > 0) {
-    data.items.forEach((item) => {
-      const name = item.name.length > 18 ? item.name.substring(0, 18) + '..' : item.name;
-      doc.text(name, 5, y);
-      doc.text(String(item.quantity), 45, y);
-      if (item.price !== undefined) {
-        doc.text(`৳${item.price}`, 55, y);
-      }
-      doc.text(`৳${Number(item.totalPrice).toFixed(0)}`, 68, y);
-      y += 5;
-    });
-  } else {
-    doc.text('No items', 5, y);
-    y += 5;
-  }
-
-  doc.line(5, y, 75, y);
-  y += 5;
-  
-  doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'bold');
-  doc.text(`${labels.total}:`, 45, y);
-  doc.text(`৳${Number(data.totalAmount).toFixed(0)}`, 68, y);
-  y += 5;
-  
-  if (Number(data.discount) > 0) {
-    doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'normal');
-    doc.text(`${labels.discount}:`, 45, y);
-    doc.text(`-৳${Number(data.discount).toFixed(0)}`, 68, y);
-    y += 5;
-  }
-  
-  if (Number(data.paidAmount) > 0) {
-    doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'normal');
-    doc.text(`${labels.paid}:`, 45, y);
-    doc.text(`৳${Number(data.paidAmount).toFixed(0)}`, 68, y);
-    y += 5;
-  }
-  if (Number(data.dueAmount) > 0) {
-    doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'bold');
-    doc.text(`${labels.due}:`, 45, y);
-    doc.text(`৳${Number(data.dueAmount).toFixed(0)}`, 68, y);
-  }
-
-  y += 8;
-  doc.setFontSize(8);
-  doc.setFont(isBangla ? 'NotoSansBengali' : 'helvetica', 'italic');
-  doc.text(labels.thankYou, 40, y, { align: 'center' });
-  doc.text(labels.poweredBy, 40, y + 4, { align: 'center' });
-
-  doc.save(`invoice-${data.invoiceNumber}.pdf`);
 }
