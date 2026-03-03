@@ -77,6 +77,7 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
   const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+  const isSales = currentUser?.role === 'SALES';
   
   // Navigation state
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -1792,6 +1793,7 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isSuperAdmin={isSuperAdmin}
+        isSales={isSales}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />

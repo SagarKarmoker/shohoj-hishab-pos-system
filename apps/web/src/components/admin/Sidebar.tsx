@@ -1,12 +1,22 @@
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../Icon';
 
-export type AdminTab = 'dashboard' | 'users' | 'plans' | 'sales' | 'revenue' | 'audit-logs' | 'announcements' | 'settings';
+export type AdminTab = 'dashboard' | 'users' | 'plans' | 'sales' | 'revenue' | 'audit-logs' | 'announcements' | 'settings' | 'sales-dashboard';
 
 interface SidebarProps {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
   isSuperAdmin: boolean;
+  isSales?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
+}
+
+interface SidebarProps {
+  activeTab: AdminTab;
+  onTabChange: (tab: AdminTab) => void;
+  isSuperAdmin: boolean;
+  isSales?: boolean;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
 }
@@ -16,12 +26,14 @@ interface NavItem {
   label: string;
   icon: string;
   superAdminOnly?: boolean;
+  salesOnly?: boolean;
 }
 
 export function Sidebar({
   activeTab,
   onTabChange,
   isSuperAdmin,
+  isSales = false,
   isCollapsed = false,
   onToggleCollapse,
 }: SidebarProps) {
@@ -29,18 +41,26 @@ export function Sidebar({
 
   const navItems: NavItem[] = [
     { id: 'dashboard', label: t('admin.dashboard', 'Dashboard'), icon: 'dashboard' },
-    { id: 'users', label: t('admin.users', 'Users'), icon: 'group' },
-    { id: 'plans', label: t('admin.plans', 'Plans'), icon: 'card_membership' },
-    { id: 'sales', label: t('admin.sales', 'Sales'), icon: 'trending_up' },
+    { id: 'users', label: t('admin.users', 'Users'), icon: 'group', superAdminOnly: true },
+    { id: 'plans', label: t('admin.plans', 'Plans'), icon: 'card_membership', superAdminOnly: true },
+    { id: 'sales', label: t('admin.sales', 'Sales'), icon: 'trending_up', salesOnly: true },
     { id: 'revenue', label: t('admin.revenue', 'Revenue'), icon: 'payments', superAdminOnly: true },
     { id: 'audit-logs', label: t('admin.auditLogs', 'Audit Logs'), icon: 'history', superAdminOnly: true },
     { id: 'announcements', label: t('admin.announcements', 'Announcements'), icon: 'campaign', superAdminOnly: true },
     { id: 'settings', label: t('admin.settings', 'Settings'), icon: 'settings' },
   ];
 
-  const visibleItems = navItems.filter(
-    (item) => !item.superAdminOnly || isSuperAdmin
-  );
+  const visibleItems = navItems.filter((item) => {
+    if (isSuperAdmin) return true;
+    if (isSales) {
+      if (item.id === 'dashboard') return true;
+      if (item.id === 'sales') return true;
+      if (item.id === 'settings') return true;
+      return false;
+    }
+    if (item.superAdminOnly) return false;
+    return true;
+  });
 
   return (
     <aside
@@ -125,7 +145,7 @@ export function Sidebar({
           <div className="h-16 px-4 border-t border-slate-200 dark:border-slate-800 flex items-center">
             <div className="text-xs text-slate-400 dark:text-slate-500">
               <p className="font-medium text-slate-600 dark:text-slate-400">
-                {isSuperAdmin ? 'Super Admin' : 'Admin'}
+                {isSuperAdmin ? 'Super Admin' : isSales ? 'Sales' : 'Admin'}
               </p>
               <p className="mt-0.5">v1.0.0</p>
             </div>

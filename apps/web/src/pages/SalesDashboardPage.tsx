@@ -257,31 +257,48 @@ export function SalesDashboardPage({ isDark, onToggleTheme, onLogout }: SalesDas
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
       {/* Sidebar */}
       <aside
-        className={`bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ${
+        className={`bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 flex-shrink-0 ${
           sidebarCollapsed ? 'w-16' : 'w-64'
         }`}
       >
         <div className="h-full flex flex-col">
-          {/* Collapse Toggle */}
-          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-end">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <Icon
-                name={sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
-                className="text-slate-500"
+          {/* Logo */}
+          <div className="h-16 px-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center w-full' : ''}`}>
+              <img 
+                src="/favicon.svg" 
+                alt="Logo" 
+                className="w-8 h-8 flex-shrink-0"
               />
-            </button>
+              {!sidebarCollapsed && (
+                <span className="font-bold text-primary text-lg whitespace-nowrap">Shohoj Hishab</span>
+              )}
+            </div>
+            {sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Icon name="chevron_right" className="w-4 h-4 text-slate-500" />
+              </button>
+            )}
+            {!sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Icon name="chevron_left" className="w-4 h-4 text-slate-500" />
+              </button>
+            )}
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-3 space-y-1">
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                   activeTab === item.id
                     ? 'bg-primary text-white shadow-lg shadow-orange-500/25'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -289,7 +306,7 @@ export function SalesDashboardPage({ isDark, onToggleTheme, onLogout }: SalesDas
               >
                 <Icon name={item.icon} className="w-5 h-5 flex-shrink-0" />
                 {!sidebarCollapsed && (
-                  <span className="font-medium text-sm">{item.label}</span>
+                  <span className="font-medium text-sm truncate">{item.label}</span>
                 )}
               </button>
             ))}
@@ -297,12 +314,12 @@ export function SalesDashboardPage({ isDark, onToggleTheme, onLogout }: SalesDas
 
           {/* Footer */}
           {!sidebarCollapsed && (
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="h-16 px-4 border-t border-slate-200 dark:border-slate-800 flex items-center">
               <div className="text-xs text-slate-400 dark:text-slate-500">
                 <p className="font-medium text-slate-600 dark:text-slate-400">
                   {t('sales.salesPartner', 'Sales Partner')}
                 </p>
-                <p className="mt-1">v1.0.0</p>
+                <p className="mt-0.5">v1.0.0</p>
               </div>
             </div>
           )}
@@ -310,10 +327,10 @@ export function SalesDashboardPage({ isDark, onToggleTheme, onLogout }: SalesDas
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950">
         {/* Header */}
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40">
-          <div className="px-6 py-4 flex items-center justify-between">
+        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 flex items-center px-6">
+          <div className="flex items-center justify-between w-full">
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               {activeTab === 'dashboard' && t('sales.dashboard', 'Dashboard')}
               {activeTab === 'customers' && t('sales.myCustomers', 'My Customers')}
