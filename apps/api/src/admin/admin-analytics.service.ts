@@ -4,10 +4,12 @@ import { PrismaService } from '../prisma/prisma.service';
 export interface DashboardStats {
   totalUsers: number;
   activeUsers: number;
+  inactiveUsers: number;
   newUsersThisMonth: number;
   totalRevenue: number;
   monthlyRecurringRevenue: number;
   activeSubscriptions: number;
+  expiredSubscriptions: number;
   totalSalesPersons: number;
   totalPlans: number;
   recentSignups: Array<{
@@ -16,6 +18,24 @@ export interface DashboardStats {
     email: string;
     role: string;
     createdAt: Date;
+  }>;
+  revenueTrend: Array<{
+    date: string;
+    revenue: number;
+  }>;
+  userTrend: Array<{
+    date: string;
+    users: number;
+  }>;
+  recentLogins: Array<{
+    id: string;
+    userId: string;
+    email: string;
+    createdAt: Date;
+  }>;
+  subscriptionExpiry: Array<{
+    daysUntilExpiry: number;
+    count: number;
   }>;
 }
 
@@ -70,25 +90,37 @@ export class AdminAnalyticsService {
   async getDashboardStats(): Promise<DashboardStats> {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const [
       totalUsers,
       activeUsers,
+      inactiveUsers,
       newUsersThisMonth,
       totalRevenue,
       activeSubscriptions,
+      expiredSubscriptions,
       totalSalesPersons,
       totalPlans,
       recentSignups,
+      recentLogins,
+      salesInLast7Days,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { isActive: true } }),
+      this.prisma.user.count({ where: { isActive: false } }),
       this.prisma.user.count({ where: { createdAt: { gte: startOfMonth } } }),
       this.getTotalRevenue(),
       this.prisma.user.count({
         where: {
           isActive: true,
           subscriptionEndDate: { gte: now },
+        },
+      }),
+      this.prisma.user.count({
+        where: {
+          isActive: true,
+          subscriptionEndDate: { lt: now },
         },
       }),
       this.prisma.salesPerson.count({ where: { isActive: true } }),
@@ -103,6 +135,20 @@ export class AdminAnalyticsService {
           role: true,
           createdAt: true,
         },
+      }),
+      this.prisma.loginHistory.findMany({
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          userId: true,
+          user: { select: { email: true } },
+          createdAt: true,
+        },
+      }),
+      this.prisma.sale.findMany({
+        where: { createdAt: { gte: sevenDaysAgo } },
+        select: { saleAmount: true, createdAt: true },
       }),
     ]);
 
@@ -130,16 +176,87 @@ export class AdminAnalyticsService {
       }
     }
 
+    // Revenue trend - last 7 days
+    const revenueTrendMap = new Map<string, number>();
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().split('T')[0];
+      revenueTrendMap.set(dateStr, 0);
+    }
+    for (const sale of salesInLast7Days) {
+      const dateStr = sale.createdAt.toISOString().split('T')[0];
+      const current = revenueTrendMap.get(dateStr) || 0;
+      revenueTrendMap.set(dateStr, current + Number(sale.saleAmount));
+    }
+    const revenueTrend = Array.from(revenueTrendMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, revenue]) => ({ date, revenue: Math.round(revenue * 100) / 100 }));
+
+    // User trend - last 7 days
+    const userTrendMap = new Map<string, number>();
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().split('T')[0];
+      userTrendMap.set(dateStr, 0);
+    }
+    const usersInLast7Days = await this.prisma.user.findMany({
+      where: { createdAt: { gte: sevenDaysAgo } },
+      select: { createdAt: true },
+    });
+    for (const user of usersInLast7Days) {
+      const dateStr = user.createdAt.toISOString().split('T')[0];
+      const current = userTrendMap.get(dateStr) || 0;
+      userTrendMap.set(dateStr, current + 1);
+    }
+    const userTrend = Array.from(userTrendMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, users]) => ({ date, users }));
+
+    // Subscription expiry forecast
+    const expiryIn7Days = await this.prisma.user.count({
+      where: {
+        isActive: true,
+        subscriptionEndDate: {
+          gte: now,
+          lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+    });
+    const expiryIn30Days = await this.prisma.user.count({
+      where: {
+        isActive: true,
+        subscriptionEndDate: {
+          gt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+          lte: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+    });
+    const subscriptionExpiry = [
+      { daysUntilExpiry: 7, count: expiryIn7Days },
+      { daysUntilExpiry: 30, count: expiryIn30Days },
+    ];
+
     return {
       totalUsers,
       activeUsers,
+      inactiveUsers,
       newUsersThisMonth,
       totalRevenue,
       monthlyRecurringRevenue: Math.round(monthlyRecurringRevenue * 100) / 100,
       activeSubscriptions,
+      expiredSubscriptions,
       totalSalesPersons,
       totalPlans,
       recentSignups,
+      revenueTrend,
+      userTrend,
+      recentLogins: recentLogins.map(l => ({
+        id: l.id,
+        userId: l.userId,
+        email: l.user?.email || '',
+        createdAt: l.createdAt,
+      })),
+      subscriptionExpiry,
     };
   }
 

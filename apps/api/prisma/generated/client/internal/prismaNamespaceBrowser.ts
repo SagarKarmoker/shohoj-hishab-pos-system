@@ -62,7 +62,9 @@ export const ModelName = {
   SalesPerson: 'SalesPerson',
   Sale: 'Sale',
   AuditLog: 'AuditLog',
-  LoginHistory: 'LoginHistory'
+  LoginHistory: 'LoginHistory',
+  Announcement: 'Announcement',
+  PlatformSettings: 'PlatformSettings'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -273,6 +275,36 @@ export const LoginHistoryScalarFieldEnum = {
 } as const
 
 export type LoginHistoryScalarFieldEnum = (typeof LoginHistoryScalarFieldEnum)[keyof typeof LoginHistoryScalarFieldEnum]
+
+
+export const AnnouncementScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  message: 'message',
+  targetRoles: 'targetRoles',
+  isActive: 'isActive',
+  scheduledAt: 'scheduledAt',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AnnouncementScalarFieldEnum = (typeof AnnouncementScalarFieldEnum)[keyof typeof AnnouncementScalarFieldEnum]
+
+
+export const PlatformSettingsScalarFieldEnum = {
+  id: 'id',
+  platformName: 'platformName',
+  platformEmail: 'platformEmail',
+  supportPhone: 'supportPhone',
+  defaultCommissionRate: 'defaultCommissionRate',
+  featureFlags: 'featureFlags',
+  maintenanceMode: 'maintenanceMode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlatformSettingsScalarFieldEnum = (typeof PlatformSettingsScalarFieldEnum)[keyof typeof PlatformSettingsScalarFieldEnum]
 
 
 export const SortOrder = {

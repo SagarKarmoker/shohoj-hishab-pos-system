@@ -272,3 +272,32 @@ model LoginHistory {
   @@index([userId])
   @@index([createdAt])
 }
+
+// Announcements model
+model Announcement {
+  id          String    @id @default(uuid())
+  title       String
+  message     String
+  targetRoles String    @default("ALL") // ALL, USER, ADMIN, SALES
+  isActive    Boolean   @default(true)
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+// Platform Settings model
+model PlatformSettings {
+  id                   String   @id @default(uuid())
+  platformName         String   @default("Shohoj Hishab")
+  platformEmail        String?
+  supportPhone         String?
+  defaultCommissionRate Decimal @default(5) @db.Decimal(5, 2)
+  featureFlags         String   @default("{}") // JSON string
+  maintenanceMode      Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}

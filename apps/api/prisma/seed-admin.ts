@@ -1,37 +1,71 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import * as bcrypt from "bcrypt";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const hashedPassword = await bcrypt.hash('Password1', 10);
 
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@example.com' },
-    update: {},
-    create: {
-      email: 'admin@example.com',
-      password: hashedPassword,
-      displayName: 'Admin User',
-      emailVerified: true,
-      role: 'SUPER_ADMIN',
-    },
-  });
+  // Check if users already exist
+  const existingSuperAdmin = await pool.query(
+    'SELECT email FROM "User" WHERE email = $1',
+    ['superadmin@shohojhisab.com']
+  );
 
-  console.log('Super Admin ready:', admin.email);
-  console.log('Login: admin@example.com / Password1');
+  if (existingSuperAdmin.rows.length === 0) {
+    await pool.query(
+      `INSERT INTO "User" (id, email, password, "displayName", "phoneNumber", "emailVerified", "firebaseUid", role, "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
+      [
+        'superadmin@shohojhisab.com',
+        hashedPassword,
+        'Super Admin',
+        '+8801234567890',
+        true,
+        null,
+        'SUPER_ADMIN'
+      ]
+    );
+    console.log('Super Admin created: superadmin@shohojhisab.com');
+  } else {
+    console.log('Super Admin already exists: superadmin@shohojhisab.com');
+  }
+
+  // Check if admin already exists
+  const existingAdmin = await pool.query(
+    'SELECT email FROM "User" WHERE email = $1',
+    ['admin@shohojhisab.com']
+  );
+
+  if (existingAdmin.rows.length === 0) {
+    await pool.query(
+      `INSERT INTO "User" (id, email, password, "displayName", "phoneNumber", "emailVerified", "firebaseUid", role, "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
+      [
+        'admin@shohojhisab.com',
+        hashedPassword,
+        'Admin User',
+        '+8801234567891',
+        true,
+        null,
+        'ADMIN'
+      ]
+    );
+    console.log('Admin created: admin@shohojhisab.com');
+  } else {
+    console.log('Admin already exists: admin@shohojhisab.com');
+  }
+
+  console.log('\nLogin credentials:');
+  console.log('  Super Admin: superadmin@shohojhisab.com / Password1');
+  console.log('  Admin: admin@shohojhisab.com / Password1');
+
+  await pool.end();
 }
 
 main()
   .catch((e) => {
     console.error(e);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });

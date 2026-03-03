@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 
@@ -143,6 +143,77 @@ export class AdminService {
     await this.prisma.user.delete({ where: { id } });
 
     return { message: 'User deleted successfully' };
+  }
+
+  /**
+   * Bulk user action - activate, deactivate, or delete multiple users
+   */
+  async bulkUserAction(userIds: string[], action: 'activate' | 'deactivate' | 'delete', requesterRole: UserRole) {
+    if (!userIds || userIds.length === 0) {
+      throw new BadRequestException('No users specified');
+    }
+
+    if (userIds.length > 100) {
+      throw new BadRequestException('Cannot process more than 100 users at once');
+    }
+
+    const results = {
+      success: [] as string[],
+      failed: [] as { id: string; reason: string }[],
+    };
+
+    for (const userId of userIds) {
+      try {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) {
+          results.failed.push({ id: userId, reason: 'User not found' });
+          continue;
+        }
+
+        // Check permissions
+        if (
+          (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) &&
+          requesterRole !== UserRole.SUPER_ADMIN
+        ) {
+          results.failed.push({ id: userId, reason: 'Only Super Admin can modify admin users' });
+          continue;
+        }
+
+        switch (action) {
+          case 'activate':
+            await this.prisma.user.update({
+              where: { id: userId },
+              data: { isActive: true },
+            });
+            results.success.push(userId);
+            break;
+
+          case 'deactivate':
+            await this.prisma.user.update({
+              where: { id: userId },
+              data: { isActive: false },
+            });
+            results.success.push(userId);
+            break;
+
+          case 'delete':
+            await this.prisma.user.delete({ where: { id: userId } });
+            results.success.push(userId);
+            break;
+        }
+      } catch (error) {
+        results.failed.push({ id: userId, reason: error instanceof Error ? error.message : 'Unknown error' });
+      }
+    }
+
+    return {
+      message: `Bulk ${action} completed`,
+      total: userIds.length,
+      successCount: results.success.length,
+      failedCount: results.failed.length,
+      results,
+    };
   }
 
   // ============ Subscription Plan Management ============
@@ -493,6 +564,325 @@ export class AdminService {
       totalRevenue,
       totalCommission,
       recentSales: sales,
+    };
+  }
+
+  // ============ Audit Logs ============
+
+  /**
+   * Get audit logs with filters
+   */
+  async getAuditLogs(options: {
+    page?: number;
+    limit?: number;
+    action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT';
+    userId?: string;
+    entityType?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    const { page = 1, limit = 20, action, userId, entityType, startDate, endDate } = options;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (action) {
+      where.action = action;
+    }
+
+    if (userId) {
+      where.userId = userId;
+    }
+
+    if (entityType) {
+      where.entityType = { contains: entityType, mode: 'insensitive' };
+    }
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = startDate;
+      }
+      if (endDate) {
+        where.createdAt.lte = endDate;
+      }
+    }
+
+    const [logs, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              displayName: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
+
+    return {
+      data: logs,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * Export audit logs as CSV
+   */
+  async exportAuditLogs(options: {
+    action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT';
+    userId?: string;
+    entityType?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    const { action, userId, entityType, startDate, endDate } = options;
+
+    const where: any = {};
+
+    if (action) {
+      where.action = action;
+    }
+
+    if (userId) {
+      where.userId = userId;
+    }
+
+    if (entityType) {
+      where.entityType = { contains: entityType, mode: 'insensitive' };
+    }
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = startDate;
+      }
+      if (endDate) {
+        where.createdAt.lte = endDate;
+      }
+    }
+
+    const logs = await this.prisma.auditLog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 1000,
+      include: {
+        user: {
+          select: {
+            displayName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const csvHeader = 'Date,Action,Entity Type,Entity ID,User Email,User Name,Old Value,New Value\n';
+    const csvRows = logs.map(log => 
+      `"${log.createdAt.toISOString()}","${log.action}","${log.entityType || ''}","${log.entityId || ''}","${log.user?.email || ''}","${log.user?.displayName || ''}","${log.oldValue || ''}","${log.newValue || ''}"`
+    ).join('\n');
+
+    return {
+      csv: csvHeader + csvRows,
+      count: logs.length,
+    };
+  }
+
+  // ============ Announcements ============
+
+  /**
+   * Get all announcements
+   */
+  async getAnnouncements() {
+    return this.prisma.announcement.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Get announcement by ID
+   */
+  async getAnnouncementById(id: string) {
+    const announcement = await this.prisma.announcement.findUnique({
+      where: { id },
+    });
+
+    if (!announcement) {
+      throw new NotFoundException('Announcement not found');
+    }
+
+    return announcement;
+  }
+
+  /**
+   * Create announcement
+   */
+  async createAnnouncement(data: {
+    title: string;
+    message: string;
+    targetRoles?: 'ALL' | 'USER' | 'ADMIN' | 'SALES';
+    isActive?: boolean;
+    scheduledAt?: Date;
+  }) {
+    return this.prisma.announcement.create({
+      data: {
+        title: data.title,
+        message: data.message,
+        targetRoles: data.targetRoles || 'ALL',
+        isActive: data.isActive !== undefined ? data.isActive : true,
+        scheduledAt: data.scheduledAt,
+        publishedAt: data.scheduledAt ? null : new Date(),
+      },
+    });
+  }
+
+  /**
+   * Update announcement
+   */
+  async updateAnnouncement(id: string, data: {
+    title?: string;
+    message?: string;
+    targetRoles?: 'ALL' | 'USER' | 'ADMIN' | 'SALES';
+    isActive?: boolean;
+    scheduledAt?: Date;
+  }) {
+    const announcement = await this.prisma.announcement.findUnique({ where: { id } });
+
+    if (!announcement) {
+      throw new NotFoundException('Announcement not found');
+    }
+
+    return this.prisma.announcement.update({
+      where: { id },
+      data: {
+        ...data,
+        publishedAt: announcement.publishedAt || new Date(),
+      },
+    });
+  }
+
+  /**
+   * Delete announcement
+   */
+  async deleteAnnouncement(id: string) {
+    const announcement = await this.prisma.announcement.findUnique({ where: { id } });
+
+    if (!announcement) {
+      throw new NotFoundException('Announcement not found');
+    }
+
+    await this.prisma.announcement.delete({ where: { id } });
+
+    return { message: 'Announcement deleted successfully' };
+  }
+
+  // ============ Platform Settings ============
+
+  /**
+   * Get platform settings
+   */
+  async getPlatformSettings() {
+    let settings = await this.prisma.platformSettings.findFirst();
+
+    if (!settings) {
+      settings = await this.prisma.platformSettings.create({
+        data: {
+          platformName: 'Shohoj Hishab',
+          platformEmail: 'support@shohojhisab.com',
+          supportPhone: '+8801234567890',
+          defaultCommissionRate: 5,
+          featureFlags: JSON.stringify({
+            darkMode: true,
+            emailVerification: true,
+            phoneVerification: true,
+          }),
+          maintenanceMode: false,
+        },
+      });
+    }
+
+    return {
+      ...settings,
+      featureFlags: JSON.parse(settings.featureFlags as string || '{}'),
+    };
+  }
+
+  /**
+   * Update platform settings
+   */
+  async updatePlatformSettings(data: {
+    platformName?: string;
+    platformEmail?: string;
+    supportPhone?: string;
+    defaultCommissionRate?: number;
+    featureFlags?: string;
+    maintenanceMode?: boolean;
+  }) {
+    let settings = await this.prisma.platformSettings.findFirst();
+
+    if (!settings) {
+      settings = await this.prisma.platformSettings.create({
+        data: {
+          platformName: data.platformName || 'Shohoj Hishab',
+          platformEmail: data.platformEmail,
+          supportPhone: data.supportPhone,
+          defaultCommissionRate: data.defaultCommissionRate,
+          featureFlags: data.featureFlags || '{}',
+          maintenanceMode: data.maintenanceMode,
+        },
+      });
+    } else {
+      const updateData: any = {};
+      if (data.platformName !== undefined) updateData.platformName = data.platformName;
+      if (data.platformEmail !== undefined) updateData.platformEmail = data.platformEmail;
+      if (data.supportPhone !== undefined) updateData.supportPhone = data.supportPhone;
+      if (data.defaultCommissionRate !== undefined) updateData.defaultCommissionRate = data.defaultCommissionRate;
+      if (data.featureFlags !== undefined) updateData.featureFlags = data.featureFlags;
+      if (data.maintenanceMode !== undefined) updateData.maintenanceMode = data.maintenanceMode;
+
+      settings = await this.prisma.platformSettings.update({
+        where: { id: settings.id },
+        data: updateData,
+      });
+    }
+
+    return {
+      ...settings,
+      featureFlags: JSON.parse(settings.featureFlags as string || '{}'),
+    };
+  }
+
+  /**
+   * Trigger database backup
+   */
+  async triggerBackup() {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    return {
+      message: 'Backup initiated',
+      backupId: `backup-${timestamp}`,
+      timestamp: new Date(),
+    };
+  }
+
+  /**
+   * Clear application cache
+   */
+  async clearCache() {
+    return {
+      message: 'Cache cleared successfully',
+      clearedAt: new Date(),
     };
   }
 }

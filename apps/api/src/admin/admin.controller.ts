@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiProperty, ApiQuery } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
@@ -72,6 +72,14 @@ class AddSalesPersonDto {
   commissionRate?: number;
 }
 
+class BulkUserActionDto {
+  @ApiProperty({ description: 'Array of user IDs to perform action on', type: [String] })
+  userIds!: string[];
+
+  @ApiProperty({ description: 'Action to perform', enum: ['activate', 'deactivate', 'delete'] })
+  action!: 'activate' | 'deactivate' | 'delete';
+}
+
 class UpdateSalesPersonDto {
   @ApiProperty({ description: 'Commission rate percentage', required: false })
   commissionRate?: number;
@@ -95,6 +103,83 @@ class GetUsersQuery {
 
   @ApiProperty({ description: 'Filter by active status', required: false })
   isActive?: boolean;
+}
+
+class GetAuditLogsQuery {
+  @ApiProperty({ description: 'Page number', required: false, example: 1 })
+  page?: number;
+
+  @ApiProperty({ description: 'Items per page', required: false, example: 20 })
+  limit?: number;
+
+  @ApiProperty({ description: 'Filter by action type', required: false, enum: ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'] })
+  action?: 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT';
+
+  @ApiProperty({ description: 'Filter by user ID', required: false })
+  userId?: string;
+
+  @ApiProperty({ description: 'Filter by entity type', required: false })
+  entityType?: string;
+
+  @ApiProperty({ description: 'Start date filter', required: false })
+  startDate?: string;
+
+  @ApiProperty({ description: 'End date filter', required: false })
+  endDate?: string;
+}
+
+class CreateAnnouncementDto {
+  @ApiProperty({ description: 'Announcement title', example: 'System Maintenance' })
+  title!: string;
+
+  @ApiProperty({ description: 'Announcement message', example: 'System will be down for maintenance' })
+  message!: string;
+
+  @ApiProperty({ description: 'Target user roles', required: false, enum: ['ALL', 'USER', 'ADMIN', 'SALES'] })
+  targetRoles?: 'ALL' | 'USER' | 'ADMIN' | 'SALES';
+
+  @ApiProperty({ description: 'Is active', required: false })
+  isActive?: boolean;
+
+  @ApiProperty({ description: 'Scheduled publish date', required: false })
+  scheduledAt?: Date;
+}
+
+class UpdateAnnouncementDto {
+  @ApiProperty({ description: 'Announcement title', required: false })
+  title?: string;
+
+  @ApiProperty({ description: 'Announcement message', required: false })
+  message?: string;
+
+  @ApiProperty({ description: 'Target user roles', required: false })
+  targetRoles?: 'ALL' | 'USER' | 'ADMIN' | 'SALES';
+
+  @ApiProperty({ description: 'Is active', required: false })
+  isActive?: boolean;
+
+  @ApiProperty({ description: 'Scheduled publish date', required: false })
+  scheduledAt?: Date;
+}
+
+class UpdatePlatformSettingsDto {
+  @ApiProperty({ description: 'Platform name', required: false })
+  platformName?: string;
+
+  @ApiProperty({ description: 'Platform email', required: false })
+  platformEmail?: string;
+
+  @ApiProperty({ description: 'Support phone', required: false })
+  supportPhone?: string;
+
+  @ApiProperty({ description: 'Default commission rate', required: false })
+  defaultCommissionRate?: number;
+
+  @ApiProperty({ description: 'Feature flags as JSON', required: false })
+  featureFlags?: string;
+
+  @ApiProperty({ description: 'Maintenance mode', required: false })
+  maintenanceMode?: boolean;
 }
 
 @ApiTags('Admin')
@@ -149,6 +234,14 @@ export class AdminController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async deleteUser(@Param('id') id: string, @Request() req: { user: { role: string } }) {
     return this.adminService.deleteUser(id, req.user.role as UserRole);
+  }
+
+  @Post('users/bulk-action')
+  @ApiOperation({ summary: 'Bulk user action', description: 'Perform action on multiple users at once' })
+  @ApiResponse({ status: 200, description: 'Bulk action completed' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  async bulkUserAction(@Body() dto: BulkUserActionDto, @Request() req: { user: { role: string } }) {
+    return this.adminService.bulkUserAction(dto.userIds, dto.action, req.user.role as UserRole);
   }
 
   // ============ Subscription Plan Management ============
@@ -273,5 +366,115 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Revenue stats returned' })
   async getRevenueStats() {
     return this.adminService.getRevenueStats();
+  }
+
+  // ============ Audit Logs ============
+
+  @Get('audit-logs')
+  @ApiOperation({ summary: 'Get audit logs', description: 'Get paginated audit logs with filters' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'action', required: false, enum: ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'] })
+  @ApiQuery({ name: 'userId', required: false, type: String })
+  @ApiQuery({ name: 'entityType', required: false, type: String })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
+  @ApiQuery({ name: 'endDate', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'Audit logs returned' })
+  async getAuditLogs(@Query() query: GetAuditLogsQuery) {
+    return this.adminService.getAuditLogs({
+      page: query.page ? Number(query.page) : undefined,
+      limit: query.limit ? Number(query.limit) : undefined,
+      action: query.action,
+      userId: query.userId,
+      entityType: query.entityType,
+      startDate: query.startDate ? new Date(query.startDate) : undefined,
+      endDate: query.endDate ? new Date(query.endDate) : undefined,
+    });
+  }
+
+  @Get('audit-logs/export')
+  @ApiOperation({ summary: 'Export audit logs', description: 'Export audit logs as CSV' })
+  @ApiResponse({ status: 200, description: 'Audit logs exported' })
+  async exportAuditLogs(@Query() query: GetAuditLogsQuery) {
+    return this.adminService.exportAuditLogs({
+      action: query.action,
+      userId: query.userId,
+      entityType: query.entityType,
+      startDate: query.startDate ? new Date(query.startDate) : undefined,
+      endDate: query.endDate ? new Date(query.endDate) : undefined,
+    });
+  }
+
+  // ============ Announcements ============
+
+  @Get('announcements')
+  @ApiOperation({ summary: 'Get all announcements', description: 'Get all announcements' })
+  @ApiResponse({ status: 200, description: 'Announcements list returned' })
+  async getAnnouncements() {
+    return this.adminService.getAnnouncements();
+  }
+
+  @Get('announcements/:id')
+  @ApiOperation({ summary: 'Get announcement by ID', description: 'Get a specific announcement' })
+  @ApiResponse({ status: 200, description: 'Announcement returned' })
+  @ApiResponse({ status: 404, description: 'Announcement not found' })
+  async getAnnouncementById(@Param('id') id: string) {
+    return this.adminService.getAnnouncementById(id);
+  }
+
+  @Post('announcements')
+  @ApiOperation({ summary: 'Create announcement', description: 'Create a new announcement' })
+  @ApiResponse({ status: 201, description: 'Announcement created successfully' })
+  async createAnnouncement(@Body() dto: CreateAnnouncementDto) {
+    return this.adminService.createAnnouncement(dto);
+  }
+
+  @Patch('announcements/:id')
+  @ApiOperation({ summary: 'Update announcement', description: 'Update an existing announcement' })
+  @ApiResponse({ status: 200, description: 'Announcement updated successfully' })
+  @ApiResponse({ status: 404, description: 'Announcement not found' })
+  async updateAnnouncement(@Param('id') id: string, @Body() dto: UpdateAnnouncementDto) {
+    return this.adminService.updateAnnouncement(id, dto);
+  }
+
+  @Delete('announcements/:id')
+  @ApiOperation({ summary: 'Delete announcement', description: 'Delete an announcement' })
+  @ApiResponse({ status: 200, description: 'Announcement deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Announcement not found' })
+  async deleteAnnouncement(@Param('id') id: string) {
+    return this.adminService.deleteAnnouncement(id);
+  }
+
+  // ============ Platform Settings ============
+
+  @Get('settings')
+  @ApiOperation({ summary: 'Get platform settings', description: 'Get all platform settings' })
+  @ApiResponse({ status: 200, description: 'Platform settings returned' })
+  async getPlatformSettings() {
+    return this.adminService.getPlatformSettings();
+  }
+
+  @Patch('settings')
+  @ApiOperation({ summary: 'Update platform settings', description: 'Update platform settings' })
+  @ApiResponse({ status: 200, description: 'Platform settings updated' })
+  async updatePlatformSettings(@Body() dto: UpdatePlatformSettingsDto) {
+    return this.adminService.updatePlatformSettings(dto);
+  }
+
+  @Post('settings/backup')
+  @ApiOperation({ summary: 'Trigger database backup', description: 'Trigger a database backup' })
+  @ApiResponse({ status: 200, description: 'Backup initiated' })
+  async triggerBackup(@Request() req: { user: { role: string } }) {
+    if (req.user.role !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Only Super Admin can trigger backups');
+    }
+    return this.adminService.triggerBackup();
+  }
+
+  @Post('settings/cache/clear')
+  @ApiOperation({ summary: 'Clear cache', description: 'Clear application cache' })
+  @ApiResponse({ status: 200, description: 'Cache cleared' })
+  async clearCache() {
+    return this.adminService.clearCache();
   }
 }

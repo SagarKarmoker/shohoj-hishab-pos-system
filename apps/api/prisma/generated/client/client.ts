@@ -99,3 +99,13 @@ export type AuditLog = Prisma.AuditLogModel
  * 
  */
 export type LoginHistory = Prisma.LoginHistoryModel
+/**
+ * Model Announcement
+ * 
+ */
+export type Announcement = Prisma.AnnouncementModel
+/**
+ * Model PlatformSettings
+ * 
+ */
+export type PlatformSettings = Prisma.PlatformSettingsModel

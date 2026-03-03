@@ -10,10 +10,24 @@ import {
   getRevenueStats,
   getUserGrowthStats,
   getSalesStats,
+  bulkUserAction,
+  createAdmin,
+  getAuditLogs,
+  getAnnouncements,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  getPlatformSettings,
+  updatePlatformSettings,
+  triggerBackup,
+  clearCache,
   type DashboardStats,
   type RevenueStats,
   type UserGrowthStats,
   type SalesStats,
+  type AuditLog,
+  type Announcement,
+  type PlatformSettings,
 } from '../api/admin';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -81,6 +95,15 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Bulk selection state
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  
+  // Add Admin modal state
+  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
+  const [addAdminForm, setAddAdminForm] = useState({ userId: '', role: 'ADMIN' as 'ADMIN' | 'SUPER_ADMIN' });
+  const [addAdminLoading, setAddAdminLoading] = useState(false);
+  
   // User detail modal state
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showUserDetail, setShowUserDetail] = useState(false);
@@ -105,6 +128,33 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
   // Sales state
   const [salesPeople, setSalesPeople] = useState<SalesPerson[]>([]);
 
+  // Audit logs state
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [auditLogsMeta, setAuditLogsMeta] = useState<{ total: number; page: number; limit: number; totalPages: number } | null>(null);
+  const [auditLogsLoading, setAuditLogsLoading] = useState(false);
+  const [auditLogFilters, setAuditLogFilters] = useState({
+    action: '',
+    userId: '',
+    entityType: '',
+    startDate: '',
+    endDate: '',
+  });
+
+  // Announcements state
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [announcementForm, setAnnouncementForm] = useState({
+    title: '',
+    message: '',
+    targetRoles: 'ALL' as 'ALL' | 'USER' | 'ADMIN' | 'SALES',
+    isActive: true,
+  });
+
+  // Settings state
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings | null>(null);
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem('jwt_token');
     return { Authorization: `Bearer ${token}` };
@@ -123,6 +173,12 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
       fetchPlans();
     } else if (activeTab === 'sales') {
       fetchSalesPeople();
+    } else if (activeTab === 'audit-logs') {
+      fetchAuditLogs();
+    } else if (activeTab === 'announcements') {
+      fetchAnnouncements();
+    } else if (activeTab === 'settings') {
+      fetchPlatformSettings();
     }
   }, [activeTab]);
 
@@ -182,10 +238,69 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
       const data = response.data.data || response.data || [];
       setUsers(data);
       setError(null);
+      setSelectedUsers(new Set());
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
+    if (selectedUsers.size === 0) return;
+    
+    const confirmMsg = action === 'delete' 
+      ? `Are you sure you want to delete ${selectedUsers.size} user(s)? This cannot be undone.`
+      : `Are you sure you want to ${action} ${selectedUsers.size} user(s)?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+    
+    setBulkActionLoading(true);
+    try {
+      const result = await bulkUserAction(Array.from(selectedUsers), action);
+      alert(`${result.successCount} users ${action}d successfully${result.failedCount > 0 ? `. ${result.failedCount} failed.` : '.'}`);
+      setSelectedUsers(new Set());
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Bulk action failed');
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    const newSelected = new Set(selectedUsers);
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId);
+    } else {
+      newSelected.add(userId);
+    }
+    setSelectedUsers(newSelected);
+  };
+
+  const toggleAllUsers = () => {
+    if (selectedUsers.size === filteredUsers.length) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(filteredUsers.map(u => u.id)));
+    }
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addAdminForm.userId) return;
+    
+    setAddAdminLoading(true);
+    try {
+      await createAdmin(addAdminForm.userId, addAdminForm.role);
+      setShowAddAdminModal(false);
+      setAddAdminForm({ userId: '', role: 'ADMIN' });
+      fetchUsers();
+      alert('Admin created successfully');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to create admin');
+    } finally {
+      setAddAdminLoading(false);
     }
   };
 
@@ -216,6 +331,111 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
       setError(err.response?.data?.message || 'Failed to fetch sales people');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAuditLogs = async (page: number = 1) => {
+    setAuditLogsLoading(true);
+    try {
+      const params: any = { page, limit: 20 };
+      if (auditLogFilters.action) params.action = auditLogFilters.action;
+      if (auditLogFilters.userId) params.userId = auditLogFilters.userId;
+      if (auditLogFilters.entityType) params.entityType = auditLogFilters.entityType;
+      if (auditLogFilters.startDate) params.startDate = auditLogFilters.startDate;
+      if (auditLogFilters.endDate) params.endDate = auditLogFilters.endDate;
+      
+      const response = await getAuditLogs(params);
+      setAuditLogs(response.data);
+      setAuditLogsMeta(response.meta);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch audit logs');
+    } finally {
+      setAuditLogsLoading(false);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    setAnnouncementsLoading(true);
+    try {
+      const response = await getAnnouncements();
+      setAnnouncements(response);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch announcements');
+    } finally {
+      setAnnouncementsLoading(false);
+    }
+  };
+
+  const handleAnnouncementSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingAnnouncement) {
+        await updateAnnouncement(editingAnnouncement.id, announcementForm);
+      } else {
+        await createAnnouncement(announcementForm);
+      }
+      setShowAnnouncementForm(false);
+      setEditingAnnouncement(null);
+      setAnnouncementForm({ title: '', message: '', targetRoles: 'ALL', isActive: true });
+      fetchAnnouncements();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save announcement');
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    try {
+      await deleteAnnouncement(id);
+      fetchAnnouncements();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete announcement');
+    }
+  };
+
+  const fetchPlatformSettings = async () => {
+    try {
+      const response = await getPlatformSettings();
+      setPlatformSettings(response);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to fetch settings');
+    }
+  };
+
+  const handleSettingsSave = async () => {
+    if (!platformSettings) return;
+    try {
+      await updatePlatformSettings({
+        platformName: platformSettings.platformName,
+        platformEmail: platformSettings.platformEmail || undefined,
+        supportPhone: platformSettings.supportPhone || undefined,
+        defaultCommissionRate: platformSettings.defaultCommissionRate,
+        maintenanceMode: platformSettings.maintenanceMode,
+      });
+      alert('Settings saved successfully');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save settings');
+    }
+  };
+
+  const handleTriggerBackup = async () => {
+    try {
+      const result = await triggerBackup();
+      alert(result.message);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to trigger backup');
+    }
+  };
+
+  const handleClearCache = async () => {
+    try {
+      const result = await clearCache();
+      alert(result.message);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to clear cache');
     }
   };
 
@@ -323,22 +543,32 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
   // Dashboard View
   const renderDashboard = () => (
     <div className="space-y-6">
-      {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Cards Row - 6 cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatsCard
           title={t('admin.totalUsers', 'Total Users')}
           value={dashboardStats?.totalUsers || 0}
-          change={12}
-          changeLabel={t('admin.thisMonth', 'this month')}
           icon="group"
           color="primary"
           loading={analyticsLoading}
         />
         <StatsCard
+          title={t('admin.activeUsers', 'Active Users')}
+          value={dashboardStats?.activeUsers || 0}
+          icon="check_circle"
+          color="success"
+          loading={analyticsLoading}
+        />
+        <StatsCard
+          title={t('admin.newUsers', 'New This Month')}
+          value={dashboardStats?.newUsersThisMonth || 0}
+          icon="person_add"
+          color="info"
+          loading={analyticsLoading}
+        />
+        <StatsCard
           title={t('admin.totalRevenue', 'Total Revenue')}
           value={`৳${(dashboardStats?.totalRevenue || 0).toLocaleString()}`}
-          change={8}
-          changeLabel={t('admin.thisMonth', 'this month')}
           icon="payments"
           color="success"
           loading={analyticsLoading}
@@ -347,14 +577,46 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
           title={t('admin.activeSubscriptions', 'Active Subscriptions')}
           value={dashboardStats?.activeSubscriptions || 0}
           icon="card_membership"
-          color="info"
+          color="warning"
           loading={analyticsLoading}
         />
         <StatsCard
           title={t('admin.monthlyRecurring', 'MRR')}
           value={`৳${(dashboardStats?.monthlyRecurringRevenue || 0).toLocaleString()}`}
           icon="repeat"
-          color="warning"
+          color="danger"
+          loading={analyticsLoading}
+        />
+      </div>
+
+      {/* Second Row - More Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title={t('admin.inactiveUsers', 'Inactive Users')}
+          value={dashboardStats?.inactiveUsers || 0}
+          icon="cancel"
+          color="info"
+          loading={analyticsLoading}
+        />
+        <StatsCard
+          title={t('admin.expiredSubscriptions', 'Expired')}
+          value={dashboardStats?.expiredSubscriptions || 0}
+          icon="warning"
+          color="danger"
+          loading={analyticsLoading}
+        />
+        <StatsCard
+          title={t('admin.salesPersons', 'Sales Persons')}
+          value={dashboardStats?.totalSalesPersons || 0}
+          icon="store"
+          color="info"
+          loading={analyticsLoading}
+        />
+        <StatsCard
+          title={t('admin.totalPlans', 'Plans')}
+          value={dashboardStats?.totalPlans || 0}
+          icon="list"
+          color="primary"
           loading={analyticsLoading}
         />
       </div>
@@ -362,21 +624,38 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LineChart
-          data={userGrowthStats?.dailySignups.map(d => ({ label: d.date, value: d.count })) || []}
-          title={t('admin.userGrowth', 'User Growth (30 Days)')}
+          data={dashboardStats?.userTrend.map(d => ({ label: d.date, value: d.users })) || []}
+          title={t('admin.userTrend', 'User Signups (7 Days)')}
           color="#f97316"
           loading={analyticsLoading}
         />
-        <BarChart
-          data={revenueStats?.revenueByPlan.map(p => ({ label: p.planName, value: p.revenue })) || []}
-          title={t('admin.revenueByPlan', 'Revenue by Plan')}
+        <LineChart
+          data={dashboardStats?.revenueTrend.map(d => ({ label: d.date, value: d.revenue })) || []}
+          title={t('admin.revenueTrend', 'Revenue (7 Days)')}
+          color="#22c55e"
           loading={analyticsLoading}
           yAxisFormatter={(v) => `৳${v >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
         />
       </div>
 
-      {/* Recent Activity Row */}
+      {/* Additional Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <BarChart
+          data={(revenueStats?.revenueByPlan || []).map(p => ({ label: p.planName, value: p.revenue }))}
+          title={t('admin.revenueByPlan', 'Revenue by Plan')}
+          loading={analyticsLoading}
+          yAxisFormatter={(v) => `৳${v >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
+        />
+        <LineChart
+          data={(userGrowthStats?.dailySignups || []).map(d => ({ label: d.date, value: d.count }))}
+          title={t('admin.userGrowth', 'User Growth (30 Days)')}
+          color="#f97316"
+          loading={analyticsLoading}
+        />
+      </div>
+
+      {/* Recent Activity Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Signups */}
         <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
@@ -388,6 +667,8 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
                 <div key={i} className="h-12 bg-slate-100 dark:bg-slate-800 rounded"></div>
               ))}
             </div>
+          ) : dashboardStats?.recentSignups.length === 0 ? (
+            <p className="text-slate-500 text-center py-4">No recent signups</p>
           ) : (
             <div className="space-y-3">
               {dashboardStats?.recentSignups.slice(0, 5).map((user) => (
@@ -454,6 +735,83 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
             </div>
           )}
         </div>
+
+        {/* Recent Logins */}
+        <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+            {t('admin.recentLogins', 'Recent Logins')}
+          </h3>
+          {analyticsLoading ? (
+            <div className="animate-pulse space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-12 bg-slate-100 dark:bg-slate-800 rounded"></div>
+              ))}
+            </div>
+          ) : dashboardStats?.recentLogins.length === 0 ? (
+            <p className="text-slate-500 text-center py-4">No recent logins</p>
+          ) : (
+            <div className="space-y-3">
+              {dashboardStats?.recentLogins.slice(0, 5).map((login) => (
+                <div
+                  key={login.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50"
+                >
+                  <div>
+                    <p className="font-medium text-slate-900 dark:text-slate-100 text-sm">{login.email}</p>
+                    <p className="text-xs text-slate-400">{format(new Date(login.createdAt), 'MMM dd, HH:mm')}</p>
+                  </div>
+                  <Icon name="login" className="text-slate-400" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Subscription Expiry Alerts */}
+        <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+            {t('admin.expiryAlerts', 'Subscription Expiry')}
+          </h3>
+          {analyticsLoading ? (
+            <div className="animate-pulse space-y-3">
+              {[1, 2].map(i => (
+                <div key={i} className="h-12 bg-slate-100 dark:bg-slate-800 rounded"></div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {dashboardStats?.subscriptionExpiry?.map((item) => (
+                <div
+                  key={item.daysUntilExpiry}
+                  className={`flex items-center justify-between p-3 rounded-xl ${
+                    item.daysUntilExpiry <= 7 
+                      ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' 
+                      : 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon 
+                      name="warning" 
+                      className={item.daysUntilExpiry <= 7 ? 'text-red-600' : 'text-yellow-600'} 
+                    />
+                    <div>
+                      <p className="font-medium text-slate-900 dark:text-slate-100">
+                        {item.daysUntilExpiry <= 7 ? 'Expiring in 7 days' : 'Expiring in 30 days'}
+                      </p>
+                      <p className="text-sm text-slate-500">{item.count} subscriptions</p>
+                    </div>
+                  </div>
+                  <span className={`font-bold ${item.daysUntilExpiry <= 7 ? 'text-red-600' : 'text-yellow-600'}`}>
+                    {item.count}
+                  </span>
+                </div>
+              ))}
+              {(!dashboardStats?.subscriptionExpiry || dashboardStats.subscriptionExpiry.every(s => s.count === 0)) && (
+                <p className="text-slate-500 text-center py-4">No expiring subscriptions</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -494,8 +852,52 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
             <option value="active">{t('admin.active', 'Active')}</option>
             <option value="inactive">{t('admin.inactive', 'Inactive')}</option>
           </select>
+          {isSuperAdmin && (
+            <button
+              onClick={() => setShowAddAdminModal(true)}
+              className="px-4 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-medium flex items-center gap-2 transition-all"
+            >
+              <Icon name="person_add" className="w-5 h-5" />
+              Add Admin
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Bulk Actions Bar */}
+      {selectedUsers.size > 0 && (
+        <div className="bg-primary/10 dark:bg-primary/20 rounded-xl p-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-primary dark:text-primary-200">
+            {selectedUsers.size} user(s) selected
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleBulkAction('activate')}
+              disabled={bulkActionLoading}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+            >
+              <Icon name="check_circle" className="text-lg" />
+              Activate
+            </button>
+            <button
+              onClick={() => handleBulkAction('deactivate')}
+              disabled={bulkActionLoading}
+              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+            >
+              <Icon name="cancel" className="text-lg" />
+              Deactivate
+            </button>
+            <button
+              onClick={() => handleBulkAction('delete')}
+              disabled={bulkActionLoading}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+            >
+              <Icon name="delete" className="text-lg" />
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Users Table */}
       <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -507,6 +909,14 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <thead className="bg-slate-50 dark:bg-slate-900/50">
               <tr>
+                <th className="px-4 py-4 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectedUsers.size > 0 && selectedUsers.size === filteredUsers.length}
+                    onChange={toggleAllUsers}
+                    className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                  />
+                </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   {t('admin.user', 'User')}
                 </th>
@@ -526,7 +936,15 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-700/30 transition-colors">
+                <tr key={user.id} className={`hover:bg-slate-50/70 dark:hover:bg-slate-700/30 transition-colors ${selectedUsers.has(user.id) ? 'bg-primary/5 dark:bg-primary/10' : ''}`}>
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.has(user.id)}
+                      onChange={() => toggleUserSelection(user.id)}
+                      className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center">
@@ -602,6 +1020,83 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
           </div>
         )}
       </div>
+
+      {/* Add Admin Modal */}
+      {showAddAdminModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-slate-100">
+              Add Admin
+            </h3>
+            <form onSubmit={handleCreateAdmin} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Select User</label>
+                <select
+                  value={addAdminForm.userId}
+                  onChange={(e) => setAddAdminForm({ ...addAdminForm, userId: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                  required
+                >
+                  <option value="">Select a user...</option>
+                  {users.filter(u => u.role === 'USER').map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.displayName || user.email} ({user.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Role</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="ADMIN"
+                      checked={addAdminForm.role === 'ADMIN'}
+                      onChange={() => setAddAdminForm({ ...addAdminForm, role: 'ADMIN' })}
+                      className="w-4 h-4 text-primary"
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">Admin</span>
+                  </label>
+                  {isSuperAdmin && (
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="SUPER_ADMIN"
+                        checked={addAdminForm.role === 'SUPER_ADMIN'}
+                        onChange={() => setAddAdminForm({ ...addAdminForm, role: 'SUPER_ADMIN' })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      <span className="text-slate-700 dark:text-slate-300">Super Admin</span>
+                    </label>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddAdminModal(false);
+                    setAddAdminForm({ userId: '', role: 'ADMIN' });
+                  }}
+                  className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!addAdminForm.userId || addAdminLoading}
+                  className="px-5 py-2.5 text-sm font-semibold bg-primary text-white rounded-xl hover:bg-primary-hover transition-all shadow-lg shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {addAdminLoading ? 'Creating...' : 'Create Admin'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -866,6 +1361,427 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
           </button>
         </div>
       </div>
+
+      {isSuperAdmin && platformSettings && (
+        <>
+          <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+              Platform Settings
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Platform Name</label>
+                <input
+                  type="text"
+                  value={platformSettings.platformName}
+                  onChange={(e) => setPlatformSettings({ ...platformSettings, platformName: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Support Email</label>
+                <input
+                  type="email"
+                  value={platformSettings.platformEmail || ''}
+                  onChange={(e) => setPlatformSettings({ ...platformSettings, platformEmail: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Support Phone</label>
+                <input
+                  type="text"
+                  value={platformSettings.supportPhone || ''}
+                  onChange={(e) => setPlatformSettings({ ...platformSettings, supportPhone: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Default Commission Rate (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={platformSettings.defaultCommissionRate}
+                  onChange={(e) => setPlatformSettings({ ...platformSettings, defaultCommissionRate: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                />
+              </div>
+              <div className="flex items-center justify-between py-3 border-t border-slate-100 dark:border-slate-700">
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">Maintenance Mode</p>
+                  <p className="text-sm text-slate-500">Disable access to all users</p>
+                </div>
+                <button
+                  onClick={() => setPlatformSettings({ ...platformSettings, maintenanceMode: !platformSettings.maintenanceMode })}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${platformSettings.maintenanceMode ? 'bg-red-600' : 'bg-slate-200 dark:bg-slate-600'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${platformSettings.maintenanceMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+              <button
+                onClick={handleSettingsSave}
+                className="w-full px-5 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+              Maintenance
+            </h3>
+            <div className="space-y-3">
+              <button
+                onClick={handleTriggerBackup}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="backup" className="text-slate-500" />
+                  <span>Trigger Database Backup</span>
+                </div>
+                <Icon name="chevron_right" className="text-slate-400" />
+              </button>
+              <button
+                onClick={handleClearCache}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="cached" className="text-slate-500" />
+                  <span>Clear Cache</span>
+                </div>
+                <Icon name="chevron_right" className="text-slate-400" />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  // Revenue View
+  const renderRevenue = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title={t('admin.totalRevenue', 'Total Revenue')}
+          value={`৳${(revenueStats?.totalRevenue || 0).toLocaleString()}`}
+          icon="payments"
+          color="success"
+          loading={analyticsLoading}
+        />
+        <StatsCard
+          title={t('admin.periodRevenue', 'Period Revenue')}
+          value={`৳${(revenueStats?.periodRevenue || 0).toLocaleString()}`}
+          icon="trending_up"
+          color="primary"
+          loading={analyticsLoading}
+        />
+        <StatsCard
+          title={t('admin.totalSales', 'Total Sales')}
+          value={salesStats?.totalSales?.toString() || '0'}
+          icon="shopping_cart"
+          color="info"
+          loading={analyticsLoading}
+        />
+        <StatsCard
+          title={t('admin.commission', 'Commission')}
+          value={`৳${(salesStats?.totalCommission || 0).toLocaleString()}`}
+          icon="account_balance_wallet"
+          color="warning"
+          loading={analyticsLoading}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+          <BarChart
+            title="Revenue by Plan"
+            data={(revenueStats?.revenueByPlan || []).map(p => ({ label: p.planName, value: p.revenue }))}
+            loading={analyticsLoading}
+            yAxisFormatter={(v) => `৳${v >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
+          />
+        </div>
+        <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+          <LineChart
+            title="Daily Revenue"
+            data={(revenueStats?.dailyRevenue || []).map(d => ({ label: d.date, value: d.revenue }))}
+            color="#22c55e"
+            loading={analyticsLoading}
+            yAxisFormatter={(v) => `৳${v >= 1000 ? (v/1000).toFixed(0) + 'K' : v}`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // Audit Logs View
+  const renderAuditLogs = () => (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+        <div className="flex flex-col md:flex-row gap-4">
+          <select
+            value={auditLogFilters.action}
+            onChange={(e) => setAuditLogFilters({ ...auditLogFilters, action: e.target.value })}
+            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none min-w-[150px]"
+          >
+            <option value="">All Actions</option>
+            <option value="CREATE">Create</option>
+            <option value="UPDATE">Update</option>
+            <option value="DELETE">Delete</option>
+            <option value="LOGIN">Login</option>
+            <option value="LOGOUT">Logout</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Filter by entity type..."
+            value={auditLogFilters.entityType}
+            onChange={(e) => setAuditLogFilters({ ...auditLogFilters, entityType: e.target.value })}
+            className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+          />
+          <input
+            type="date"
+            value={auditLogFilters.startDate}
+            onChange={(e) => setAuditLogFilters({ ...auditLogFilters, startDate: e.target.value })}
+            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+          />
+          <input
+            type="date"
+            value={auditLogFilters.endDate}
+            onChange={(e) => setAuditLogFilters({ ...auditLogFilters, endDate: e.target.value })}
+            className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+          />
+          <button
+            onClick={() => fetchAuditLogs(1)}
+            className="px-5 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all"
+          >
+            Filter
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        {auditLogsLoading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead className="bg-slate-50 dark:bg-slate-900/50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Action</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Entity</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">User</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">IP Address</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+              {auditLogs.map((log) => (
+                <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-700/30 transition-colors">
+                  <td className="px-6 py-4 text-sm text-slate-500">
+                    {format(new Date(log.createdAt), 'MMM dd, HH:mm')}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                      log.action === 'CREATE' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      log.action === 'UPDATE' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                      log.action === 'DELETE' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                      'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                    }`}>
+                      {log.action}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
+                    {log.entityType}
+                    {log.entityId && <span className="text-slate-400 ml-1">#{log.entityId.slice(0, 8)}</span>}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-500">
+                    {log.user?.displayName || log.user?.email || 'System'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-500">
+                    {log.ipAddress || '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {auditLogs.length === 0 && !auditLogsLoading && (
+          <div className="text-center py-16 text-slate-500">
+            <Icon name="history" className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>No audit logs found</p>
+          </div>
+        )}
+      </div>
+
+      {auditLogsMeta && auditLogsMeta.totalPages > 1 && (
+        <div className="flex justify-center gap-2">
+          {Array.from({ length: auditLogsMeta.totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              onClick={() => fetchAuditLogs(page)}
+              className={`px-4 py-2 rounded-lg ${page === auditLogsMeta.page ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // Announcements View
+  const renderAnnouncements = () => (
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          onClick={() => {
+            setEditingAnnouncement(null);
+            setAnnouncementForm({ title: '', message: '', targetRoles: 'ALL', isActive: true });
+            setShowAnnouncementForm(true);
+          }}
+          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-hover transition-all shadow-lg shadow-orange-500/25"
+        >
+          <Icon name="add" className="w-5 h-5" />
+          Create Announcement
+        </button>
+      </div>
+
+      <div className="grid gap-4">
+        {announcementsLoading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : announcements.length === 0 ? (
+          <div className="text-center py-16 text-slate-500 bg-white dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+            <Icon name="campaign" className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>No announcements found</p>
+          </div>
+        ) : (
+          announcements.map((announcement) => (
+            <div
+              key={announcement.id}
+              className={`bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 ${!announcement.isActive ? 'opacity-60' : ''}`}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {announcement.title}
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Target: {announcement.targetRoles} | Created: {format(new Date(announcement.createdAt), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                    announcement.isActive
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                  }`}>
+                    {announcement.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 mb-4">{announcement.message}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setEditingAnnouncement(announcement);
+                    setAnnouncementForm({
+                      title: announcement.title,
+                      message: announcement.message,
+                      targetRoles: announcement.targetRoles as any,
+                      isActive: announcement.isActive,
+                    });
+                    setShowAnnouncementForm(true);
+                  }}
+                  className="px-4 py-2 text-sm font-semibold text-primary border-2 border-primary rounded-xl hover:bg-primary hover:text-white transition-all"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteAnnouncement(announcement.id)}
+                  className="px-4 py-2 text-sm font-semibold text-red-600 border-2 border-red-200 dark:border-red-800 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {showAnnouncementForm && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+            <h3 className="text-xl font-bold mb-6">
+              {editingAnnouncement ? 'Edit Announcement' : 'Create Announcement'}
+            </h3>
+            <form onSubmit={handleAnnouncementSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={announcementForm.title}
+                  onChange={(e) => setAnnouncementForm({ ...announcementForm, title: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Message *</label>
+                <textarea
+                  required
+                  value={announcementForm.message}
+                  onChange={(e) => setAnnouncementForm({ ...announcementForm, message: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none resize-none"
+                  rows={4}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Target Roles</label>
+                <select
+                  value={announcementForm.targetRoles}
+                  onChange={(e) => setAnnouncementForm({ ...announcementForm, targetRoles: e.target.value as any })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                >
+                  <option value="ALL">All Users</option>
+                  <option value="USER">Regular Users</option>
+                  <option value="ADMIN">Admins</option>
+                  <option value="SALES">Sales Team</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={announcementForm.isActive}
+                  onChange={(e) => setAnnouncementForm({ ...announcementForm, isActive: e.target.checked })}
+                  className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                />
+                <label htmlFor="isActive" className="text-sm font-semibold">Active</label>
+              </div>
+              <div className="flex gap-3 justify-end pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAnnouncementForm(false)}
+                  className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-sm font-semibold bg-primary text-white rounded-xl hover:bg-primary-hover transition-all shadow-lg shadow-orange-500/25"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -881,15 +1797,18 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950">
         {/* Header */}
-        <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40">
-          <div className="px-6 py-4 flex items-center justify-between">
+        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 flex items-center px-6">
+          <div className="flex items-center justify-between w-full">
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
               {activeTab === 'dashboard' && t('admin.dashboard', 'Dashboard')}
               {activeTab === 'users' && t('admin.users', 'Users')}
               {activeTab === 'plans' && t('admin.plans', 'Plans')}
               {activeTab === 'sales' && t('admin.sales', 'Sales')}
+              {activeTab === 'revenue' && t('admin.revenue', 'Revenue')}
+              {activeTab === 'audit-logs' && t('admin.auditLogs', 'Audit Logs')}
+              {activeTab === 'announcements' && t('admin.announcements', 'Announcements')}
               {activeTab === 'settings' && t('admin.settings', 'Settings')}
             </h1>
             <div className="flex items-center gap-3">
@@ -925,6 +1844,9 @@ export function AdminPage({ isDark, onToggleTheme, onLogout }: AdminPageProps) {
           {activeTab === 'users' && renderUsers()}
           {activeTab === 'plans' && renderPlans()}
           {activeTab === 'sales' && renderSales()}
+          {activeTab === 'revenue' && renderRevenue()}
+          {activeTab === 'audit-logs' && renderAuditLogs()}
+          {activeTab === 'announcements' && renderAnnouncements()}
           {activeTab === 'settings' && renderSettings()}
         </main>
       </div>
