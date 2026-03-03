@@ -45,13 +45,13 @@
   },
   "pricing": {
     "badge": "Pricing Plan",
-    "title": "Transparent & Affordable Pricing",
-    "subtitle": "Suitable plans for all types of businesses, small or large.",
+    "title": "Simple & Affordable Pricing",
+    "subtitle": "Choose the plan that works for you.",
     "monthly": {
-      "name": "Monthly Plan",
-      "price": "৳ 500",
-      "period": "/ Month",
-      "description": "Perfect for flexibility.",
+      "name": "Monthly",
+      "price": "৳ 99",
+      "period": "/month",
+      "description": "Pay monthly, cancel anytime",
       "features": [
         "Unlimited Invoices",
         "Advanced Analytics",
@@ -61,11 +61,11 @@
       "cta": "Start Free Trial"
     },
     "quarterly": {
-      "name": "Quarterly Plan",
+      "name": "Quarterly",
       "badge": "Save 10%",
-      "price": "৳ 1,350",
-      "period": "/ 3 Months",
-      "description": "Best value for growing businesses.",
+      "price": "৳ 267",
+      "period": "/3 months",
+      "description": "10% discount",
       "features": [
         "Unlimited Invoices",
         "Advanced Analytics",
@@ -76,11 +76,11 @@
       "cta": "Start Free Trial"
     },
     "yearly": {
-      "name": "Yearly Plan",
+      "name": "Yearly",
       "badge": "Save 15%",
-      "price": "৳ 5,100",
-      "period": "/ Year",
-      "description": "Maximum savings for committed businesses.",
+      "price": "৳ 1,010",
+      "period": "/year",
+      "description": "Best value - 15% discount",
       "features": [
         "Unlimited Invoices",
         "Advanced Analytics",
