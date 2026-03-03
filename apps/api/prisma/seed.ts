@@ -90,42 +90,45 @@ async function main() {
 
   // Subscription Plans
   const plans = await Promise.all([
+    // Monthly Plan
     prisma.subscriptionPlan.upsert({
-      where: { id: 'plan-basic' },
+      where: { id: 'plan-monthly' },
       update: {},
       create: {
-        id: 'plan-basic',
-        name: 'Basic Plan',
-        description: 'Perfect for small shops just getting started',
-        price: 999,
+        id: 'plan-monthly',
+        name: 'Monthly Plan',
+        description: 'Perfect for businesses that want flexibility',
+        price: 500,
         durationDays: 30,
-        features: JSON.stringify(['Up to 100 products', 'Basic reporting', 'Email support']),
+        features: JSON.stringify(['Unlimited Invoices', 'Advanced Analytics', '5 Users + Management', 'Free E-commerce Website']),
         isActive: true,
       },
     }),
+    // Quarterly Plan (3 months) - 10% discount
     prisma.subscriptionPlan.upsert({
-      where: { id: 'plan-standard' },
+      where: { id: 'plan-quarterly' },
       update: {},
       create: {
-        id: 'plan-standard',
-        name: 'Standard Plan',
-        description: 'Ideal for growing businesses',
-        price: 2499,
-        durationDays: 30,
-        features: JSON.stringify(['Unlimited products', 'Advanced analytics', 'Priority support', 'Multi-user access']),
+        id: 'plan-quarterly',
+        name: 'Quarterly Plan',
+        description: 'Save 10% with 3 months commitment',
+        price: 1350, // 500 * 3 = 1500, 10% off = 1350
+        durationDays: 90,
+        features: JSON.stringify(['Unlimited Invoices', 'Advanced Analytics', '5 Users + Management', 'Free E-commerce Website', 'Priority Support']),
         isActive: true,
       },
     }),
+    // Yearly Plan - 15% discount
     prisma.subscriptionPlan.upsert({
-      where: { id: 'plan-premium' },
+      where: { id: 'plan-yearly' },
       update: {},
       create: {
-        id: 'plan-premium',
-        name: 'Premium Plan',
-        description: 'For established businesses with advanced needs',
-        price: 4999,
-        durationDays: 30,
-        features: JSON.stringify(['Everything in Standard', 'API access', 'Dedicated account manager', 'Custom integrations']),
+        id: 'plan-yearly',
+        name: 'Yearly Plan',
+        description: 'Save 15% with annual commitment - Best Value!',
+        price: 5100, // 500 * 12 = 6000, 15% off = 5100
+        durationDays: 365,
+        features: JSON.stringify(['Unlimited Invoices', 'Advanced Analytics', '10 Users + Management', 'Free E-commerce Website', 'Priority Support', 'API Access']),
         isActive: true,
       },
     }),

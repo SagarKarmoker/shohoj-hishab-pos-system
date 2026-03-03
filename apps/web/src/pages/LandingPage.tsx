@@ -740,47 +740,43 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
               <p className="text-slate-600 dark:text-slate-400">{t('pricing.subtitle')}</p>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {/* Free Plan */}
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Monthly Plan */}
               <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-lg relative overflow-hidden">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2">{t('pricing.free.name')}</h3>
+                  <h3 className="text-2xl font-bold mb-2">{t('pricing.monthly.name')}</h3>
                   <div className="text-4xl font-extrabold text-slate-900 dark:text-white">
-                    {t('pricing.free.price')} <span className="text-lg font-normal text-slate-500">{t('pricing.free.period')}</span>
+                    {t('pricing.monthly.price')} <span className="text-lg font-normal text-slate-500">{t('pricing.monthly.period')}</span>
                   </div>
-                  <p className="text-slate-500 mt-4">{t('pricing.free.description')}</p>
+                  <p className="text-slate-500 mt-4">{t('pricing.monthly.description')}</p>
                 </div>
                 <ul className="space-y-4 mb-8">
-                  {(t('pricing.free.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
+                  {(t('pricing.monthly.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                     <li key={index} className="flex items-center gap-3">
                       <Icon name="check" className="text-success" />
                       <span className="text-slate-700 dark:text-slate-300">{feature}</span>
                     </li>
                   ))}
-                  <li className="flex items-center gap-3">
-                    <Icon name="check" className="text-slate-300" />
-                    <span className="text-slate-400">{(t('pricing.pro.features', { returnObjects: true }) as string[])[3]}</span>
-                  </li>
                 </ul>
                 <button className="cursor-pointer w-full py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 font-bold hover:border-primary hover:text-primary transition-all">
-                  {t('pricing.free.cta')}
+                  {t('pricing.monthly.cta')}
                 </button>
               </div>
 
-              {/* Pro Plan */}
-              <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border-2 border-primary shadow-xl relative overflow-hidden">
+              {/* Quarterly Plan */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border-2 border-primary shadow-xl relative overflow-hidden transform scale-105">
                 <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
-                  {t('pricing.pro.badge')}
+                  {t('pricing.quarterly.badge')}
                 </div>
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2 text-primary">{t('pricing.pro.name')}</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-primary">{t('pricing.quarterly.name')}</h3>
                   <div className="text-4xl font-extrabold text-slate-900 dark:text-white">
-                    {t('pricing.pro.price')} <span className="text-lg font-normal text-slate-500">{t('pricing.pro.period')}</span>
+                    {t('pricing.quarterly.price')} <span className="text-lg font-normal text-slate-500">{t('pricing.quarterly.period')}</span>
                   </div>
-                  <p className="text-slate-500 mt-4">{t('pricing.pro.description')}</p>
+                  <p className="text-slate-500 mt-4">{t('pricing.quarterly.description')}</p>
                 </div>
                 <ul className="space-y-4 mb-8">
-                  {(t('pricing.pro.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
+                  {(t('pricing.quarterly.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                     <li key={index} className="flex items-center gap-3">
                       <Icon name="check" className="text-success" />
                       <span className="text-slate-700 dark:text-slate-300">{feature}</span>
@@ -788,7 +784,32 @@ export function LandingPage({ isDark, onToggleTheme, onNavigateToLogin, onNaviga
                   ))}
                 </ul>
                 <button className="cursor-pointer w-full py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover shadow-lg shadow-orange-500/30 transition-all">
-                  {t('pricing.pro.cta')}
+                  {t('pricing.quarterly.cta')}
+                </button>
+              </div>
+
+              {/* Yearly Plan */}
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
+                  {t('pricing.yearly.badge')}
+                </div>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold mb-2 text-green-600">{t('pricing.yearly.name')}</h3>
+                  <div className="text-4xl font-extrabold text-slate-900 dark:text-white">
+                    {t('pricing.yearly.price')} <span className="text-lg font-normal text-slate-500">{t('pricing.yearly.period')}</span>
+                  </div>
+                  <p className="text-slate-500 mt-4">{t('pricing.yearly.description')}</p>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  {(t('pricing.yearly.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
+                    <li key={index} className="flex items-center gap-3">
+                      <Icon name="check" className="text-success" />
+                      <span className="text-slate-700 dark:text-slate-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button className="cursor-pointer w-full py-3 rounded-xl border-2 border-green-600 text-green-600 font-bold hover:bg-green-600 hover:text-white transition-all">
+                  {t('pricing.yearly.cta')}
                 </button>
               </div>
             </div>

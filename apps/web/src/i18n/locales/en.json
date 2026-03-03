@@ -47,31 +47,49 @@
     "badge": "Pricing Plan",
     "title": "Transparent & Affordable Pricing",
     "subtitle": "Suitable plans for all types of businesses, small or large.",
-    "free": {
-      "name": "Free Starter",
-      "price": "৳ 0",
-      "period": "/ Lifetime",
-      "description": "Perfect for new businesses.",
-      "features": [
-        "50 Invoices per day",
-        "Basic Reports",
-        "1 User"
-      ],
-      "cta": "Start for Free"
-    },
-    "pro": {
-      "name": "Pro Business",
-      "badge": "Popular",
+    "monthly": {
+      "name": "Monthly Plan",
       "price": "৳ 500",
       "period": "/ Month",
-      "description": "For large shops and supermarkets.",
+      "description": "Perfect for flexibility.",
       "features": [
         "Unlimited Invoices",
         "Advanced Analytics",
         "5 Users + Management",
         "Free E-commerce Website"
       ],
-      "cta": "Start 7-Day Free Trial"
+      "cta": "Start Free Trial"
+    },
+    "quarterly": {
+      "name": "Quarterly Plan",
+      "badge": "Save 10%",
+      "price": "৳ 1,350",
+      "period": "/ 3 Months",
+      "description": "Best value for growing businesses.",
+      "features": [
+        "Unlimited Invoices",
+        "Advanced Analytics",
+        "5 Users + Management",
+        "Free E-commerce Website",
+        "Priority Support"
+      ],
+      "cta": "Start Free Trial"
+    },
+    "yearly": {
+      "name": "Yearly Plan",
+      "badge": "Save 15%",
+      "price": "৳ 5,100",
+      "period": "/ Year",
+      "description": "Maximum savings for committed businesses.",
+      "features": [
+        "Unlimited Invoices",
+        "Advanced Analytics",
+        "10 Users + Management",
+        "Free E-commerce Website",
+        "Priority Support",
+        "API Access"
+      ],
+      "cta": "Start Free Trial"
     }
   },
   "cta": {
