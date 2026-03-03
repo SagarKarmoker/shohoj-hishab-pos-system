@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { useShop } from '../contexts/ShopContext';
-import { getCustomers, createCustomer, collectPayment, type Customer } from '../api/customer';
+import { getCustomers, createCustomer, collectPayment, getPaymentHistory, type Customer, type Payment } from '../api/customer';
 import { getTransactions, type TransactionWithCustomer } from '../api/transaction';
+import { getMonthlyCollected } from '../api/shop';
 
 interface CreditPageProps {
   isDark: boolean;
@@ -25,17 +26,24 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
   const [addSubmitting, setAddSubmitting] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [historyPayments, setHistoryPayments] = useState<Payment[]>([]);
   const [historyTransactions, setHistoryTransactions] = useState<TransactionWithCustomer[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [monthlyCollected, setMonthlyCollected] = useState(0);
 
   const loadCustomers = useCallback(async () => {
     if (!currentShop) return;
     setLoading(true);
     try {
-      const data = await getCustomers(currentShop.id);
-      setCustomers(data);
+      const [customerData, monthlyData] = await Promise.all([
+        getCustomers(currentShop.id),
+        getMonthlyCollected(currentShop.id),
+      ]);
+      setCustomers(customerData);
+      setMonthlyCollected(monthlyData.totalCollected);
     } catch {
       setCustomers([]);
     } finally {
@@ -83,11 +91,13 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
     setPaymentSubmitting(true);
     setPaymentError(null);
     try {
-      const updated = await collectPayment(currentShop.id, selectedCustomer.id, amount);
-      setCustomers((prev) => prev.map((c) => (c.id === selectedCustomer.id ? updated : c)));
+      await collectPayment(currentShop.id, selectedCustomer.id, amount, paymentMethod);
+      const updatedCustomers = await getCustomers(currentShop.id);
+      setCustomers(updatedCustomers);
       setShowPaymentModal(false);
       setSelectedCustomer(null);
       setPaymentAmount('');
+      setPaymentMethod('cash');
     } catch (err) {
       setPaymentError(err instanceof Error ? err.message : 'Failed to collect payment');
     } finally {
@@ -98,6 +108,7 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
   const openPaymentModal = (customer: Customer) => {
     setSelectedCustomer(customer);
     setPaymentAmount(String(Math.min(100, customer.dueBalance)));
+    setPaymentMethod('cash');
     setShowPaymentModal(true);
     setPaymentError(null);
   };
@@ -105,9 +116,18 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
   useEffect(() => {
     if (!currentShop || !showHistoryModal || !selectedCustomer) return;
     setHistoryLoading(true);
-    getTransactions(currentShop.id, { customerId: selectedCustomer.id })
-      .then(setHistoryTransactions)
-      .catch(() => setHistoryTransactions([]))
+    Promise.all([
+      getTransactions(currentShop.id, { customerId: selectedCustomer.id }),
+      getPaymentHistory(currentShop.id, selectedCustomer.id),
+    ])
+      .then(([txs, payments]) => {
+        setHistoryTransactions(txs);
+        setHistoryPayments(payments);
+      })
+      .catch(() => {
+        setHistoryTransactions([]);
+        setHistoryPayments([]);
+      })
       .finally(() => setHistoryLoading(false));
   }, [currentShop, showHistoryModal, selectedCustomer?.id]);
 
@@ -185,7 +205,7 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
               </div>
               <div>
                 <p className="text-sm text-slate-500">{t('credit.collectedThisMonth')}</p>
-                <p className="text-2xl font-bold text-green-600">৳0</p>
+                <p className="text-2xl font-bold text-green-600">৳{Math.round(monthlyCollected).toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -358,6 +378,20 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-orange-500 outline-none"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payment Method</label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-orange-500 outline-none"
+                >
+                  <option value="cash">Cash</option>
+                  <option value="bkash">bKash</option>
+                  <option value="nagad">Nagad</option>
+                  <option value="card">Card</option>
+                  <option value="bank">Bank Transfer</option>
+                </select>
+              </div>
               {paymentError && <p className="text-red-600 text-sm">{paymentError}</p>}
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => { setShowPaymentModal(false); setSelectedCustomer(null); }} className="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
@@ -382,26 +416,61 @@ export function CreditPage({ isDark, onToggleTheme, onBackToDashboard }: CreditP
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
                 </div>
-              ) : historyTransactions.length === 0 ? (
+              ) : historyTransactions.length === 0 && historyPayments.length === 0 ? (
                 <p className="text-slate-500 text-center py-6">{t('credit.noTransactionsYet')}</p>
               ) : (
-                historyTransactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="flex justify-between items-center py-3 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-sm"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-800 dark:text-slate-200">{tx.invoiceNumber}</p>
-                      <p className="text-xs text-slate-500">{formatDate(tx.createdAt)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-slate-800 dark:text-slate-200">৳{Math.round(tx.totalAmount)}</p>
-                      {tx.dueAmount > 0 && (
-                        <p className="text-xs text-orange-600">{t('credit.due')}: ৳{Math.round(tx.dueAmount)}</p>
-                      )}
-                    </div>
-                  </div>
-                ))
+                <>
+                  {(() => {
+                    const items: Array<{ id: string; type: 'sale' | 'payment'; title: string; amount: number; dueAmount: number; date: string }> = [
+                      ...historyTransactions.map((tx) => ({
+                        id: tx.id,
+                        type: 'sale' as const,
+                        title: tx.invoiceNumber,
+                        amount: tx.totalAmount,
+                        dueAmount: tx.dueAmount,
+                        date: tx.createdAt,
+                      })),
+                      ...historyPayments.map((p) => ({
+                        id: p.id,
+                        type: 'payment' as const,
+                        title: `Payment (${p.paymentMethod})`,
+                        amount: p.amount,
+                        dueAmount: 0,
+                        date: p.createdAt,
+                      })),
+                    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                    return items.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`flex justify-between items-center py-3 px-4 rounded-lg text-sm ${
+                          item.type === 'payment'
+                            ? 'bg-green-50 dark:bg-green-900/20'
+                            : 'bg-slate-50 dark:bg-slate-700/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon
+                            name={item.type === 'payment' ? 'payments' : 'receipt'}
+                            className={item.type === 'payment' ? 'text-green-600' : 'text-slate-500'}
+                          />
+                          <div>
+                            <p className="font-medium text-slate-800 dark:text-slate-200">{item.title}</p>
+                            <p className="text-xs text-slate-500">{formatDate(item.date)}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${item.type === 'payment' ? 'text-green-600' : 'text-slate-800 dark:text-slate-200'}`}>
+                            {item.type === 'payment' ? '+' : ''}৳{Math.round(item.amount)}
+                          </p>
+                          {item.type === 'sale' && item.dueAmount > 0 && (
+                            <p className="text-xs text-orange-600">{t('credit.due')}: ৳{Math.round(item.dueAmount)}</p>
+                          )}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </>
               )}
             </div>
             <button onClick={() => { setShowHistoryModal(false); setSelectedCustomer(null); }} className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg font-medium cursor-pointer">

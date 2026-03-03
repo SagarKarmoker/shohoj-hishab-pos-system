@@ -57,6 +57,7 @@ export const ModelName = {
   Customer: 'Customer',
   Transaction: 'Transaction',
   TransactionItem: 'TransactionItem',
+  Payment: 'Payment',
   SubscriptionPlan: 'SubscriptionPlan',
   SalesPerson: 'SalesPerson',
   Sale: 'Sale',
@@ -187,6 +188,20 @@ export const TransactionItemScalarFieldEnum = {
 } as const
 
 export type TransactionItemScalarFieldEnum = (typeof TransactionItemScalarFieldEnum)[keyof typeof TransactionItemScalarFieldEnum]
+
+
+export const PaymentScalarFieldEnum = {
+  id: 'id',
+  amount: 'amount',
+  paymentMethod: 'paymentMethod',
+  customerId: 'customerId',
+  receivedById: 'receivedById',
+  shopId: 'shopId',
+  notes: 'notes',
+  createdAt: 'createdAt'
+} as const
+
+export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
 
 
 export const SubscriptionPlanScalarFieldEnum = {

@@ -56,7 +56,7 @@ export class ShopService {
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
-    const [todayTransactions, todayAggregates, lowStock, recentTransactions] = await Promise.all([
+    const [todayTransactions, todayAggregates, todayPayments, lowStock, recentTransactions, recentPayments] = await Promise.all([
       this.prisma.transaction.findMany({
         where: {
           shopId,
@@ -81,6 +81,16 @@ export class ShopService {
         },
         _count: true,
       }),
+      this.prisma.payment.findMany({
+        where: {
+          shopId,
+          createdAt: { gte: startOfDay, lte: endOfDay },
+        },
+        select: {
+          amount: true,
+          paymentMethod: true,
+        },
+      }),
       this.prisma.$queryRaw<
         { id: string; name: string; stock: number; minStock: number; unit: string; category: string | null }[]
       >(
@@ -99,21 +109,63 @@ export class ShopService {
           customer: { select: { name: true } },
         },
       }),
+      this.prisma.payment.findMany({
+        where: { shopId },
+        take: 15,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          customer: { select: { name: true } },
+        },
+      }),
     ]);
 
     const totalSales = Number(todayAggregates._sum.totalAmount ?? 0);
-    const cashCollected = todayTransactions
+    const cashFromSales = todayTransactions
       .filter((t) => t.paymentMethod === 'cash')
       .reduce((sum, t) => sum + Number(t.paidAmount), 0);
-    const creditCollected = todayTransactions
-      .filter((t) => t.customerId != null)
-      .reduce((sum, t) => sum + Number(t.paidAmount), 0);
+    const cashFromPayments = todayPayments
+      .filter((p) => p.paymentMethod === 'cash')
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+    const cashCollected = cashFromSales + cashFromPayments;
+    const creditCollected = todayPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+
+    const totalDueResult = await this.prisma.transaction.aggregate({
+      where: { shopId, dueAmount: { gt: new Prisma.Decimal(0) } },
+      _sum: { dueAmount: true },
+    });
+    const totalDue = Number(totalDueResult._sum.dueAmount ?? 0);
+
+    const combinedRecent = [
+      ...recentTransactions.map((t) => ({
+        id: t.id,
+        type: 'sale' as const,
+        invoiceNumber: t.invoiceNumber,
+        totalAmount: Number(t.totalAmount),
+        paidAmount: Number(t.paidAmount),
+        dueAmount: Number(t.dueAmount),
+        paymentMethod: t.paymentMethod,
+        createdAt: t.createdAt,
+        customer: t.customer ? { name: t.customer.name } : null,
+      })),
+      ...recentPayments.map((p) => ({
+        id: p.id,
+        type: 'payment' as const,
+        invoiceNumber: `PAY-${p.id.substring(0, 6)}`,
+        totalAmount: Number(p.amount),
+        paidAmount: Number(p.amount),
+        dueAmount: 0,
+        paymentMethod: p.paymentMethod,
+        createdAt: p.createdAt,
+        customer: p.customer ? { name: p.customer.name } : null,
+      })),
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 15);
 
     return {
       todaySummary: {
         totalSales,
         cashCollected,
         creditCollected,
+        totalDue,
         transactionCount: todayAggregates._count,
       },
       lowStock: lowStock.map((p) => ({
@@ -124,16 +176,29 @@ export class ShopService {
         unit: p.unit,
         category: p.category,
       })),
-      recentTransactions: recentTransactions.map((t) => ({
-        id: t.id,
-        invoiceNumber: t.invoiceNumber,
-        totalAmount: Number(t.totalAmount),
-        paidAmount: Number(t.paidAmount),
-        dueAmount: Number(t.dueAmount),
-        paymentMethod: t.paymentMethod,
-        createdAt: t.createdAt,
-        customer: t.customer ? { name: t.customer.name } : null,
-      })),
+      recentTransactions: combinedRecent,
+    };
+  }
+
+  async getMonthlyCollected(shopId: string, userId: string): Promise<{ totalCollected: number }> {
+    await this.findOne(shopId, userId);
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const aggregated = await this.prisma.payment.aggregate({
+      where: {
+        shopId,
+        createdAt: { gte: startOfMonth, lte: endOfMonth },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    return {
+      totalCollected: Number(aggregated._sum.amount ?? 0),
     };
   }
 }

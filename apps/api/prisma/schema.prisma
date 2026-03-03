@@ -71,6 +71,7 @@ model User {
   sales        Sale[]
   auditLogs    AuditLog[]     @relation("AuditLogUser")
   loginHistory LoginHistory[] @relation("LoginHistoryUser")
+  payments     Payment[]
 }
 
 // Shop model - represents a business/store
@@ -88,6 +89,7 @@ model Shop {
   products     Product[]
   transactions Transaction[]
   customers    Customer[]
+  payments     Payment[]
 }
 
 // Product model - items in inventory
@@ -131,6 +133,7 @@ model Customer {
 
   // Relations
   transactions Transaction[]
+  payments     Payment[]
 }
 
 // Transaction model - sales transactions
@@ -153,7 +156,8 @@ model Transaction {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  items TransactionItem[]
+  items    TransactionItem[]
+  payments Payment[]                  @relation("PaymentTransactions")
 }
 
 // Transaction item - individual items in a transaction
@@ -167,6 +171,24 @@ model TransactionItem {
   productId     String
   product       Product     @relation(fields: [productId], references: [id])
   createdAt     DateTime    @default(now())
+}
+
+// Payment model - tracks credit payments received from customers
+model Payment {
+  id             String      @id @default(uuid())
+  amount         Decimal     @db.Decimal(10, 2)
+  paymentMethod  String      @default("cash") // cash, bkash, nagad, card
+  customerId     String
+  customer       Customer    @relation(fields: [customerId], references: [id])
+  receivedById    String
+  receivedBy     User        @relation(fields: [receivedById], references: [id])
+  shopId         String
+  shop           Shop        @relation(fields: [shopId], references: [id])
+  notes          String?
+  createdAt      DateTime    @default(now())
+
+  // Relations - which transactions this payment applies to
+  transactions   Transaction[] @relation("PaymentTransactions")
 }
 
 // Subscription Plan model

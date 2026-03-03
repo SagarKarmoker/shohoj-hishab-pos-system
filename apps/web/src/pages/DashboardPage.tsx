@@ -334,7 +334,7 @@ export function DashboardPage({
                   {t('dashboard.viewDetails')}
                 </button>
               </div>
-              <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden">
                   <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-full blur-2xl"></div>
                   <div className="relative z-10">
@@ -374,6 +374,17 @@ export function DashboardPage({
                     <div className="mt-2 flex items-center text-xs text-orange-600 font-bold bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-lg w-fit">
                       <span>{dashboardData?.todaySummary?.transactionCount ?? 0} {t('dashboard.transactions')}</span>
                     </div>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-full blur-2xl"></div>
+                  <div className="relative z-10">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">
+                      {t('accounts.totalDue')}
+                    </p>
+                    <h3 className="text-2xl font-bold text-red-600">
+                      {dashboardLoading ? '...' : formatAmount(dashboardData?.todaySummary?.totalDue ?? 0)}
+                    </h3>
                   </div>
                 </div>
               </div>

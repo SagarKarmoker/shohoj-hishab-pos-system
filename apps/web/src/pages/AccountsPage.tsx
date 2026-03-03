@@ -4,8 +4,15 @@ import i18n from '../i18n';
 import { Icon } from '../components/Icon';
 import { useShop } from '../contexts/ShopContext';
 import { getTransactions, getTransactionById, type TransactionWithCustomer } from '../api/transaction';
+import { type Payment } from '../api/customer';
 import { generateInvoicePDF as createInvoicePDF } from '../utils/pdfInvoice';
 import html2pdf from 'html2pdf.js';
+
+type TransactionItem = TransactionWithCustomer | (Payment & { type: 'payment' });
+
+function isPayment(item: TransactionItem): item is Payment & { type: 'payment' } {
+  return 'type' in item && (item as Payment & { type: 'payment' }).type === 'payment';
+}
 
 interface AccountsPageProps {
   isDark: boolean;
@@ -13,11 +20,12 @@ interface AccountsPageProps {
   onBackToDashboard: () => void;
 }
 
-type DisplayType = 'sale' | 'credit';
+type DisplayType = 'sale' | 'credit' | 'payment';
 
 const typeConfig: Record<DisplayType, { labelKey: string; icon: string; color: string; bgColor: string }> = {
   sale: { labelKey: 'accounts.sale', icon: 'shopping_cart', color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
   credit: { labelKey: 'accounts.credit', icon: 'account_balance', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
+  payment: { labelKey: 'accounts.payment', icon: 'payments', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
 };
 
 function getDateRange(range: 'today' | 'week' | 'month' | 'all'): { dateFrom?: string; dateTo?: string } {
@@ -43,7 +51,7 @@ function getDateRange(range: 'today' | 'week' | 'month' | 'all'): { dateFrom?: s
 export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: AccountsPageProps) {
   const { t } = useTranslation();
   const { currentShop } = useShop();
-  const [transactions, setTransactions] = useState<TransactionWithCustomer[]>([]);
+  const [transactions, setTransactions] = useState<Array<TransactionWithCustomer | (Payment & { type: 'payment' })>>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<DisplayType | 'all'>('all');
@@ -72,22 +80,33 @@ export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: Accou
     loadTransactions();
   }, [loadTransactions]);
 
-  const getDisplayType = (tx: TransactionWithCustomer): DisplayType =>
-    tx.customer && tx.dueAmount > 0 ? 'credit' : 'sale';
+  const getDisplayType = (tx: TransactionItem): DisplayType => {
+    if (isPayment(tx)) return 'payment';
+    return tx.customer && tx.dueAmount > 0 ? 'credit' : 'sale';
+  };
 
   const filteredTransactions = transactions.filter((tx) => {
     const displayType = getDisplayType(tx);
-    const matchesSearch =
-      tx.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (tx.customer?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+    const customerName = tx.customer?.name ?? '';
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = isPayment(tx)
+      ? customerName.toLowerCase().includes(searchLower)
+      : tx.invoiceNumber.toLowerCase().includes(searchLower) ||
+        customerName.toLowerCase().includes(searchLower);
     const matchesType = filterType === 'all' || displayType === filterType;
     return matchesSearch && matchesType;
   });
 
-  const totalIncome = filteredTransactions.reduce((sum, tx) => sum + tx.paidAmount, 0);
-  const totalCredit = filteredTransactions.reduce((sum, tx) => sum + tx.dueAmount, 0);
-  const totalExpense = 0;
-  const netBalance = totalIncome - totalExpense;
+  const totalIncome = filteredTransactions.reduce((sum, tx) => {
+    if (isPayment(tx)) return sum;
+    return sum + tx.totalAmount;
+  }, 0);
+  const totalCredit = filteredTransactions.reduce((sum, tx) => {
+    if (isPayment(tx)) return sum;
+    return sum + tx.dueAmount;
+  }, 0);
+  const totalPaid = totalIncome - totalCredit;
+  const netBalance = totalPaid;
 
   const formatDateTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -151,19 +170,36 @@ export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: Accou
       labels.payment, labels.items || 'Items', labels.total, labels.paid, labels.due
     ];
     
-    const rowsHtml = filteredTransactions.map((tx, index) => `
-      <tr style="${index % 2 === 0 ? 'background: #f9fafb;' : ''}">
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${new Date(tx.createdAt).toLocaleDateString('en-GB')}</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.invoiceNumber.substring(0, 10)}</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.customer?.name || '-'}</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.dueAmount > 0 ? labels.credit : labels.sale}</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${getPaymentLabel(tx.paymentMethod)}</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">-</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.totalAmount.toFixed(0)}</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.paidAmount.toFixed(0)}</td>
-        <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.dueAmount.toFixed(0)}</td>
-      </tr>
-    `).join('');
+    const rowsHtml = filteredTransactions.map((tx, index) => {
+      if (isPayment(tx)) {
+        return `
+          <tr style="${index % 2 === 0 ? 'background: #eff6ff;' : ''}">
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${new Date(tx.createdAt).toLocaleDateString('en-GB')}</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">PAY-${tx.id.substring(0, 6)}</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.customer?.name || '-'}</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">Payment</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${getPaymentLabel(tx.paymentMethod)}</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">-</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.amount.toFixed(0)}</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.amount.toFixed(0)}</td>
+            <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳0</td>
+          </tr>
+        `;
+      }
+      return `
+        <tr style="${index % 2 === 0 ? 'background: #f9fafb;' : ''}">
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${new Date(tx.createdAt).toLocaleDateString('en-GB')}</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.invoiceNumber.substring(0, 10)}</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.customer?.name || '-'}</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${tx.dueAmount > 0 ? labels.credit : labels.sale}</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">${getPaymentLabel(tx.paymentMethod)}</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">-</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.totalAmount.toFixed(0)}</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.paidAmount.toFixed(0)}</td>
+          <td style="padding: 8px 4px; text-align: center; font-size: 10px; color: #000000;">৳${tx.dueAmount.toFixed(0)}</td>
+        </tr>
+      `;
+    }).join('');
 
     const headersHtml = headers.map(h => `<th style="padding: 10px 4px; text-align: center; font-size: 11px; font-weight: bold; background: #f97316; color: #ffffff;">${h}</th>`).join('');
 
@@ -362,12 +398,12 @@ export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: Accou
           </div>
           <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center">
-                <Icon name="arrow_downward" className="text-red-600 text-xl" />
+              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
+                <Icon name="check_circle" className="text-green-600 text-xl" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">{t('accounts.totalExpense')}</p>
-                <p className="text-2xl font-bold text-red-600">{loading ? '...' : `৳${Math.round(totalExpense).toLocaleString()}`}</p>
+                <p className="text-sm text-slate-500">{t('accounts.totalPaid')}</p>
+                <p className="text-2xl font-bold text-green-600">{loading ? '...' : `৳${Math.round(totalPaid).toLocaleString()}`}</p>
               </div>
             </div>
           </div>
@@ -471,7 +507,42 @@ export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: Accou
                   filteredTransactions.map((tx) => {
                     const displayType = getDisplayType(tx);
                     const config = typeConfig[displayType];
+                    
+                    if (isPayment(tx)) {
+                      const desc = tx.customer ? `Payment (${tx.customer.name})` : 'Payment';
+                      return (
+                        <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                          <td className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-400">PAY-{tx.id.substring(0, 6)}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${config.bgColor} ${config.color}`}>
+                              <Icon name={config.icon} className="text-sm" />
+                              {t(config.labelKey)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="font-medium text-slate-800 dark:text-slate-200">{desc}</p>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={tx.paymentMethod === 'bkash' ? 'text-[#e2136e] font-bold text-sm' : 'text-slate-600 dark:text-slate-400 text-sm'}>
+                              {getPaymentLabel(tx.paymentMethod)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <span className="font-bold text-blue-600">+৳{Math.round(tx.amount)}</span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-500">
+                            <div>{formatDateTime(tx.createdAt).date}</div>
+                            <div className="text-xs">{formatDateTime(tx.createdAt).time}</div>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className="text-slate-300 text-sm" title="Payments don't have invoices">-</span>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    
                     const desc = tx.customer ? `${tx.invoiceNumber} (${tx.customer.name})` : tx.invoiceNumber;
+                    const isCredit = tx.dueAmount > 0;
                     return (
                       <tr key={tx.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                         <td className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-400">{tx.invoiceNumber}</td>
@@ -483,6 +554,11 @@ export function AccountsPage({ isDark, onToggleTheme, onBackToDashboard }: Accou
                         </td>
                         <td className="px-6 py-4">
                           <p className="font-medium text-slate-800 dark:text-slate-200">{desc}</p>
+                          {isCredit && (
+                            <p className="text-xs text-orange-600 mt-1">
+                              Paid: ৳{Math.round(tx.totalAmount - tx.dueAmount)} | Due: ৳{Math.round(tx.dueAmount)}
+                            </p>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <span className={tx.paymentMethod === 'bkash' ? 'text-[#e2136e] font-bold text-sm' : 'text-slate-600 dark:text-slate-400 text-sm'}>

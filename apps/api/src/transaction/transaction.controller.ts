@@ -26,12 +26,15 @@ export class TransactionController {
     @Query('all') all?: string,
   ) {
     if (all === 'true') {
-      return this.transactionService.findByShop(shopId, req.user.id);
+      return this.transactionService.findByShop(shopId, req.user.id, { includePayments: true });
     }
-    const options: { dateFrom?: Date; dateTo?: Date; customerId?: string } = {};
+    const options: { dateFrom?: Date; dateTo?: Date; customerId?: string; includePayments?: boolean } = {};
     if (dateFrom) options.dateFrom = new Date(dateFrom);
     if (dateTo) options.dateTo = new Date(dateTo);
-    if (customerId) options.customerId = customerId;
+    if (customerId) {
+      options.customerId = customerId;
+      options.includePayments = true;
+    }
     return this.transactionService.findByShop(shopId, req.user.id, options);
   }
 

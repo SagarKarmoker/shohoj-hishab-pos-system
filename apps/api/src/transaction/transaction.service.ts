@@ -18,7 +18,7 @@ export class TransactionService {
   async findByShop(
     shopId: string,
     userId: string,
-    options?: { dateFrom?: Date; dateTo?: Date; customerId?: string },
+    options?: { dateFrom?: Date; dateTo?: Date; customerId?: string; includePayments?: boolean },
   ) {
     await this.verifyShopAccess(shopId, userId);
     const where: { shopId: string; customerId?: string; createdAt?: { gte?: Date; lte?: Date } } = { shopId };
@@ -36,7 +36,7 @@ export class TransactionService {
         where.createdAt.lte = end;
       }
     }
-    return this.prisma.transaction.findMany({
+    const transactions = await this.prisma.transaction.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       take: 500,
@@ -44,6 +44,57 @@ export class TransactionService {
         customer: { select: { name: true } },
       },
     });
+
+    if (options?.includePayments) {
+      const paymentWhere: { shopId: string; customerId?: string; createdAt?: { gte?: Date; lte?: Date } } = { shopId };
+      if (options?.customerId) paymentWhere.customerId = options.customerId;
+      if (options?.dateFrom || options?.dateTo) {
+        paymentWhere.createdAt = {};
+        if (options.dateFrom) {
+          const start = new Date(options.dateFrom);
+          start.setHours(0, 0, 0, 0);
+          paymentWhere.createdAt.gte = start;
+        }
+        if (options.dateTo) {
+          const end = new Date(options.dateTo);
+          end.setHours(23, 59, 59, 999);
+          paymentWhere.createdAt.lte = end;
+        }
+      }
+      
+      const payments = await this.prisma.payment.findMany({
+        where: paymentWhere,
+        orderBy: { createdAt: 'desc' },
+        take: 500,
+        include: {
+          customer: { select: { name: true } },
+          receivedBy: { select: { displayName: true } },
+        },
+      });
+
+      const formattedPayments = payments.map((p) => ({
+        id: p.id,
+        type: 'payment',
+        amount: p.amount,
+        paymentMethod: p.paymentMethod,
+        customerId: p.customerId,
+        customer: p.customer,
+        notes: p.notes,
+        createdAt: p.createdAt,
+        receivedBy: p.receivedBy,
+      }));
+
+      const formattedTransactions = transactions.map((t) => ({
+        ...t,
+        type: 'sale',
+      }));
+
+      return [...formattedTransactions, ...formattedPayments].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+    }
+
+    return transactions;
   }
 
   async findById(shopId: string, transactionId: string, userId: string) {

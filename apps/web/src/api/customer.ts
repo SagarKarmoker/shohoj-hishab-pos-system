@@ -30,6 +30,18 @@ export interface Customer {
   }>;
 }
 
+export interface Payment {
+  id: string;
+  amount: number;
+  paymentMethod: string;
+  customerId: string;
+  customer?: { name: string };
+  notes?: string | null;
+  receivedBy?: { displayName: string | null };
+  transactions?: Array<{ id: string; invoiceNumber: string }>;
+  createdAt: string;
+}
+
 export async function getCustomers(shopId: string): Promise<Customer[]> {
   const { data } = await axios.get<Customer[]>(`${API_URL}/shops/${shopId}/customers`, {
     headers: getAuthHeaders(),
@@ -56,11 +68,32 @@ export async function createCustomer(
   return { ...data, dueBalance: Number(data.dueBalance) };
 }
 
-export async function collectPayment(shopId: string, customerId: string, amount: number): Promise<Customer> {
-  const { data } = await axios.post<Customer>(
+export async function collectPayment(
+  shopId: string,
+  customerId: string,
+  amount: number,
+  paymentMethod?: string,
+  transactionIds?: string[],
+  notes?: string,
+): Promise<Payment> {
+  const { data } = await axios.post<Payment>(
     `${API_URL}/shops/${shopId}/customers/${customerId}/collect`,
-    { amount },
+    { amount, paymentMethod, transactionIds, notes },
     { headers: getAuthHeaders() },
   );
-  return { ...data, dueBalance: Number(data.dueBalance) };
+  return {
+    ...data,
+    amount: Number(data.amount),
+  };
+}
+
+export async function getPaymentHistory(shopId: string, customerId: string): Promise<Payment[]> {
+  const { data } = await axios.get<Payment[]>(
+    `${API_URL}/shops/${shopId}/customers/${customerId}/payments`,
+    { headers: getAuthHeaders() },
+  );
+  return data.map((p) => ({
+    ...p,
+    amount: Number(p.amount),
+  }));
 }

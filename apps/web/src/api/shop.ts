@@ -24,6 +24,7 @@ export interface DashboardData {
     totalSales: number;
     cashCollected: number;
     creditCollected: number;
+    totalDue: number;
     transactionCount: number;
   };
   lowStock: Array<{
@@ -36,6 +37,7 @@ export interface DashboardData {
   }>;
   recentTransactions: Array<{
     id: string;
+    type?: 'sale' | 'payment';
     invoiceNumber: string;
     totalAmount: number;
     paidAmount: number;
@@ -69,6 +71,13 @@ export async function updateShop(shopId: string, dto: { name?: string; address?:
 
 export async function getShopDashboard(shopId: string): Promise<DashboardData> {
   const { data } = await axios.get<DashboardData>(`${API_URL}/shops/${shopId}/dashboard`, {
+    headers: getAuthHeaders(),
+  });
+  return data;
+}
+
+export async function getMonthlyCollected(shopId: string): Promise<{ totalCollected: number }> {
+  const { data } = await axios.get<{ totalCollected: number }>(`${API_URL}/shops/${shopId}/monthly-collected`, {
     headers: getAuthHeaders(),
   });
   return data;

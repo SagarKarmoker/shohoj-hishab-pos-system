@@ -55,8 +55,17 @@ export class ShopController {
   @ApiResponse({ status: 200, description: 'Shop details' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Shop not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getOne(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     return this.shopService.findOne(id, req.user.id);
+  }
+
+  @Get(':id/monthly-collected')
+  @ApiOperation({ summary: 'Get monthly collected payments', description: 'Get total credit payments collected this month' })
+  @ApiResponse({ status: 200, description: 'Monthly collected amount' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 404, description: 'Shop not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getMonthlyCollected(@Param('id') id: string, @Request() req: { user: { id: string } }) {
+    return this.shopService.getMonthlyCollected(id, req.user.id);
   }
 }
