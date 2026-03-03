@@ -41,9 +41,9 @@ export function Sidebar({
 
   const navItems: NavItem[] = [
     { id: 'dashboard', label: t('admin.dashboard', 'Dashboard'), icon: 'dashboard' },
-    { id: 'users', label: t('admin.users', 'Users'), icon: 'group', superAdminOnly: true },
-    { id: 'plans', label: t('admin.plans', 'Plans'), icon: 'card_membership', superAdminOnly: true },
-    { id: 'sales', label: t('admin.sales', 'Sales'), icon: 'trending_up', salesOnly: true },
+    { id: 'users', label: t('admin.users', 'Users'), icon: 'group' },
+    { id: 'plans', label: t('admin.plans', 'Plans'), icon: 'card_membership' },
+    { id: 'sales', label: t('admin.sales', 'Sales'), icon: 'trending_up' },
     { id: 'revenue', label: t('admin.revenue', 'Revenue'), icon: 'payments', superAdminOnly: true },
     { id: 'audit-logs', label: t('admin.auditLogs', 'Audit Logs'), icon: 'history', superAdminOnly: true },
     { id: 'announcements', label: t('admin.announcements', 'Announcements'), icon: 'campaign', superAdminOnly: true },

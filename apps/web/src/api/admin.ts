@@ -236,6 +236,31 @@ export const createAdmin = async (
   return response.data;
 };
 
+// Sales Person
+export interface SalesPerson {
+  id: string;
+  userId: string;
+  displayName: string | null;
+  phoneNumber: string | null;
+  email: string;
+  commissionRate: number;
+  totalSales: number;
+  totalEarnings: number;
+  isActive: boolean;
+}
+
+export const addSalesPerson = async (
+  userId: string,
+  commissionRate?: number
+): Promise<SalesPerson> => {
+  const response = await axios.post<SalesPerson>(
+    `${API_URL}/admin/sales`,
+    { userId, commissionRate },
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
 // Audit Logs
 export interface AuditLog {
   id: string;
