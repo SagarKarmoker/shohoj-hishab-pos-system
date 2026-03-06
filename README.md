@@ -58,6 +58,49 @@ shohoj-hishab/
 - RESTful API architecture
 - CORS enabled
 
+### Monitoring
+- Sentry for error tracking and performance monitoring
+- Custom metrics collection for API endpoints
+
+## Sentry Monitoring
+
+The API is integrated with Sentry for error tracking and performance monitoring.
+
+### Configuration
+
+Add your Sentry DSN to the environment file:
+
+```bash
+# apps/api/.env
+SENTRY_DSN=https://your-dsn@sentry.io/project-id
+```
+
+### Metrics
+
+The following custom metrics are automatically collected:
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `http.requests` | Counter | Total HTTP requests with method, status, endpoint tags |
+| `http.response_time` | Distribution | Response time in milliseconds |
+
+### Usage
+
+You can also manually track custom metrics in any service:
+
+```typescript
+import { SentryMetricsService } from './config/sentry-metrics.service';
+
+constructor(private readonly sentryMetrics: SentryMetricsService) {}
+
+someMethod() {
+  this.sentryMetrics.increment('custom.counter', 1, { tag: 'value' });
+  this.sentryMetrics.distribution('response.time', 150, 'milliseconds');
+  this.sentryMetrics.gauge('current.connections', 10);
+  this.sentryMetrics.set('unique.users', 42);
+}
+```
+
 ### Development Tools
 - Turborepo for monorepo management
 - pnpm workspaces for package management
