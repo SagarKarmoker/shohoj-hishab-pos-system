@@ -1,3 +1,4 @@
+import './instrument';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -11,6 +12,7 @@ async function bootstrap() {
   });
   
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  
   app.useGlobalFilters(new GlobalExceptionFilter());
   
   app.enableCors();
